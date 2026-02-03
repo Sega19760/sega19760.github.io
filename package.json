@@ -1,0 +1,13 @@
+{
+  "name": "alex-multiplayer-signaling",
+  "version": "1.0.0",
+  "description": "WebSocket signaling server for Alex's multiplayer demo",
+  "type": "module",
+  "main": "signaling-server.js",
+  "scripts": {
+    "start": "node signaling-server.js"
+  },
+  "dependencies": {
+    "ws": "^8.14.2"
+  }
+}
