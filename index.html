@@ -73,14 +73,23 @@
   .small{font-size:12px}
   .touch-controls{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:80;display:none}
   .touch-controls.active{display:block}
-  .touch-joystick{position:absolute;width:150px;height:150px;border-radius:50%;border:2px solid rgba(255,255,255,0.25);background:rgba(0,0,0,0.25);pointer-events:auto;touch-action:none;z-index:82}
+  .touch-controls.editing{pointer-events:auto;z-index:210}
+  .touch-controls.editing [data-action]{box-shadow:0 0 0 2px rgba(124,196,255,0.6)}
+  .touch-joystick{position:absolute;width:150px;height:150px;border-radius:50%;border:2px solid rgba(255,255,255,0.25);background:rgba(0,0,0,0.25);pointer-events:auto;touch-action:none;z-index:82;transform:translate(-50%,-50%)}
   .touch-joystick::after{content:'';position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;background:rgba(255,255,255,0.3);transition:transform 0.06s ease;transform:translate(var(--jx,0px),var(--jy,0px))}
-  .touch-joystick.move{left:24px;bottom:24px}
+  .touch-joystick.move{left:calc(var(--layout-x,18) * 1%);top:calc(var(--layout-y,78) * 1%)}
   .touch-look-area{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;touch-action:none;z-index:81;background:transparent}
-  .touch-buttons{position:absolute;right:26px;top:calc(50% - 120px);display:flex;flex-direction:column;gap:16px;pointer-events:auto}
-  .touch-button{width:110px;padding:10px 0;border-radius:28px;background:rgba(0,0,0,0.45);border:2px solid rgba(255,255,255,0.25);color:#fff;text-align:center;font-size:14px;font-weight:600;touch-action:none}
-  .touch-button.small{width:86px;font-size:12px;align-self:flex-end}
+  .touch-buttons{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+  .touch-button{position:absolute;width:110px;padding:10px 0;border-radius:28px;background:rgba(0,0,0,0.45);border:2px solid rgba(255,255,255,0.25);color:#fff;text-align:center;font-size:14px;font-weight:600;touch-action:none;pointer-events:auto;transform:translate(-50%,-50%)}
+  .touch-button.small{width:86px;font-size:12px}
+  .touch-button[data-action]{left:calc(var(--layout-x,80) * 1%);top:calc(var(--layout-y,68) * 1%)}
   .touch-button.active{background:rgba(255,255,255,0.25);border-color:rgba(255,255,255,0.55)}
+  .touch-layout-overlay{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:flex-end;justify-content:center;padding:24px;z-index:220;pointer-events:none}
+  .touch-layout-overlay.show{display:flex}
+  .touch-layout-card{pointer-events:auto;background:rgba(8,16,28,0.88);border:1px solid rgba(124,196,255,0.4);border-radius:16px;padding:16px 20px;max-width:320px;text-align:center;box-shadow:0 16px 40px rgba(0,0,0,0.55);color:#e8f4ff}
+  .touch-layout-title{font-weight:700;letter-spacing:0.06em;text-transform:uppercase;font-size:14px;margin-bottom:8px;color:#7cc4ff}
+  .touch-layout-note{font-size:12px;opacity:0.82;margin-bottom:14px}
+  .touch-layout-card button{padding:10px 20px;border-radius:999px;background:#3da6ff;border:none;color:#fff;font-weight:600;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,0.45)}
   .parry-flash{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;background:rgba(255,255,255,0.65);opacity:0;transition:opacity 0.18s ease;mix-blend-mode:screen;z-index:140}
   @media(hover:none) and (pointer:coarse){
     .touch-controls{display:block}
@@ -119,7 +128,6 @@
     .hud{left:50%;top:8px;transform:translateX(-50%);max-width:calc(100% - 24px);text-align:center;padding:8px 12px;font-size:13px}
     .players{left:50%;top:auto;bottom:8px;transform:translateX(-50%);max-width:calc(100% - 24px);text-align:center;padding:8px 12px;font-size:12px}
     .instructions{left:50%;right:auto;top:auto;bottom:calc(8px + 120px);transform:translateX(-50%);max-width:calc(100% - 40px);font-size:12px;padding:8px 12px}
-    .touch-buttons{right:16px;top:auto;bottom:24px;flex-direction:column-reverse}
   }
 </style>
 </head>
@@ -211,6 +219,11 @@
       <div class="menu-section" data-content="options">
         <label class="menu-toggle"><input type="checkbox" id="alexlandToggle"> Alexland Mode</label>
         <div class="menu-note">Replace every texture with the victory flip gif.</div>
+        <div id="mobileTouchOptions" class="menu-subsection hidden">
+          <button id="btnEditTouchLayout" type="button">Edit Touch Controls</button>
+          <button id="btnResetTouchLayout" class="menu-link" type="button">Reset Touch Layout</button>
+          <div class="menu-note">Drag the on-screen buttons while editing their placement.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -298,7 +311,7 @@
 </div>
 
 <div id="touchControls" class="touch-controls">
-  <div id="touchMove" class="touch-joystick move"></div>
+  <div id="touchMove" class="touch-joystick move" data-action="move"></div>
   <div id="touchLook" class="touch-look-area"></div>
   <div class="touch-buttons">
     <div class="touch-button" data-action="jump">Jump</div>
@@ -307,6 +320,14 @@
     <div class="touch-button" data-action="punch">Punch</div>
     <div class="touch-button small" data-action="wheel">Wheel</div>
     <div class="touch-button" data-action="shoot">Shoot</div>
+  </div>
+</div>
+
+<div id="touchLayoutOverlay" class="touch-layout-overlay">
+  <div class="touch-layout-card">
+    <div class="touch-layout-title">Touch Layout Editor</div>
+    <div class="touch-layout-note">Drag each button to reposition it. Tap Done to return.</div>
+    <button id="btnTouchLayoutDone" type="button">Done</button>
   </div>
 </div>
 
@@ -966,6 +987,17 @@ const touchControlsEl = document.getElementById('touchControls');
 const touchMoveEl = document.getElementById('touchMove');
 const touchLookEl = document.getElementById('touchLook');
 const touchButtons = Array.from(document.querySelectorAll('.touch-button'));
+const touchElementMap = new Map();
+if(touchMoveEl){ touchElementMap.set('move', touchMoveEl); }
+touchButtons.forEach(btn=>{
+  const action = btn.dataset.action;
+  if(action){ touchElementMap.set(action, btn); }
+});
+const touchLayoutOptionsEl = document.getElementById('mobileTouchOptions');
+const editTouchLayoutButton = document.getElementById('btnEditTouchLayout');
+const resetTouchLayoutButton = document.getElementById('btnResetTouchLayout');
+const touchLayoutOverlayEl = document.getElementById('touchLayoutOverlay');
+const touchLayoutDoneButton = document.getElementById('btnTouchLayoutDone');
 const mainMenuEl = document.getElementById('mainMenu');
 const menuTabs = Array.from(document.querySelectorAll('.menu-tab'));
 const menuSections = Array.from(document.querySelectorAll('.menu-section'));
@@ -1173,6 +1205,175 @@ const touchState = {
   justFired: false,
   justPunched: false
 };
+
+const TOUCH_LAYOUT_STORAGE_KEY = 'alex-touch-layout';
+const defaultTouchLayout = Object.freeze({
+  move: { x: 18, y: 78 },
+  jump: { x: 82, y: 60 },
+  dash: { x: 68, y: 52 },
+  slide: { x: 68, y: 70 },
+  punch: { x: 82, y: 74 },
+  wheel: { x: 58, y: 84 },
+  shoot: { x: 82, y: 86 }
+});
+let touchLayout = loadTouchLayout();
+let touchLayoutEditing = false;
+let touchInterfaceActive = false;
+const touchLayoutDragState = { action: null, pointerId: null, element: null };
+const touchLayoutMenuState = { mainDisplay: null, pauseDisplay: null };
+
+function cloneTouchLayout(source){
+  const result = {};
+  const input = source || defaultTouchLayout;
+  for(const key of Object.keys(defaultTouchLayout)){
+    const src = input[key] || defaultTouchLayout[key];
+    result[key] = { x: src.x, y: src.y };
+  }
+  return result;
+}
+
+function clampLayoutValue(value){
+  if(!Number.isFinite(value)) return null;
+  return Math.min(96, Math.max(4, value));
+}
+
+function normalizeTouchLayout(layout){
+  const normalized = {};
+  const input = layout || {};
+  for(const key of Object.keys(defaultTouchLayout)){
+    const base = defaultTouchLayout[key];
+    const candidate = input[key] || {};
+    const x = clampLayoutValue(Number(candidate.x));
+    const y = clampLayoutValue(Number(candidate.y));
+    normalized[key] = {
+      x: x === null ? base.x : x,
+      y: y === null ? base.y : y
+    };
+  }
+  return normalized;
+}
+
+function loadTouchLayout(){
+  if(typeof window === 'undefined' || !window.localStorage){
+    return cloneTouchLayout(defaultTouchLayout);
+  }
+  try{
+    const stored = window.localStorage.getItem(TOUCH_LAYOUT_STORAGE_KEY);
+    if(stored){
+      const parsed = JSON.parse(stored);
+      return normalizeTouchLayout(parsed);
+    }
+  }catch(err){}
+  return cloneTouchLayout(defaultTouchLayout);
+}
+
+function saveTouchLayout(layout = touchLayout){
+  if(typeof window === 'undefined' || !window.localStorage) return;
+  try{
+    const normalized = normalizeTouchLayout(layout);
+    window.localStorage.setItem(TOUCH_LAYOUT_STORAGE_KEY, JSON.stringify(normalized));
+  }catch(err){}
+}
+
+function applyTouchLayout(layout){
+  const normalized = normalizeTouchLayout(layout);
+  touchLayout = normalized;
+  for(const [action, element] of touchElementMap.entries()){
+    const pos = normalized[action];
+    if(!element || !pos) continue;
+    element.style.setProperty('--layout-x', pos.x);
+    element.style.setProperty('--layout-y', pos.y);
+  }
+}
+
+function setTouchLayoutPosition(action, xPercent, yPercent){
+  if(!action) return;
+  const current = touchLayout[action] || defaultTouchLayout[action];
+  const x = clampLayoutValue(xPercent);
+  const y = clampLayoutValue(yPercent);
+  const next = {
+    x: x === null ? current.x : x,
+    y: y === null ? current.y : y
+  };
+  touchLayout[action] = next;
+  applyTouchLayout(touchLayout);
+}
+
+function resetTouchLayout(){
+  applyTouchLayout(defaultTouchLayout);
+  saveTouchLayout(defaultTouchLayout);
+}
+
+function detectTouchInterface(){
+  if(coarsePointer){
+    return coarsePointer.matches;
+  }
+  try{
+    if(typeof navigator !== 'undefined' && typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 0){
+      return true;
+    }
+  }catch(err){}
+  return typeof window !== 'undefined' && 'ontouchstart' in window;
+}
+
+function updateTouchLayoutOptionVisibility(){
+  if(!touchLayoutOptionsEl) return;
+  const shouldShow = touchInterfaceActive;
+  touchLayoutOptionsEl.classList.toggle('hidden', !shouldShow);
+  if(!shouldShow){
+    setTouchLayoutEditing(false);
+  }
+}
+
+function setTouchLayoutEditing(enabled){
+  const next = !!enabled;
+  if(touchLayoutEditing === next) return;
+  touchLayoutEditing = next;
+  if(touchControlsEl){
+    touchControlsEl.classList.toggle('editing', touchLayoutEditing);
+    touchControlsEl.classList.toggle('active', touchLayoutEditing || touchInterfaceActive);
+  }
+  if(editTouchLayoutButton){
+    editTouchLayoutButton.textContent = touchLayoutEditing ? 'Done' : 'Edit Touch Controls';
+  }
+  if(touchLayoutEditing){
+    endMoveJoystick();
+    resetMoveVisual();
+    touchState.lookId = null;
+    touchState.lookLast = null;
+    touchState.lookOffset.set(0,0);
+    if(mainMenuEl){
+      touchLayoutMenuState.mainDisplay = mainMenuEl.style.display;
+      mainMenuEl.style.display = 'none';
+    }
+    if(pauseMenuEl){
+      touchLayoutMenuState.pauseDisplay = pauseMenuEl.style.display;
+      pauseMenuEl.style.display = 'none';
+    }
+    if(touchLayoutOverlayEl){
+      touchLayoutOverlayEl.classList.add('show');
+    }
+  } else {
+    if(touchLayoutOverlayEl){
+      touchLayoutOverlayEl.classList.remove('show');
+    }
+    if(mainMenuEl && touchLayoutMenuState.mainDisplay !== null){
+      mainMenuEl.style.display = touchLayoutMenuState.mainDisplay;
+    }
+    if(pauseMenuEl && touchLayoutMenuState.pauseDisplay !== null){
+      pauseMenuEl.style.display = touchLayoutMenuState.pauseDisplay;
+    }
+    touchLayoutMenuState.mainDisplay = null;
+    touchLayoutMenuState.pauseDisplay = null;
+    saveTouchLayout(touchLayout);
+    touchLayoutDragState.action = null;
+    touchLayoutDragState.pointerId = null;
+    touchLayoutDragState.element = null;
+  }
+  refreshTouchControls();
+}
+
+applyTouchLayout(touchLayout);
 
 let customCubeColorHex = '#01c119';
 let parryAudio = null;
@@ -2625,8 +2826,11 @@ document.addEventListener('mousemove', e=>{
 const coarsePointer = window.matchMedia ? window.matchMedia('(hover: none) and (pointer: coarse)') : null;
 function refreshTouchControls(){
   if(!touchControlsEl) return;
-  const show = coarsePointer ? coarsePointer.matches : false;
+  touchInterfaceActive = detectTouchInterface();
+  const show = touchInterfaceActive || touchLayoutEditing;
   touchControlsEl.classList.toggle('active', show);
+  touchControlsEl.classList.toggle('editing', touchLayoutEditing);
+  updateTouchLayoutOptionVisibility();
 }
 if(coarsePointer && coarsePointer.addEventListener){
   coarsePointer.addEventListener('change', refreshTouchControls);
@@ -2696,6 +2900,7 @@ function endLookDrag(touch){
   }
 }
 function handleMoveStart(event){
+  if(touchLayoutEditing) return;
   const touches = Array.from(event.changedTouches || []);
   let handled = false;
   for(const touch of touches){
@@ -2708,6 +2913,7 @@ function handleMoveStart(event){
   if(handled){ event.preventDefault(); }
 }
 function handleMoveMove(event){
+  if(touchLayoutEditing) return;
   const touches = Array.from(event.changedTouches || []);
   let handled = false;
   for(const touch of touches){
@@ -2719,6 +2925,7 @@ function handleMoveMove(event){
   if(handled){ event.preventDefault(); }
 }
 function handleMoveEnd(event){
+  if(touchLayoutEditing) return;
   const touches = Array.from(event.changedTouches || []);
   let handled = false;
   for(const touch of touches){
@@ -2730,6 +2937,7 @@ function handleMoveEnd(event){
   if(handled){ event.preventDefault(); }
 }
 function shouldIgnoreLookTouch(touch){
+  if(touchLayoutEditing) return true;
   const element = document.elementFromPoint(touch.clientX, touch.clientY);
   if(!element) return false;
   if(element.closest('#touchMove')) return true;
@@ -2739,6 +2947,7 @@ function shouldIgnoreLookTouch(touch){
   return false;
 }
 function handleLookStart(event){
+  if(touchLayoutEditing) return;
   const touches = Array.from(event.changedTouches || []);
   let handled = false;
   for(const touch of touches){
@@ -2750,6 +2959,7 @@ function handleLookStart(event){
   if(handled){ event.preventDefault(); }
 }
 function handleLookMove(event){
+  if(touchLayoutEditing) return;
   const touches = Array.from(event.changedTouches || []);
   let handled = false;
   for(const touch of touches){
@@ -2761,6 +2971,7 @@ function handleLookMove(event){
   if(handled){ event.preventDefault(); }
 }
 function handleLookEnd(event){
+  if(touchLayoutEditing) return;
   const touches = Array.from(event.changedTouches || []);
   let handled = false;
   for(const touch of touches){
@@ -2785,7 +2996,47 @@ if(touchControlsEl){
   touchControlsEl.addEventListener('contextmenu', e=> e.preventDefault());
 }
 
+function handleTouchLayoutPointerDown(event){
+  if(!touchLayoutEditing) return;
+  const target = event.target.closest('[data-action]');
+  if(!target) return;
+  const action = target.dataset.action;
+  if(!action) return;
+  touchLayoutDragState.action = action;
+  touchLayoutDragState.pointerId = event.pointerId;
+  touchLayoutDragState.element = target;
+  target.setPointerCapture?.(event.pointerId);
+  setTouchLayoutPosition(action, (event.clientX/innerWidth)*100, (event.clientY/innerHeight)*100);
+  event.preventDefault();
+}
+
+function handleTouchLayoutPointerMove(event){
+  if(!touchLayoutEditing) return;
+  if(touchLayoutDragState.pointerId !== event.pointerId) return;
+  const action = touchLayoutDragState.action;
+  if(!action) return;
+  setTouchLayoutPosition(action, (event.clientX/innerWidth)*100, (event.clientY/innerHeight)*100);
+}
+
+function handleTouchLayoutPointerUp(event){
+  if(!touchLayoutEditing) return;
+  if(touchLayoutDragState.pointerId !== event.pointerId) return;
+  touchLayoutDragState.element?.releasePointerCapture?.(event.pointerId);
+  touchLayoutDragState.action = null;
+  touchLayoutDragState.pointerId = null;
+  touchLayoutDragState.element = null;
+  saveTouchLayout(touchLayout);
+}
+
+if(touchControlsEl){
+  touchControlsEl.addEventListener('pointerdown', handleTouchLayoutPointerDown);
+  window.addEventListener('pointermove', handleTouchLayoutPointerMove);
+  window.addEventListener('pointerup', handleTouchLayoutPointerUp);
+  window.addEventListener('pointercancel', handleTouchLayoutPointerUp);
+}
+
 function setTouchButtonState(action, pressed, el){
+  if(touchLayoutEditing) return;
   if(el){ el.classList.toggle('active', pressed); }
   switch(action){
     case 'jump': touchState.jump = pressed; break;
@@ -2802,9 +3053,21 @@ function setTouchButtonState(action, pressed, el){
 touchButtons.forEach(btn=>{
   const action = btn.dataset.action;
   if(!action) return;
-  btn.addEventListener('touchstart', e=>{ setTouchButtonState(action, true, btn); e.preventDefault(); });
-  btn.addEventListener('touchend', e=>{ setTouchButtonState(action, false, btn); e.preventDefault(); });
-  btn.addEventListener('touchcancel', e=>{ setTouchButtonState(action, false, btn); e.preventDefault(); });
+  btn.addEventListener('touchstart', e=>{
+    if(touchLayoutEditing){ e.preventDefault(); return; }
+    setTouchButtonState(action, true, btn);
+    e.preventDefault();
+  });
+  btn.addEventListener('touchend', e=>{
+    if(touchLayoutEditing){ e.preventDefault(); return; }
+    setTouchButtonState(action, false, btn);
+    e.preventDefault();
+  });
+  btn.addEventListener('touchcancel', e=>{
+    if(touchLayoutEditing){ e.preventDefault(); return; }
+    setTouchButtonState(action, false, btn);
+    e.preventDefault();
+  });
 });
 
 function updateTouchFlags(){
@@ -4210,6 +4473,7 @@ function showMainMenu(){
 }
 
 function closeMainMenu(){
+  setTouchLayoutEditing(false);
   if(mainMenuEl){
     mainMenuEl.style.display = 'none';
   }
@@ -4217,6 +4481,7 @@ function closeMainMenu(){
 }
 
 function closePauseMenu(){
+  setTouchLayoutEditing(false);
   if(pauseMenuEl){ pauseMenuEl.style.display = 'none'; }
   setMenuOpen(false);
 }
@@ -4267,6 +4532,24 @@ function initializeMenuUI(){
     });
   }
 
+  if(editTouchLayoutButton){
+    editTouchLayoutButton.addEventListener('click', ()=>{
+      if(!touchLayoutEditing){
+        touchInterfaceActive = detectTouchInterface();
+      }
+      setTouchLayoutEditing(!touchLayoutEditing);
+    });
+  }
+  if(resetTouchLayoutButton){
+    resetTouchLayoutButton.addEventListener('click', ()=>{
+      resetTouchLayout();
+    });
+  }
+  if(touchLayoutDoneButton){
+    touchLayoutDoneButton.addEventListener('click', ()=> setTouchLayoutEditing(false));
+  }
+  updateTouchLayoutOptionVisibility();
+
   menuTabs.forEach(tab=>{
     tab.addEventListener('click', ()=>{
       const id = tab.dataset.tab;
@@ -4274,6 +4557,9 @@ function initializeMenuUI(){
       menuSections.forEach(section=>{
         section.classList.toggle('active', section.dataset.content === id);
       });
+        if(id !== 'options'){
+          setTouchLayoutEditing(false);
+        }
     });
   });
 
