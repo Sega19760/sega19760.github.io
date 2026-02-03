@@ -304,6 +304,7 @@
     </div>
     <div class="lobby-stage-actions">
       <button id="lobbyLeaveButton" class="lobby-ready-toggle">Leave Lobby</button>
+      <button id="lobbyReturnButton" class="lobby-ready-toggle" style="display:none">Return to Setup</button>
       <button id="lobbyReadyButton" class="lobby-ready-toggle">Ready Up</button>
       <button id="lobbyStartButton" disabled>Start Game</button>
     </div>
@@ -982,6 +983,7 @@ const lobbyFriendlyFireInput = document.getElementById('lobbyFriendlyFire');
 const lobbyReadyButton = document.getElementById('lobbyReadyButton');
 const lobbyStartButton = document.getElementById('lobbyStartButton');
 const lobbyLeaveButton = document.getElementById('lobbyLeaveButton');
+const lobbyReturnButton = document.getElementById('lobbyReturnButton');
 const weaponWheelEl = document.getElementById('weaponWheel');
 const touchControlsEl = document.getElementById('touchControls');
 const touchMoveEl = document.getElementById('touchMove');
@@ -4225,16 +4227,20 @@ function updateLobbyButtons(){
     lobbyReadyButton.textContent = localReadyState ? 'Cancel Ready' : 'Ready Up';
     lobbyReadyButton.classList.toggle('active', localReadyState);
   }
+  const hostClient = player && player.id === lobbyHostId && isHost;
   if(lobbyStartButton){
     const players = getLobbyPlayersArray();
     const allReady = players.length > 0 && players.every(p=>p.ready);
-    const hostClient = player && player.id === lobbyHostId && isHost;
     lobbyStartButton.disabled = !(hostClient && allReady);
     if(allReady){
       updateLobbyStageStatus('All players ready!');
     } else {
       updateLobbyStageStatus();
     }
+  }
+  if(lobbyReturnButton){
+    lobbyReturnButton.disabled = !hostClient;
+    lobbyReturnButton.style.display = hostClient ? '' : 'none';
   }
 }
 
@@ -4282,6 +4288,7 @@ function setLobbyHost(id){
   lobbyHostId = id;
   syncLobbyOptionUI();
   renderLobbyRoster();
+  updateLobbyButtons();
 }
 
 function updateLobbyStageTitle(name){
@@ -4350,7 +4357,40 @@ function broadcastLobbySettings(){
 
 function broadcastLobbyReady(ready){
   const payload = { t:'lobby_ready', ready: !!ready };
+  if(player && player.id){
+    payload.playerId = player.id;
+    payload.name = player.name;
+  }
   sendData(payload);
+}
+
+function applyLobbyReopen(msg){
+  const reason = msg && msg.reason ? msg.reason : 'Host reopened lobby setup';
+  const ids = Array.from(lobbyPlayersState.keys());
+  if(player && player.id){
+    localReadyState = false;
+    lobbyReadyMap.set(player.id, false);
+  } else {
+    localReadyState = false;
+  }
+  ids.forEach(id=>{
+    lobbyReadyMap.set(id, false);
+    upsertLobbyPlayer(id, { ready: false });
+  });
+  if(msg && msg.host){
+    setLobbyHost(msg.host);
+  }
+  if(msg && msg.options){
+    lobbyGameOptions = { ...lobbyGameOptions, ...msg.options };
+    syncLobbyOptionUI();
+  }
+  if(msg && msg.lobbyName){
+    setActiveLobbyName(msg.lobbyName);
+    updateLobbyStageTitle(msg.lobbyName);
+  }
+  updateLobbyButtons();
+  updateLobbyStageStatus(reason);
+  setLobbyStageVisible(true);
 }
 
 function resolveMatchOptions(options){
@@ -5200,6 +5240,13 @@ lobbyReadyButton?.addEventListener('click', ()=>{
   updateLobbyButtons();
   broadcastLobbyReady(localReadyState);
 });
+lobbyReturnButton?.addEventListener('click', ()=>{
+  if(!(player && player.id === lobbyHostId && isHost)) return;
+  const reason = 'Host returned to setup';
+  applyLobbyReopen({ reason, host: player.id, options: lobbyGameOptions });
+  const payload = { t:'lobby_reopen', reason, host: player.id, options: lobbyGameOptions, lobbyName: activeLobbyName };
+  broadcast(payload);
+});
 lobbyLeaveButton?.addEventListener('click', ()=>{
   disconnectFromSignaling('Left lobby');
   setLobbyStageVisible(false);
@@ -5515,8 +5562,12 @@ function handleRemoteMessage(peerId, msg){
 
   if(msg.t === 'lobby_ready'){
     const ready = !!msg.ready;
-    lobbyReadyMap.set(sourceId, ready);
-    upsertLobbyPlayer(sourceId, { ready });
+    const readyId = msg.playerId || sourceId;
+    if(msg.playerId && peerId){
+      peerIdToPlayerId.set(peerId, msg.playerId);
+    }
+    lobbyReadyMap.set(readyId, ready);
+    upsertLobbyPlayer(readyId, { ready, name: msg.name });
     if(isHost){
       const roster = getLobbyPlayersArray();
       sendData({ t:'lobby_state', roster, options: lobbyGameOptions, host: lobbyHostId, lobbyName: activeLobbyName });
@@ -5544,6 +5595,11 @@ function handleRemoteMessage(peerId, msg){
       updateLobbyStageTitle(msg.lobbyName);
     }
     updateLobbyButtons();
+    return;
+  }
+
+  if(msg.t === 'lobby_reopen'){
+    applyLobbyReopen(msg);
     return;
   }
 
