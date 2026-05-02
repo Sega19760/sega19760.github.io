@@ -14,45 +14,75 @@
   font-weight: bold;
 }
 
-.content {
-  padding: 20px;
-  background-color: white;
-  max-width: 900px;
-  margin: auto;
+.container {
+  display: flex;
 }
 
-a {
-  color: #0645ad;
-  text-decoration: none;
+.sidebar {
+  width: 200px;
+  background-color: #f8f9fa;
+  border-right: 1px solid #a2a9b1;
+  padding: 10px;
+  height: 100vh;
+}
+
+.sidebar a {
   display: block;
-  margin: 10px 0;
+  color: #0645ad;
+  margin: 5px 0;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+  background-color: white;
+}
+
+h1 {
+  border-bottom: 1px solid #a2a9b1;
+  font-weight: normal;
 }
 
   </style>
-</head><body><div class="topbar">Goobers Wiki</div><div class="content">
-  <h1>Main Page</h1>
-  <p>Welcome to the oofer bullying centre</p>  <h2>Articles</h2>
-  <div id="articles"></div>
-</div><script>
+</head>
+<body><div class="topbar">Goobers Wiki</div><div class="container">  <div class="sidebar" id="sidebar">
+    <h3>Articles</h3>
+  </div>  <div class="content">
+    <h1 id="title">Main Page</h1>
+    <div id="article">Select a page from the left.</div>
+  </div></div><script>
   const pages = [
-    "issac.html",
-    "pak_attak.html",
-    "toby.html",
-    "oofer.html"
+    "issac",
+    "pak_attak",
+    "toby",
+    "oofer"
   ];
 
-  const container = document.getElementById("articles");
+  const sidebar = document.getElementById("sidebar");
+  const articleDiv = document.getElementById("article");
+  const title = document.getElementById("title");
 
+  // Create sidebar links
   pages.forEach(page => {
-    if (page !== "index.html") {
-      const link = document.createElement("a");
-      link.href = page;
-
-      // Make name nicer (remove .html)
-      link.textContent = page.replace(".html", "");
-
-      container.appendChild(link);
-    }
+    const link = document.createElement("a");
+    link.textContent = page.replace(/_/g, " ");
+    link.onclick = () => loadPage(page);
+    sidebar.appendChild(link);
   });
+
+  // Load article
+  function loadPage(page) {
+    fetch(page + ".txt")
+      .then(res => res.text())
+      .then(text => {
+        title.textContent = page.replace(/_/g, " ");
+        articleDiv.innerHTML = text;
+      })
+      .catch(() => {
+        articleDiv.innerHTML = "Page not found.";
+      });
+  }
 </script></body>
 </html>
