@@ -1,0 +1,28 @@
+
+<h2>The Start</h2>
+<p>
+In the first WtG server, Tango (the owner) noticed that Tauntful was constantly ragebaiting Oofer, which led to the idea of making a war to see what side represented the group more: the ragebaited or the ragebaiters.
+There were 3 members on each team, and they were all given a specific channel to discuss how they were gonna win. The goal was to make a picture representing each team, and whichever got most points was the winner.
+</p>
+
+<h2>Members</h2>
+<h3>Non-Ragebaiters</h3>
+<ul>
+    <li>Tbass/Exec</li>
+    <li>Slime</li>
+    <li>Oofer</li>
+</ul>
+<h3>Ragebaiters</h3>
+<ul>
+    <li>Birb/Ghostly Tophat</li>
+    <li>pak_attak</li>
+    <li>Tauntful/alex14534</li>
+</ul>
+
+<h2>place holder</h2>
+<p>
+placeholder
+</p>
+
+
+
