@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html>
 <head>
   <title>Goobers Wiki</title>
   <style>
@@ -7,52 +6,53 @@
       margin: 0;
       font-family: Arial, sans-serif;
       background-color: #f6f6f6;
-    }
+    }.topbar {
+  background-color: white;
+  border-bottom: 1px solid #a2a9b1;
+  padding: 10px;
+  font-size: 20px;
+  font-weight: bold;
+}
 
-    .topbar {
-      background-color: white;
-      border-bottom: 1px solid #a2a9b1;
-      padding: 10px;
-      font-size: 20px;
-      font-weight: bold;
-    }
+.content {
+  padding: 20px;
+  background-color: white;
+  max-width: 900px;
+  margin: auto;
+}
 
-    .content {
-      padding: 20px;
-      background-color: white;
-      max-width: 900px;
-      margin: auto;
-    }
+a {
+  color: #0645ad;
+  text-decoration: none;
+  display: block;
+  margin: 10px 0;
+}
 
-    h1 {
-      border-bottom: 1px solid #a2a9b1;
-      font-weight: normal;
-    }
-
-    a {
-      color: #0645ad;
-      text-decoration: none;
-      display: block;
-      margin: 10px 0;
-    }
   </style>
-</head>
-
-<body>
-
-<div class="topbar">Goobers Wiki</div>
-
-<div class="content">
+</head><body><div class="topbar">Goobers Wiki</div><div class="content">
   <h1>Main Page</h1>
+  <p>Welcome to the oofer bullying centre</p>  <h2>Articles</h2>
+  <div id="articles"></div>
+</div><script>
+  const pages = [
+    "issac.html",
+    "pak_attak.html",
+    "toby.html",
+    "oofer.html"
+  ];
 
-  <p>Welcome to the oofer bullying centre</p>
+  const container = document.getElementById("articles");
 
-  <h2>Articles</h2>
-  <a href="issac.html">Issac Incident</a>
-  <a href="pak_attak.html">pak_attak</a>
-  <a href="toby.html">Toby</a>
-  <a href="oofer.html">oofer</a>
-</div>
+  pages.forEach(page => {
+    if (page !== "index.html") {
+      const link = document.createElement("a");
+      link.href = page;
 
-</body>
+      // Make name nicer (remove .html)
+      link.textContent = page.replace(".html", "");
+
+      container.appendChild(link);
+    }
+  });
+</script></body>
 </html>
