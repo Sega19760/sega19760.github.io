@@ -1,4 +1,4 @@
-<img src="gangnam style pfp.gif" style="width:100%; max-height:400px; object-fit:none;">
+<img src="gangnam style pfp.gif" style="width:100%; max-height:400px; object-fit:cover;">
 
 <h2>Origin</h2>
 <p>
