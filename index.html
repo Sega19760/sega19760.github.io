@@ -7,7 +7,7 @@
       font-family: Arial, sans-serif;
       background-color: #111;
       color: white;
-    }/* 🔥 Banner */
+    }
 .banner {
   position: relative;
   height: 250px;
@@ -32,7 +32,7 @@
   z-index: 1;
 }
 
-/* Layout */
+
 .container {
   display: flex;
   padding: 20px;
@@ -53,7 +53,6 @@
   cursor: pointer;
 }
 
-/* 🔥 Content card (changes color per page) */
 .content {
   flex: 1;
   padding: 20px;
@@ -75,7 +74,6 @@ h1 {
     <h1 id="title">Main Page</h1>
     <div id="article">Select a page.</div>
   </div></div><script>
-  // 🔥 CONFIG FOR EACH PAGE
   const pages = {
     issac: {
       title: "Issac Incident",
@@ -87,7 +85,7 @@ h1 {
     pak_attak: {
       title: "pak attak",
       file: "pak_attak.txt",
-      banner: "b9fbef3bf552d62e7c4e0feec71f7a3c.webp",
+      banner: "IMG_8739.png",
       color: "#2a2a0d"
     },
 
@@ -113,7 +111,7 @@ h1 {
   const bannerTitle = document.getElementById("bannerTitle");
   const contentBox = document.getElementById("contentBox");
 
-  // Create sidebar links
+
   Object.keys(pages).forEach(key => {
     const link = document.createElement("a");
     link.textContent = pages[key].title;
@@ -121,21 +119,19 @@ h1 {
     sidebar.appendChild(link);
   });
 
-  // Load page
+  
   function loadPage(key) {
     const page = pages[key];
 
-    // Change banner
+    
     banner.style.backgroundImage = `url("${page.banner}")`;
 
-    // Change colors
+
     contentBox.style.background = page.color;
 
-    // Titles
     title.textContent = page.title;
     bannerTitle.textContent = page.title;
 
-    // Load content
     fetch(page.file)
       .then(res => res.text())
       .then(text => {
