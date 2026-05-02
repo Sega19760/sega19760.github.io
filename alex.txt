@@ -2,7 +2,7 @@
 
 <h2>Origin</h2>
 <p>
-was a founding member of the original WTG, known for hosting many gamemodes like Arrowshop, AWG and AAA
+Emperor Tauntful, Tauntful or Alex14534 is a founding member of the original WTG, known for hosting many gamemodes like Arrowshop, AWG and AAA
 </p>
 
 <h2>Current Status</h2>
@@ -22,4 +22,6 @@ Also is owner of the Mr tauntful's theatre
   <li>Taunful is the 1st oldest member to join thats currently still in wtg</li>
   <li>Tauntful Lives in Juarez, Mexico</li>
   <li>He used to host custom documents, but he slowly stopped after the shutdown of Oofers Revenge.</li>
+  <li>Someone once leaked oofer's personal data, causing the original general to be transformed to Admin-General, he stated that this process wouldn't be revented anytime soon.</li>
+  <li>He has stated that if he was to step down as owner, Tango or thatrandompersoncalledtango would be the next leader, given that he has been owner of wtg in the past.</li>
 </ul>
