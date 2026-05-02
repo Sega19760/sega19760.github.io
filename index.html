@@ -1,31 +1,99 @@
 <!DOCTYPE html><html>
 <head>
-  <title>Goobers Wiki Test</title>
+  <title>Goobers Wiki</title>
   <style>
     body {
       margin: 0;
-      height: 100vh;
-      background-image: url("Screenshot_2026-04-30-22-02-53-712_com.reddit.frontpage-edit.jpg");
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
       font-family: Arial, sans-serif;
-    }.top-text {
-  position: absolute;
-  top: 20px;
-  width: 100%;
-  text-align: center;
-  color: white;
-  font-size: 28px;
+      background-color: #f6f6f6;
+    }/* Top bar */
+.topbar {
+  background-color: white;
+  border-bottom: 1px solid #a2a9b1;
+  padding: 10px;
+  font-size: 20px;
   font-weight: bold;
-  text-shadow: 2px 2px 5px black;
+}
+
+/* Layout */
+.container {
+  display: flex;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 200px;
+  background-color: #f8f9fa;
+  border-right: 1px solid #a2a9b1;
+  padding: 10px;
+  height: 100vh;
+}
+
+.sidebar h3 {
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.sidebar a {
+  display: block;
+  color: #0645ad;
+  text-decoration: none;
+  margin: 5px 0;
+}
+
+/* Content */
+.content {
+  flex: 1;
+  padding: 20px;
+  background-color: white;
+}
+
+h1 {
+  border-bottom: 1px solid #a2a9b1;
+  font-weight: normal;
+}
+
+.image {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  margin: 10px 0;
+}
+
+p {
+  line-height: 1.6;
 }
 
   </style>
 </head>
-<body>
-  <div class="top-text">
-    yo Issac get outta there bro
-  </div>
-</body>
+<body>  <div class="topbar">Goobers Wiki</div>  <div class="container"><div class="sidebar">
+  <h3>Navigation</h3>
+  <a href="#">Main page</a>
+  <a href="#">Random page</a>
+  <a href="#">Help</a>
+
+  <h3>Tools</h3>
+  <a href="#">What links here</a>
+  <a href="#">Upload file</a>
+</div>
+
+<div class="content">
+  <h1>Issac Incident</h1>
+
+  <img class="image" src="Screenshot_2026-04-30-22-02-53-712_com.reddit.frontpage-edit.jpg">
+
+  <p>
+    yo Issac get outta there bro yo Issac get outta there bro yo Issac get outta there bro yo Issac get outta there bro
+    yo Issac get outta there bro yo Issac get outta there bro yo Issac get outta there bro yo Issac get outta there bro
+    yo Issac get outta there bro yo Issac get outta there bro yo Issac get outta there bro yo Issac get outta there bro
+  </p>
+
+  <p>
+    yo Issac get outta there bro yo Issac get outta there bro yo Issac get outta there bro yo Issac get outta there bro
+    yo Issac get outta there bro yo Issac get outta there bro yo Issac get outta there bro yo Issac get outta there bro
+  </p>
+
+</div>
+
+  </div></body>
 </html>
