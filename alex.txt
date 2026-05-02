@@ -14,13 +14,12 @@ Also is owner of the Mr tauntful's theatre
 <h2>Drama</h2>
 <ul>
   <li>the Minecraft pfp drama</li>
-  <li>the RH/Klevs revenge drama</li>
-  <li>the oofer's private info leak drama</li>
+  <li>the RH/Klev's revenge drama</li>
 </ul>
 
 <h2>Fun Facts</h2>
 <ul>
-  <li>Oofer is the 2nd oldest member to join thats currently still in wtg</li>
+  <li>Taunful is the 1st oldest member to join thats currently still in wtg</li>
   <li>Tauntful Lives in Juarez, Mexico</li>
   <li>He used to host custom documents, but he slowly stopped after the shutdown of Oofers Revenge.</li>
 </ul>
