@@ -5,79 +5,140 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #f6f6f6;
-    }.topbar {
-  background-color: white;
-  border-bottom: 1px solid #a2a9b1;
-  padding: 10px;
-  font-size: 20px;
-  font-weight: bold;
+      background-color: #111;
+      color: white;
+    }/* 🔥 Banner */
+.banner {
+  position: relative;
+  height: 250px;
+  background-size: cover;
+  background-position: center;
+  transition: 0.3s;
 }
 
+.banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+}
+
+.banner-title {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  font-size: 32px;
+  font-weight: bold;
+  z-index: 1;
+}
+
+/* Layout */
 .container {
   display: flex;
+  padding: 20px;
+  gap: 20px;
 }
 
 .sidebar {
   width: 200px;
-  background-color: #f8f9fa;
-  border-right: 1px solid #a2a9b1;
+  background: #1a1a1a;
   padding: 10px;
-  height: 100vh;
 }
 
 .sidebar a {
   display: block;
-  color: #0645ad;
+  color: #4ea3ff;
   margin: 5px 0;
   text-decoration: none;
   cursor: pointer;
 }
 
+/* 🔥 Content card (changes color per page) */
 .content {
   flex: 1;
   padding: 20px;
-  background-color: white;
+  border-radius: 10px;
+  transition: 0.3s;
 }
 
 h1 {
-  border-bottom: 1px solid #a2a9b1;
-  font-weight: normal;
+  margin-top: 0;
 }
 
   </style>
 </head>
-<body><div class="topbar">Goobers Wiki</div><div class="container">  <div class="sidebar" id="sidebar">
+<body><div class="banner" id="banner">
+  <div class="banner-title" id="bannerTitle">Goobers Wiki</div>
+</div><div class="container">  <div class="sidebar" id="sidebar">
     <h3>Articles</h3>
-  </div>  <div class="content">
+  </div>  <div class="content" id="contentBox">
     <h1 id="title">Main Page</h1>
-    <div id="article">Select a page from the left.</div>
+    <div id="article">Select a page.</div>
   </div></div><script>
-  const pages = [
-    "issac",
-    "pak_attak",
-    "toby",
-    "oofer"
-  ];
+  // 🔥 CONFIG FOR EACH PAGE
+  const pages = {
+    issac: {
+      title: "Issac Incident",
+      file: "issac.txt",
+      banner: "Screenshot_2026-04-30-22-02-53-712_com.reddit.frontpage-edit.jpg",
+      color: "#2a0d2a"
+    },
+
+    pak_attak: {
+      title: "pak attak",
+      file: "pak_attak.txt",
+      banner: "b9fbef3bf552d62e7c4e0feec71f7a3c.webp",
+      color: "#2a2a0d"
+    },
+
+    toby: {
+      title: "Toby",
+      file: "toby.txt",
+      banner: "toby.jpg",
+      color: "#0d2a2a"
+    },
+
+    oofer: {
+      title: "oofer",
+      file: "oofer.txt",
+      banner: "oofer.jpg",
+      color: "#2a0d0d"
+    }
+  };
 
   const sidebar = document.getElementById("sidebar");
   const articleDiv = document.getElementById("article");
   const title = document.getElementById("title");
+  const banner = document.getElementById("banner");
+  const bannerTitle = document.getElementById("bannerTitle");
+  const contentBox = document.getElementById("contentBox");
 
   // Create sidebar links
-  pages.forEach(page => {
+  Object.keys(pages).forEach(key => {
     const link = document.createElement("a");
-    link.textContent = page.replace(/_/g, " ");
-    link.onclick = () => loadPage(page);
+    link.textContent = pages[key].title;
+    link.onclick = () => loadPage(key);
     sidebar.appendChild(link);
   });
 
-  // Load article
-  function loadPage(page) {
-    fetch(page + ".txt")
+  // Load page
+  function loadPage(key) {
+    const page = pages[key];
+
+    // Change banner
+    banner.style.backgroundImage = `url("${page.banner}")`;
+
+    // Change colors
+    contentBox.style.background = page.color;
+
+    // Titles
+    title.textContent = page.title;
+    bannerTitle.textContent = page.title;
+
+    // Load content
+    fetch(page.file)
       .then(res => res.text())
       .then(text => {
-        title.textContent = page.replace(/_/g, " ");
         articleDiv.innerHTML = text;
       })
       .catch(() => {
