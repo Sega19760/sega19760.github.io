@@ -1,17 +1,17 @@
-<img src="8d7c28a465444cb0c37c3c050a274d87.webp" style="width:100%; max-height:400px; object-fit:cover;">
+<img src="gangnam style pfp.gif" style="width:100%; max-height:400px; object-fit:cover;">
 
 <h2>Origin</h2>
 <p>
-Emperor Tauntful, Tauntful or Alex14534 is a founding member of the original WTG, known for hosting many gamemodes like Arrowshop, AWG and AAA
+Tauntful (formerly alex14534) is the founder member of WtG, known for his Item Asylum custom gamemodes, his pets, and infamy within the Roblox Hosting community.
 </p>
 
 <h2>Current Status</h2>
 <p>
-currently considered a core member of we the goobers and is the owner of the official server.
-Also is owner of the Mr tauntful's theatre
+Owner and founder of the We the Goobers server.
+Also built "Mr. Tauntful's Theater", where he shares messages, videos, images, etc.
 </p>
 
-<h2>Drama</h2>
+<h2>Known Drama</h2>
 <ul>
   <li>the Minecraft pfp drama</li>
   <li>the RH/Klev's revenge drama</li>
@@ -19,9 +19,11 @@ Also is owner of the Mr tauntful's theatre
 
 <h2>Fun Facts</h2>
 <ul>
-  <li>Taunful is the 1st oldest member to join thats currently still in wtg</li>
-  <li>Tauntful Lives in Juarez, Mexico</li>
-  <li>He used to host custom documents, but he slowly stopped after the shutdown of Oofers Revenge.</li>
-  <li>Someone once leaked oofer's personal data, causing the original general to be transformed to Admin-General, he stated that this process wouldn't be revented anytime soon.</li>
-  <li>He has stated that if he was to step down as owner, Tango or thatrandompersoncalledtango would be the next leader, given that he has been owner of wtg in the past.</li>
+  <li>Tauntful was born in May 21st, 2012</li>
+  <li>Tauntful is one of the original members that is still in WtG.</li>
+  <li>Tauntful lives in Ciudad Juarez, Chihuahua, Mexico.</li>
+  <li>He owns 8 chihuahuas and 3 cockatiels.</li>
+  <li>He used to host custom documents, but he slowly stopped after the shutdown of Oofer's Revenge due to negative reviews from other people.</li>
+  <li>Someone once leaked Oofer's personal data, causing the original general to be transformed to Admin-General, he stated that this process wouldn't be revented anytime soon.</li>
+  <li>He has stated that if he was to step down as owner, Tango would be the next leader, given that he has been owner of WtG in the past, along with being trusted and mature.</li>
 </ul>
