@@ -1,73 +1,103 @@
 <!DOCTYPE html><html>
 <head>
-  <title>Goobers Wiki</title>
-  <style>
+  <title>We The Goobers Wiki</title>  <!-- Mobile scaling -->  <meta name="viewport" content="width=device-width, initial-scale=1.0">  <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background-color: #111;
       color: white;
     }
-.banner {
-  position: relative;
-  height: 250px;
-  background-size: cover;
-  background-position: center;
-  transition: 0.3s;
-}
 
-.banner::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-}
+    /* 🔥 Banner */
+    .banner {
+      position: relative;
+      height: 200px;
+      background-size: cover;
+      background-position: center;
+    }
 
-.banner-title {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  font-size: 32px;
-  font-weight: bold;
-  z-index: 1;
-}
+    .banner::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+    }
 
+    .banner-title {
+      position: absolute;
+      bottom: 15px;
+      left: 15px;
+      font-size: 28px;
+      font-weight: bold;
+      z-index: 1;
+    }
 
-.container {
-  display: flex;
-  padding: 20px;
-  gap: 20px;
-}
+    /* Layout */
+    .container {
+      display: flex;
+      gap: 20px;
+      padding: 15px;
+    }
 
-.sidebar {
-  width: 200px;
-  background: #1a1a1a;
-  padding: 10px;
-}
+    /* Sidebar */
+    .sidebar {
+      width: 200px;
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 10px;
+    }
 
-.sidebar a {
-  display: block;
-  color: #4ea3ff;
-  margin: 5px 0;
-  text-decoration: none;
-  cursor: pointer;
-}
+    .sidebar h3 {
+      margin-top: 0;
+    }
 
-.content {
-  flex: 1;
-  padding: 20px;
-  border-radius: 10px;
-  transition: 0.3s;
-}
+    .sidebar a {
+      display: block;
+      color: #4ea3ff;
+      margin: 6px 0;
+      text-decoration: none;
+      cursor: pointer;
+    }
 
-h1 {
-  margin-top: 0;
-}
+    /* Content */
+    .content {
+      flex: 1;
+      padding: 15px;
+      border-radius: 10px;
+      transition: 0.3s;
+    }
 
-  </style>
-</head>
-<body><div class="banner" id="banner">
-  <div class="banner-title" id="bannerTitle">Goobers Wiki</div>
+    h1 {
+      margin-top: 0;
+    }
+
+    img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    /* 📱 MOBILE FIX */
+    @media (max-width: 700px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+      }
+
+      .banner {
+        height: 150px;
+      }
+
+      .banner-title {
+        font-size: 22px;
+      }
+    }
+  </style></head><body><div class="banner" id="banner">
+  <div class="banner-title">We The Goobers Wiki</div>
 </div><div class="container">  <div class="sidebar" id="sidebar">
     <h3>Articles</h3>
   </div>  <div class="content" id="contentBox">
@@ -108,10 +138,9 @@ h1 {
   const articleDiv = document.getElementById("article");
   const title = document.getElementById("title");
   const banner = document.getElementById("banner");
-  const bannerTitle = document.getElementById("bannerTitle");
   const contentBox = document.getElementById("contentBox");
 
-
+  // Create sidebar links
   Object.keys(pages).forEach(key => {
     const link = document.createElement("a");
     link.textContent = pages[key].title;
@@ -119,20 +148,21 @@ h1 {
     sidebar.appendChild(link);
   });
 
-  
+  // Load page
   function loadPage(key) {
     const page = pages[key];
 
-    
+    // Change banner
     banner.style.backgroundImage = `url("${page.banner}")`;
 
-
+    // Change theme color
     contentBox.style.background = page.color;
 
+    // Set title
     title.textContent = page.title;
-    bannerTitle.textContent = page.title;
 
-    fetch(page.file)
+    // Load content (no cache)
+    fetch(page.file + "?v=" + Date.now())
       .then(res => res.text())
       .then(text => {
         articleDiv.innerHTML = text;
