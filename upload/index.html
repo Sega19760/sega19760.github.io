@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html>
-<body style="font-family:sans-serif">
-
-<h2>Goober Upload</h2>
+<body>
 
 <input type="file" id="f">
 <button onclick="upload()">Upload</button>
@@ -10,26 +8,41 @@
 <p id="status"></p>
 
 <script>
+
 async function upload() {
 
-    let file = document.getElementById("f").files[0];
+    try {
 
-    let fd = new FormData();
+        let file = document.getElementById("f").files[0];
 
-    fd.append("file", file);
+        console.log(file);
 
-    document.getElementById("status").innerText = "uploading...";
+        let fd = new FormData();
 
-    let r = await fetch("http://YOUR_PUBLIC_IP:5000/upload", {
-        method: "POST",
-        body: fd
-    });
+        fd.append("file", file);
 
-    let j = await r.json();
+        let r = await fetch("http://localhost:5000/upload", {
+            method: "POST",
+            body: fd
+        });
 
-    document.getElementById("status").innerHTML =
-        `<a href="${j.url}">${j.url}</a>`;
+        let text = await r.text();
+
+        console.log(text);
+
+        document.getElementById("status").innerHTML =
+            `<a href="${text}">${text}</a>`;
+
+    } catch(e) {
+
+        console.error(e);
+
+        document.getElementById("status").innerText = e;
+
+    }
+
 }
+
 </script>
 
 </body>
