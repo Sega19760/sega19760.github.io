@@ -69,6 +69,13 @@ h2 {
     font-family: Impact;
 }
 
+.ipbox {
+    font-size: 18px;
+    text-align: center;
+    color: cyan;
+    margin-top: 10px;
+}
+
 .blink {
     animation: blink 0.2s infinite alternate;
 }
@@ -82,15 +89,6 @@ img {
     margin-top: 50px;
     color: gray;
     font-size: 12px;
-}
-
-a {
-    color: cyan;
-}
-
-a:hover {
-    color: yellow;
-    font-size: 22px;
 }
 
 .warning {
@@ -113,6 +111,17 @@ a:hover {
     to { transform: rotate(360deg); }
 }
 
+.button {
+    display: block;
+    margin: 25px auto;
+    padding: 12px;
+    font-size: 20px;
+    font-family: Impact;
+    background: red;
+    color: white;
+    border: 3px solid yellow;
+    cursor: pointer;
+}
 </style>
 </head>
 
@@ -127,18 +136,33 @@ a:hover {
 <h1 class="sparkle">DONNA'S CAUST</h1>
 
 <center>
-<img src="https://i.imgur.com/W6Xj4pM.gif" alt="flames">
-<img src="https://i.imgur.com/W6Xj4pM.gif" alt="flames">
-<img src="https://i.imgur.com/W6Xj4pM.gif" alt="flames">
+<img src="https://i.imgur.com/W6Xj4pM.gif">
+<img src="https://i.imgur.com/W6Xj4pM.gif">
+<img src="https://i.imgur.com/W6Xj4pM.gif">
 </center>
 
 <div class="warning">
 THIS WEBSITE IS OLDER THAN A BABY BORN IN 2027 😱
 </div>
 
+<!-- GLOBAL COUNTER -->
+<div class="box">
+<h2>GLOBAL VISITOR COUNTER</h2>
+<div class="counter">
+YOU ARE VISITOR #<span id="counter">LOADING...</span>
+</div>
+</div>
+
+<!-- IP INFO -->
+<div class="box">
+<h2>YOUR LOCATION</h2>
+<div class="ipbox" id="ipInfo">
+uhhhh.. whatchu looking at fool, wait for the damn thing to load!
+</div>
+</div>
+
 <div class="box">
 <h2>WHO IS DONNA????</h2>
-
 <p>
 Donna (they/she) is a mysterious person trapped between the years 1998 and 2007.
 Despite only being 20 years old, Donna has survived:
@@ -149,87 +173,63 @@ Despite only being 20 years old, Donna has survived:
 <li>the holocaust</li>
 <li>lead paint exposure</li>
 <li>the invention of this website</li>
-<li>at least six go postal's</li>
+<li>at least six times she went postal</li>
 <li>and whatever the hell happened in POSTAL 2</li>
 </ul>
 
 <p class="sparkle">
-Donna claims to remember everything even though they were probably learning multiplication tables during most of it.
+Donna remembers everything even though they were probably learning multiplication tables during most of it.
 </p>
 </div>
 
 <div class="box">
-<h2>DONNA'S LIFE ADVICE</h2>
+<h2>DONNA'S DEATH ADVICE</h2>
 
-<p>
-"Kid, I've seen things. I've seen a man ban all IA Hosting sites because Aperson made him throw a tantrum."
-</p>
-
-<p>
-"Back in my day, it was called Slungus Takeover"
-</p>
-
-<p>
-"One time I downloaded a roblox exploit and used it on my main"
-</p>
-
-<p class="blink">
-Donna once described a migraine as "a normal weekday""
-</p>
-
+<p>"Kid, I've seen things. I've seen a man ban IA hosting sites because someone made him rage quit."</p>
+<p>"Back in my day, it was called Slungus Takeover."</p>
+<p>"One time I downloaded a Roblox exploit and used it on my main."</p>
+<p class="blink">Don't have 50 million hentai games on your steam, or at least make them hidden.</p>
 </div>
 
 <div class="box">
 <h2>DONNA'S DAILY ROUTINE</h2>
 
 <ol>
-<li>Wake up angry at everything</li>
-<li>Drink Meth</li>
-<li>Google Nuclear Bombs and hit Shopping</li>
+<li>Wake up at uhhhhhhhhh, uhhhhhhhhh, at a time</li>
+<li>Drink Crystal Meth</li>
+<li>Google Nuclear Bombs and click Shopping</li>
 <li>Kill the bitch</li>
 <li>Regret Nothing</li>
 <li>Fall asleep to Runescape</li>
 </ol>
 
 <center>
-<img class="rotating" src="https://i.imgur.com/6RMhx.gif" alt="under construction">
+<img class="rotating" src="https://i.imgur.com/6RMhx.gif">
 </center>
-
 </div>
 
 <div class="box">
-<h2>THE MANDATED SINSITER MINDS REFERENCES</h2>
+<h2>THE MANDATED SINISTER MINDS REFERENCES</h2>
 
-<p>
-"Do you like the way life keeps you waiting?."
-</p>
-
-<p>
-"I did that."
-</p>
-
-<p>
-"its in the dark."
-</p>
-
-<p>
-"its getting closer, closer"
-</p>
-
+<p>"Do you like the way life keeps you waiting?"</p>
+<p>"I did that."</p>
+<p>"It's in the dark."</p>
+<p>"It's getting closer, closer"</p>
 </div>
 
-<div class="counter">
-YOU ARE VISITOR #19 9 14 9 19 20 5 18 / 13 9 14 4 19
-</div>
+<!-- DOXX BUTTON -->
+<button class="button" onclick="doxx()">
+GET DOXXED!!
+</button>
 
 <center>
-<img src="https://i.imgur.com/Zi6v09P.gif" alt="skull">
-<img src="https://i.imgur.com/Zi6v09P.gif" alt="skull">
-<img src="https://i.imgur.com/Zi6v09P.gif" alt="skull">
+<img src="https://i.imgur.com/Zi6v09P.gif">
+<img src="https://i.imgur.com/Zi6v09P.gif">
+<img src="https://i.imgur.com/Zi6v09P.gif">
 </center>
 
 <div class="footer">
-Best viewed with, like Oofer, brain damage (Holy shit postal 2 refence?!?).<br>
+Best viewed with, like oofer, brain damage (Holy shit postal brain damaged reference??).<br>
 © 1999-2007-2026 Donna Glee & Co
 </div>
 
@@ -238,6 +238,44 @@ Best viewed with, like Oofer, brain damage (Holy shit postal 2 refence?!?).<br>
 <audio autoplay loop>
 <source src="https://files.catbox.moe/7xq7dr.mp3" type="audio/mpeg">
 </audio>
+
+<script>
+// =========================
+// GLOBAL COUNTER (REAL API)
+// =========================
+const namespace = "donna_crypt_1999";
+const key = "main";
+
+fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
+.then(res => res.json())
+.then(data => {
+    document.getElementById("counter").textContent =
+        String(data.value).padStart(6, "0");
+});
+
+// =========================
+// IP + COUNTRY LOOKUP
+// =========================
+fetch("https://ipapi.co/json/")
+.then(res => res.json())
+.then(data => {
+    document.getElementById("ipInfo").innerHTML =
+        "IP: <b>" + data.ip + "</b><br>" +
+        "Country: <b>" + data.country_name + "</b><br>" +
+        "Region: <b>" + data.region + "</b>";
+})
+.catch(() => {
+    document.getElementById("ipInfo").innerHTML =
+        "AYAYAY HE'S USING A VPN, RATTLE EM' BOYS!";
+});
+
+// =========================
+// DOXX BUTTON
+// =========================
+function doxx() {
+    window.location.href = "https://whatismyip.com";
+}
+</script>
 
 </body>
 </html>
