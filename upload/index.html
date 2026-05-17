@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family:sans-serif">
+
+<h2>Goober Upload</h2>
+
+<input type="file" id="f">
+<button onclick="upload()">Upload</button>
+
+<p id="status"></p>
+
+<script>
+async function upload() {
+
+    let file = document.getElementById("f").files[0];
+
+    let fd = new FormData();
+
+    fd.append("file", file);
+
+    document.getElementById("status").innerText = "uploading...";
+
+    let r = await fetch("http://YOUR_PUBLIC_IP:5000/upload", {
+        method: "POST",
+        body: fd
+    });
+
+    let j = await r.json();
+
+    document.getElementById("status").innerHTML =
+        `<a href="${j.url}">${j.url}</a>`;
+}
+</script>
+
+</body>
+</html>
