@@ -15,13 +15,14 @@ html, body {
 }
 
 #player {
-    position: absolute;
+    position: fixed;
     inset: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
 }
 </style>
 </head>
+
 <body>
 
 <div id="player"></div>
@@ -29,66 +30,89 @@ html, body {
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-const PLAYLIST_ID = "PLZJTwh1kXr9U";
+const videos = [
+    "fsmOSNoCluk",
+    "2SwjYXVA-bs",
+    "C55x91kfpO0",
+    "6fk50hiAYTQ",
+    "T1UmfI7yo6k",
+    "MGZwAMbrPow",
+    "uVrQ_5ySse8",
+    "r4RzMkHnGDQ",
+    "iNiU6ObaOjg",
+    "TpAK7ESNgtA",
+    "RF0dG9OWUgc",
+    "e7Xtb9M5WhA",
+    "9qtrMpyRWpM",
+    "u23qTvV0KV8",
+    "ytFANKi2Y54",
+    "q1hXAw__bgc",
+    "NOKM37j9Ut8",
+    "7uVckZRf2RE",
+    "gJMtNR-ke0I",
+];
 
 let player;
-let videos = [];
+let queue = [];
+let currentIndex = 0;
 
-async function loadPlaylistVideos() {
-    // Uses YouTube's oEmbed playlist feed (no API key needed)
-    const url = `https://www.youtube.com/feeds/videos.xml?playlist_id=${PLAYLIST_ID}`;
+function shuffle(array) {
+    const arr = [...array];
 
-    // Uses rss2json to convert the XML feed into JSON
-    const response = await fetch(
-        "https://api.rss2json.com/v1/api.json?rss_url=" +
-        encodeURIComponent(url)
-    );
-
-    const data = await response.json();
-
-    videos = data.items.map(item => {
-        const match = item.link.match(/v=([^&]+)/);
-        return match ? match[1] : null;
-    }).filter(Boolean);
-
-    if (videos.length === 0) {
-        alert("Couldn't load playlist.");
-        return;
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
     }
 
-    playRandomVideo();
+    return arr;
 }
 
-function playRandomVideo() {
-    const randomVideo = videos[Math.floor(Math.random() * videos.length)];
+function reshuffle() {
+    queue = shuffle(videos);
 
-    if (!player) {
-        player = new YT.Player("player", {
-            videoId: randomVideo,
-            playerVars: {
-                autoplay: 1,
-                controls: 0,
-                rel: 0,
-                modestbranding: 1,
-                fs: 0
-            },
-            events: {
-                onStateChange: onPlayerStateChange
-            }
-        });
-    } else {
-        player.loadVideoById(randomVideo);
+    if (
+        player &&
+        queue.length > 1 &&
+        queue[0] === player.getVideoData().video_id
+    ) {
+        [queue[0], queue[1]] = [queue[1], queue[0]];
     }
+
+    currentIndex = 0;
 }
 
-function onPlayerStateChange(event) {
-    if (event.data === YT.PlayerState.ENDED) {
-        playRandomVideo();
+function playNext() {
+    if (currentIndex >= queue.length) {
+        reshuffle();
     }
+
+    player.loadVideoById(queue[currentIndex]);
+    currentIndex++;
 }
 
 function onYouTubeIframeAPIReady() {
-    loadPlaylistVideos();
+    reshuffle();
+
+    player = new YT.Player("player", {
+        width: "100%",
+        height: "100%",
+        videoId: queue[currentIndex++],
+        playerVars: {
+            autoplay: 1,
+            controls: 0,
+            disablekb: 1,
+            modestbranding: 1,
+            rel: 0,
+            fs: 0
+        },
+        events: {
+            onStateChange(event) {
+                if (event.data === YT.PlayerState.ENDED) {
+                    playNext();
+                }
+            }
+        }
+    });
 }
 </script>
 
