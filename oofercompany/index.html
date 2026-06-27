@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Times New Roman', Times, serif;
+    background: #f5f5f0;
+    color: #1a1a1a;
+    overflow-x: hidden;
+  }
+
+  #chaos-layer {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+  }
+
+  header {
+    background: #1a1a1a;
+    color: #f5f5f0;
+    padding: 18px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid #888;
+  }
+  header .logo {
+    font-size: 22px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+  header nav a {
+    color: #aaa;
+    text-decoration: none;
+    margin-left: 28px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .hero {
+    background: #1a1a1a;
+    color: #f5f5f0;
+    padding: 80px 60px 60px;
+    border-bottom: 1px solid #333;
+  }
+  .hero .eyebrow {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: 52px;
+    font-weight: normal;
+    line-height: 1.1;
+    max-width: 700px;
+    margin-bottom: 28px;
+  }
+  .hero p {
+    font-size: 15px;
+    color: #bbb;
+    max-width: 580px;
+    line-height: 1.8;
+  }
+  .hero .stat-row {
+    display: flex;
+    gap: 60px;
+    margin-top: 48px;
+    padding-top: 36px;
+    border-top: 1px solid #333;
+  }
+  .stat .num { font-size: 36px; color: #f5f5f0; }
+  .stat .lbl { font-size: 11px; color: #666; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+
+  .section {
+    padding: 60px;
+    border-bottom: 1px solid #ddd;
+  }
+  .section h2 {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 32px;
+  }
+  .section p {
+    font-size: 15px;
+    line-height: 1.9;
+    color: #333;
+    max-width: 720px;
+    margin-bottom: 20px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: #ddd;
+    margin-top: 32px;
+  }
+  .grid-cell {
+    background: #f5f5f0;
+    padding: 32px;
+  }
+  .grid-cell h3 { font-size: 13px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+  .grid-cell p { font-size: 13px; line-height: 1.7; color: #555; }
+
+  .ticker {
+    background: #1a1a1a;
+    color: #888;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 8px 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .ticker-inner {
+    display: inline-block;
+    animation: ticker 30s linear infinite;
+  }
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  footer {
+    background: #1a1a1a;
+    color: #555;
+    padding: 40px 60px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* CHAOS ELEMENTS */
+  .silhouette {
+    position: fixed;
+    bottom: 0;
+    font-size: 48px;
+    animation: walkAcross linear forwards;
+    pointer-events: none;
+    z-index: 9999;
+    filter: brightness(0);
+  }
+  @keyframes walkAcross {
+    0% { transform: translateX(-100px) scaleX(1); }
+    100% { transform: translateX(calc(100vw + 200px)) scaleX(1); }
+  }
+  @keyframes walkAcrossReverse {
+    0% { transform: translateX(calc(100vw + 100px)) scaleX(-1); }
+    100% { transform: translateX(-200px) scaleX(-1); }
+  }
+
+  .chaos-text {
+    position: fixed;
+    font-family: 'Comic Sans MS', cursive;
+    font-weight: bold;
+    pointer-events: none;
+    z-index: 9999;
+    white-space: nowrap;
+  }
+
+  .zoom-thing {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    font-size: 120px;
+    animation: zoomBy 0.8s ease-in forwards;
+  }
+  @keyframes zoomBy {
+    0% { transform: scale(0.1) rotate(0deg); opacity: 1; }
+    80% { transform: scale(8) rotate(720deg); opacity: 1; }
+    100% { transform: scale(0.1) rotate(1000deg); opacity: 0; }
+  }
+
+  .flash-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 9998;
+    animation: flashOut 0.4s ease-out forwards;
+  }
+  @keyframes flashOut {
+    0% { opacity: 0.6; }
+    100% { opacity: 0; }
+  }
+
+  .falling-thing {
+    position: fixed;
+    top: -100px;
+    pointer-events: none;
+    z-index: 9999;
+    font-size: 64px;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    0% { top: -100px; transform: rotate(0deg); }
+    100% { top: 110vh; transform: rotate(720deg); }
+  }
+
+  .scroll-msg {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    background: yellow;
+    color: black;
+    font-family: 'Comic Sans MS', cursive;
+    font-size: 28px;
+    font-weight: bold;
+    padding: 16px 32px;
+    border: 4px solid black;
+    pointer-events: none;
+    z-index: 9999;
+    white-space: nowrap;
+    animation: popMsg 2.5s ease-in-out forwards;
+  }
+  @keyframes popMsg {
+    0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+    15% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+    20% { transform: translateX(-50%) scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translateX(-50%) scale(0.8); }
+  }
+
+  .pirate-bar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    background: rgba(0,0,0,0.85);
+    color: white;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    padding: 10px;
+    pointer-events: none;
+    z-index: 9999;
+    animation: fadeBar 4s ease-in-out forwards;
+  }
+  @keyframes fadeBar {
+    0% { opacity: 0; } 10% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; }
+  }
+
+  .shaking {
+    animation: shake 0.5s ease-in-out;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-10px) rotate(-1deg); }
+    40% { transform: translateX(10px) rotate(1deg); }
+    60% { transform: translateX(-8px); }
+    80% { transform: translateX(8px); }
+  }
+
+  .marquee-chaos {
+    position: fixed;
+    bottom: 0; left: 0;
+    width: 100%;
+    background: red;
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    font-family: Arial;
+    padding: 8px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 9999;
+    animation: fadeBar 4s ease-in-out forwards;
+  }
+  .marquee-inner {
+    display: inline-block;
+    animation: ticker 5s linear forwards;
+  }
+
+  .ufo {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    font-size: 80px;
+    animation: ufoFly 2s ease-in-out forwards;
+  }
+  @keyframes ufoFly {
+    0% { transform: translateX(-200px) translateY(0); opacity: 1; }
+    50% { transform: translateX(50vw) translateY(-80px); opacity: 1; }
+    100% { transform: translateX(calc(100vw + 200px)) translateY(0); opacity: 0; }
+  }
+
+  .typewriter-chaos {
+    position: fixed;
+    background: white;
+    border: 3px solid black;
+    padding: 20px 28px;
+    font-family: 'Courier New', monospace;
+    font-size: 20px;
+    pointer-events: none;
+    z-index: 9999;
+    animation: fadeBar 4s ease-in-out forwards;
+  }
+
+  .spin-logo {
+    position: fixed;
+    font-size: 100px;
+    pointer-events: none;
+    z-index: 9999;
+    animation: spinAway 2s ease-in-out forwards;
+  }
+  @keyframes spinAway {
+    0% { transform: scale(0) rotate(0deg); opacity: 1; }
+    50% { transform: scale(1.5) rotate(360deg); opacity: 1; }
+    100% { transform: scale(0) rotate(720deg); opacity: 0; }
+  }
+
+  .cursor-trail {
+    position: fixed;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    background: red;
+    animation: trailFade 0.5s ease-out forwards;
+  }
+  @keyframes trailFade {
+    0% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0); }
+  }
+
+  .content-section { transition: filter 0.3s; }
+</style>
+</head>
+<body>
+
+<div id="chaos-layer"></div>
+
+<header>
+  <div class="logo">The Oofer Company</div>
+  <nav>
+    <a href="#">About</a>
+    <a href="#">Services</a>
+    <a href="#">Investors</a>
+    <a href="#">Contact</a>
+  </nav>
+</header>
+
+<div class="ticker">
+  <div class="ticker-inner">
+    &nbsp;&nbsp;&nbsp;OOFC +2.4% &nbsp;|&nbsp; Q3 EARNINGS EXCEED PROJECTIONS &nbsp;|&nbsp; NEW PARADIGM INITIATIVE UNDERWAY &nbsp;|&nbsp; STRATEGIC ALIGNMENT CONFIRMED &nbsp;|&nbsp; SYNERGY METRICS AT ALL-TIME HIGH &nbsp;|&nbsp; BOARD APPROVES VERTICAL INTEGRATION &nbsp;|&nbsp; OOFC +2.4% &nbsp;|&nbsp; Q3 EARNINGS EXCEED PROJECTIONS &nbsp;|&nbsp; NEW PARADIGM INITIATIVE UNDERWAY &nbsp;|&nbsp; STRATEGIC ALIGNMENT CONFIRMED &nbsp;|&nbsp; SYNERGY METRICS AT ALL-TIME HIGH &nbsp;|&nbsp; BOARD APPROVES VERTICAL INTEGRATION &nbsp;
+  </div>
+</div>
+
+<div class="hero content-section">
+  <div class="eyebrow">Est. 2003 &mdash; Global Operations &mdash; 47 Countries</div>
+  <h1>Delivering Sustained Value Through Disciplined Execution</h1>
+  <p>The Oofer Company is a diversified holdings and solutions enterprise committed to the rigorous application of best-in-class methodologies across our full-spectrum portfolio of service verticals. We do not take this lightly.</p>
+  <div class="stat-row">
+    <div class="stat"><div class="num">$4.1B</div><div class="lbl">Revenue</div></div>
+    <div class="stat"><div class="num">14,200</div><div class="lbl">Employees</div></div>
+    <div class="stat"><div class="num">47</div><div class="lbl">Countries</div></div>
+    <div class="stat"><div class="num">99.4%</div><div class="lbl">Client Retention</div></div>
+  </div>
+</div>
+
+<div class="section content-section">
+  <h2>Our Mission</h2>
+  <p>The Oofer Company exists to identify, cultivate, and deliver measurable outcomes for our clients, stakeholders, and the communities in which we operate. This is not a statement we make lightly. It is a commitment encoded into every layer of our organizational architecture.</p>
+  <p>Since our founding, we have maintained an unwavering focus on the fundamentals: operational discipline, stakeholder transparency, and the kind of patient, long-horizon thinking that distinguishes truly durable enterprises from those merely chasing quarterly metrics.</p>
+</div>
+
+<div class="section content-section">
+  <h2>Core Capabilities</h2>
+  <div class="grid-3">
+    <div class="grid-cell">
+      <h3>Strategic Advisory</h3>
+      <p>We partner with senior leadership teams to align organizational capabilities with long-term value creation frameworks. Engagements typically span 18 to 36 months.</p>
+    </div>
+    <div class="grid-cell">
+      <h3>Capital Allocation</h3>
+      <p>Our proprietary allocation methodology draws on two decades of cross-sector pattern recognition to optimize portfolio composition under varying macroeconomic conditions.</p>
+    </div>
+    <div class="grid-cell">
+      <h3>Operations Optimization</h3>
+      <p>Using a blend of process engineering and behavioral economics, we systematically reduce friction in client workflows while preserving institutional knowledge.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section content-section">
+  <h2>Leadership Philosophy</h2>
+  <p>We believe that great organizations are not built on vision alone, but on the painstaking, day-to-day effort of thousands of individuals who understand their role in a larger system. The Oofer Company has cultivated a culture of deliberate understatement. We say what we mean. We do what we say. We file our reports on time.</p>
+  <p>Our executive committee convenes quarterly to review performance against objectives, reassess risk exposure, and confirm that all synergistic alignment initiatives remain properly synergized. These meetings run exactly as long as they need to and no longer.</p>
+</div>
+
+<div class="section content-section">
+  <h2>Investor Relations</h2>
+  <p>The Oofer Company (ticker: OOFC) has delivered consistent shareholder returns over eleven consecutive fiscal years. Our dividend policy reflects a conservative payout ratio designed to balance near-term income generation with the capital retention requirements of our ongoing expansion into secondary markets.</p>
+  <p>Copies of our annual report, proxy statement, and Form 10-K are available upon request. We recommend reading them in full. They are, we are told, thorough.</p>
+</div>
+
+<div class="section content-section">
+  <h2>Sustainability & Governance</h2>
+  <p>The Oofer Company takes its responsibilities to the environment, to society, and to sound governance seriously. We have appointed a dedicated Chief Sustainability Officer, established a cross-functional ESG task force, and committed to achieving carbon neutrality by 2041. Progress reports are issued annually and are available in the Investor Relations section of this website.</p>
+</div>
+
+<footer>
+  <div>&copy; 2024 The Oofer Company. All rights reserved. OOFC is listed on NYSE.</div>
+  <div>Privacy Policy &nbsp;|&nbsp; Terms of Use &nbsp;|&nbsp; Cookie Preferences</div>
+</footer>
+
+<script>
+const chaos = document.getElementById('chaos-layer');
+
+const silhouettes = ['🧍','🚶','🏃','🧎','🕺','💃','🧟','🧛','🧙','🧝','🧜','🧚','👻','💀','🤖','👽','🐈','🐕','🦊','🐺','🦁','🐸','🐧','🦆','🦅','🐊','🦖','🐉','🦄','🐙'];
+
+const messagesPool = [
+  "OOFER MOMENT",
+  "why are we still here",
+  "please send help",
+  "this is fine",
+  "i am a professional",
+  "YEET",
+  "stonks only go up",
+  "404: meaning not found",
+  "bruh",
+  "OK BOOMER",
+  "we are so back",
+  "it's joever",
+  "nuh uh",
+  "NOOOOO",
+  "bro woke up and chose violence",
+  "certified bruh moment",
+  "I'm normal I promise",
+  "help me",
+];
+
+const pirateTexts = [
+  "⚠️  This video has been recorded and is protected by copyright.",
+  "🔒  Unauthorized distribution of this content is strictly prohibited.",
+  "⚠️  Property of Oofer Company Entertainment Division © 2024",
+  "🎬  This screener copy is watermarked. Report piracy: 1-800-OOFER",
+];
+
+const chaosEvents = [
+  // 1. Crowd of silhouettes walking across
+  () => {
+    const count = Math.floor(Math.random() * 30) + 20;
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'silhouette';
+        el.textContent = silhouettes[Math.floor(Math.random() * silhouettes.length)];
+        const direction = Math.random() > 0.5;
+        el.style.bottom = (Math.random() * 60 + 5) + '%';
+        el.style.fontSize = (Math.random() * 40 + 30) + 'px';
+        const dur = Math.random() * 3 + 2;
+        if (direction) {
+          el.style.left = '-80px';
+          el.style.animation = `walkAcross ${dur}s linear forwards`;
+        } else {
+          el.style.right = '-80px';
+          el.style.left = 'auto';
+          el.style.animation = `walkAcrossReverse ${dur}s linear forwards`;
+        }
+        chaos.appendChild(el);
+        setTimeout(() => el.remove(), dur * 1000 + 200);
+      }, i * 60);
+    }
+  },
+
+  // 2. Pirate movie bar
+  () => {
+    const el = document.createElement('div');
+    el.className = 'pirate-bar';
+    el.textContent = pirateTexts[Math.floor(Math.random() * pirateTexts.length)];
+    const pos = Math.random() > 0.5 ? 'top' : 'bottom';
+    el.style[pos === 'top' ? 'top' : 'bottom'] = '0';
+    el.style[pos === 'top' ? 'bottom' : 'top'] = 'auto';
+    chaos.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  },
+
+  // 3. Giant emoji zooms in and out
+  () => {
+    const emojis = ['💥','🎉','🔥','💀','👁️','🤡','💩','🎸','🚀','⚡','🌈','🎊','👾','🕹️'];
+    const el = document.createElement('div');
+    el.className = 'zoom-thing';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = (Math.random() * 60 + 10) + '%';
+    el.style.top = (Math.random() * 60 + 10) + '%';
+    chaos.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+  },
+
+  // 4. Colored flash
+  () => {
+    const colors = ['#ff000044','#00ff0033','#0000ff44','#ffff0033','#ff00ff33','#00ffff33'];
+    const el = document.createElement('div');
+    el.className = 'flash-overlay';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    chaos.appendChild(el);
+    setTimeout(() => el.remove(), 500);
+  },
+
+  // 5. Things fall from sky
+  () => {
+    const things = ['🍕','🎵','💸','⭐','❓','💔','🎲','🃏','🧸','🪩','🍌','🎈','🏀','💣','🧨'];
+    const count = Math.floor(Math.random() * 8) + 3;
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'falling-thing';
+        el.textContent = things[Math.floor(Math.random() * things.length)];
+        el.style.left = (Math.random() * 90) + '%';
+        el.style.fontSize = (Math.random() * 40 + 40) + 'px';
+        const dur = Math.random() * 2 + 1.5;
+        el.style.animation = `fall ${dur}s linear forwards`;
+        chaos.appendChild(el);
+        setTimeout(() => el.remove(), dur * 1000 + 100);
+      }, i * 150);
+    }
+  },
+
+  // 6. Pop-up message
+  () => {
+    const el = document.createElement('div');
+    el.className = 'scroll-msg';
+    el.style.top = (Math.random() * 50 + 20) + '%';
+    el.textContent = messagesPool[Math.floor(Math.random() * messagesPool.length)];
+    const colors = ['yellow','#00ff88','#ff88ff','#88ffff','orange','#ff4444'];
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    chaos.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  },
+
+  // 7. UFO flies across
+  () => {
+    const el = document.createElement('div');
+    el.className = 'ufo';
+    el.textContent = '🛸';
+    el.style.top = (Math.random() * 50 + 5) + '%';
+    el.style.left = '-200px';
+    chaos.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  },
+
+  // 8. Red breaking news ticker at bottom
+  () => {
+    const news = [
+      "BREAKING: local man absolutely loses it",
+      "BREAKING: nobody knows what is happening",
+      "BREAKING: dog elected to board of directors",
+      "URGENT: all oofs are belong to us",
+      "BREAKING: oofer company confirms oofing",
+      "URGENT: stocks replaced with stonks effective immediately",
+    ];
+    const el = document.createElement('div');
+    el.className = 'marquee-chaos';
+    const inner = document.createElement('div');
+    inner.className = 'marquee-inner';
+    inner.textContent = '  ' + news[Math.floor(Math.random() * news.length)] + '  ●  ' + news[Math.floor(Math.random() * news.length)] + '  ';
+    el.appendChild(inner);
+    chaos.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  },
+
+  // 9. Typewriter message
+  () => {
+    const msgs = [
+      "ERROR: Too many oofs detected",
+      "WARNING: Professionalism levels critical",
+      "NOTICE: Please remain calm. This is fine.",
+      "ALERT: The vibe has shifted",
+      "SYSTEM: Chaos module activated",
+      "INFO: Someone left the chaos on overnight",
+    ];
+    const el = document.createElement('div');
+    el.className = 'typewriter-chaos';
+    el.style.left = (Math.random() * 40 + 5) + '%';
+    el.style.top = (Math.random() * 40 + 20) + '%';
+    const msg = msgs[Math.floor(Math.random() * msgs.length)];
+    el.textContent = '';
+    chaos.appendChild(el);
+    let i = 0;
+    const type = setInterval(() => {
+      el.textContent += msg[i];
+      i++;
+      if (i >= msg.length) clearInterval(type);
+    }, 40);
+    setTimeout(() => el.remove(), 4000);
+  },
+
+  // 10. Spinning emoji in center
+  () => {
+    const emojis = ['🌀','⚙️','💫','🌟','🎠','🔄','☯️','♾️','🪩'];
+    const el = document.createElement('div');
+    el.className = 'spin-logo';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = (Math.random() * 60 + 20) + '%';
+    el.style.top = (Math.random() * 50 + 20) + '%';
+    chaos.appendChild(el);
+    setTimeout(() => el.remove(), 2200);
+  },
+
+  // 11. Multiple random emojis zip across super fast
+  () => {
+    const things = ['🚀','💨','⚡','🏎️','🌪️','💥'];
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.style.position = 'fixed';
+        el.style.fontSize = (Math.random() * 30 + 40) + 'px';
+        el.style.top = (Math.random() * 80 + 5) + '%';
+        el.style.left = '-100px';
+        el.style.pointerEvents = 'none';
+        el.style.zIndex = '9999';
+        el.textContent = things[Math.floor(Math.random() * things.length)];
+        el.style.transition = 'none';
+        const dur = (Math.random() * 300 + 200);
+        el.style.animation = `walkAcross ${dur}ms linear forwards`;
+        chaos.appendChild(el);
+        setTimeout(() => el.remove(), dur + 100);
+      }, i * 80);
+    }
+  },
+
+  // 12. Screen shake (body)
+  () => {
+    document.body.classList.add('shaking');
+    setTimeout(() => document.body.classList.remove('shaking'), 600);
+  },
+
+  // 13. Large single silhouette parade (50 silhouettes)
+  () => {
+    const count = 50;
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.style.position = 'fixed';
+        el.style.bottom = (Math.random() * 70 + 5) + '%';
+        el.style.fontSize = (Math.random() * 30 + 25) + 'px';
+        el.style.filter = 'brightness(0)';
+        el.style.pointerEvents = 'none';
+        el.style.zIndex = '9999';
+        el.textContent = silhouettes[Math.floor(Math.random() * silhouettes.length)];
+        const dur = Math.random() * 2 + 1.5;
+        el.style.animation = `walkAcross ${dur}s linear forwards`;
+        chaos.appendChild(el);
+        setTimeout(() => el.remove(), dur * 1000 + 100);
+      }, i * 40);
+    }
+  },
+
+  // 14. Giant "OOF" text
+  () => {
+    const el = document.createElement('div');
+    el.style.position = 'fixed';
+    el.style.top = '50%';
+    el.style.left = '50%';
+    el.style.transform = 'translate(-50%, -50%)';
+    el.style.fontSize = '200px';
+    el.style.fontFamily = 'Impact, Arial Black, sans-serif';
+    el.style.color = 'red';
+    el.style.fontWeight = 'black';
+    el.style.pointerEvents = 'none';
+    el.style.zIndex = '9999';
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.1s';
+    el.textContent = 'OOF';
+    chaos.appendChild(el);
+    setTimeout(() => el.style.opacity = '1', 50);
+    setTimeout(() => el.style.opacity = '0', 1500);
+    setTimeout(() => el.remove(), 1700);
+  },
+
+  // 15. Upside down page effect (brief)
+  () => {
+    document.body.style.transition = 'transform 0.3s';
+    document.body.style.transform = 'rotate(180deg)';
+    setTimeout(() => {
+      document.body.style.transform = 'rotate(0deg)';
+    }, 1000);
+    setTimeout(() => document.body.style.transition = '', 1400);
+  },
+];
+
+// Content cycling
+const contentSections = [
+  { title: "Annual Report Summary — FY2023", body: "Total revenue for the fiscal year ending December 31, 2023 amounted to $4.127 billion, representing a 3.2% increase over the prior year. Operating expenses were managed within targeted parameters. A detailed reconciliation of non-GAAP measures is available on page 47 of the full report." },
+  { title: "A Message from the Chief Executive Officer", body: "This past year was characterized by steady, measured progress across all of our operating segments. We continued to invest in our people, our processes, and our platform. I am grateful for the contributions of our 14,200 employees worldwide." },
+  { title: "Q3 Earnings Call Transcript — Selected Remarks", body: "Analyst: Can you speak to the margin expansion in the professional services segment? CFO: Yes. Margins expanded 40 basis points year-over-year, driven primarily by improved utilization rates and disciplined cost management in our delivery operations." },
+  { title: "Governance Update", body: "The Nominating and Corporate Governance Committee has completed its annual review of board composition. The committee is satisfied that the current structure reflects an appropriate balance of skills, experience, and independence. No changes are recommended at this time." },
+  { title: "Employee Handbook — Section 4.2: Professional Conduct", body: "Employees are expected to conduct themselves in a manner consistent with the values of The Oofer Company at all times. This includes, but is not limited to, punctuality, professional communication, and adherence to the company's dress code as outlined in Section 7." },
+  { title: "Press Release: New Office in Akron, Ohio", body: "The Oofer Company today announced the opening of its newest regional office in Akron, Ohio. The 12,000 square foot facility will serve as a hub for the company's North Central operations. The office features 84 workstations, two conference rooms, and one (1) plant named Gerald." },
+  { title: "Client Satisfaction Survey — Executive Summary", body: "Of the 2,847 clients surveyed in Q2 2024, 94.1% indicated satisfaction with overall service delivery. Common positive themes included responsiveness, accuracy, and what several respondents described as 'a reassuring lack of drama.'" },
+  { title: "Strategic Plan 2024–2027: Key Objectives", body: "Objective 1: Grow revenue at a compound annual rate of 4–6%. Objective 2: Expand into two new geographic markets. Objective 3: Complete the ERP system migration. Objective 4: Continue being a company that exists and operates normally." },
+];
+
+let contentIdx = 0;
+
+function showNextContent() {
+  const data = contentSections[contentIdx % contentSections.length];
+  contentIdx++;
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#f5f5f0;border:1px solid #aaa;padding:36px 44px;max-width:560px;width:90%;z-index:10000;font-family:Times New Roman,serif;box-shadow:4px 4px 0 #bbb;animation:fadeBar 9s ease-in-out forwards;';
+  const close = document.createElement('div');
+  close.style.cssText = 'position:absolute;top:10px;right:16px;font-size:18px;cursor:pointer;color:#888;font-family:Arial;pointer-events:all;';
+  close.textContent = '×';
+  close.onclick = () => el.remove();
+  const h = document.createElement('div');
+  h.style.cssText = 'font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#888;margin-bottom:16px;';
+  h.textContent = data.title;
+  const p = document.createElement('div');
+  p.style.cssText = 'font-size:14px;line-height:1.8;color:#333;';
+  p.textContent = data.body;
+  el.appendChild(close);
+  el.appendChild(h);
+  el.appendChild(p);
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 9000);
+}
+
+// Pick a random chaos event
+function doChaos() {
+  const event = chaosEvents[Math.floor(Math.random() * chaosEvents.length)];
+  event();
+}
+
+// Content every 9s, chaos every 10s, with slight offset
+setTimeout(() => {
+  showNextContent();
+  setInterval(showNextContent, 9000);
+}, 1500);
+
+setTimeout(() => {
+  doChaos();
+  setInterval(doChaos, 10000);
+}, 5000);
+</script>
+</body>
+</html>
