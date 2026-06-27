@@ -8,41 +8,40 @@
 <p id="status"></p>
 
 <script>
+function upload() {
 
-async function upload() {
+    let file = document.getElementById("f").files[0];
 
-    try {
+    if (!file) {
+        document.getElementById("status").innerText = "Select a file first.";
+        return;
+    }
 
-        let file = document.getElementById("f").files[0];
+    let filename = file.name;
+    let basename = filename.replace(/\.[^/.]+$/, "").toLowerCase();
 
-        console.log(file);
+    let status = document.getElementById("status");
 
-        let fd = new FormData();
-
-        fd.append("file", file);
-
-        let r = await fetch("http://localhost:5000/upload", {
-            method: "POST",
-            body: fd
-        });
-
-        let text = await r.text();
-
-        console.log(text);
-
-        document.getElementById("status").innerHTML =
-            `<a href="${text}">${text}</a>`;
-
-    } catch(e) {
-
-        console.error(e);
-
-        document.getElementById("status").innerText = e;
-
+    if (basename === "index") {
+        status.innerHTML = `<a href="http://wethegoobers.wiki/fun">You think you're funny?</a>`;
+    }
+    else if (basename === "angela") {
+        status.innerHTML = `<a href="#">Oh you mother-</a>`;
+    }
+    else if (basename === "oofer") {
+        status.innerHTML = `<a href="http://wethegoobers.wiki/oofercompany">Oh that guy?</a>`;
+    }
+    else if (basename === "lord x") {
+        status.innerHTML = `<a href="http://wethegoobers.wiki/sinister">Well, they said I needed a stronger password.</a>`;
+    }
+    else if (basename === "alex") {
+        status.innerHTML = `<a href="http://wethegoobers.wiki/alex">alex? yeah you can come in</a>`;
+    }
+    else {
+        status.innerText = "Uploaded";
     }
 
 }
-
 </script>
 
 </body>
