@@ -37,10 +37,44 @@ h1 {
     margin: 20px;
     user-select: none;
 }
+
+/* Invisible clickable "secret" */
+.secret {
+    position: fixed;
+    top: 2vw;
+    right: 2vw;
+
+    width: clamp(80px, 10vw, 140px);
+    height: clamp(20px, 2.5vw, 30px);
+
+    font-size: clamp(10px, 1vw, 14px);
+    font-family: Arial, sans-serif;
+    color: #000;          /* Black on black */
+    background: transparent;
+    text-decoration: none;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* Shows when selected */
+.secret::selection {
+    background: white;
+    color: black;
+}
+.secret::-moz-selection {
+    background: white;
+    color: black;
+}
 </style>
 </head>
 
 <body>
-    <h1>Are you trying to find secrets?</h1>
+
+<h1>Are you trying to find secrets?</h1>
+
+<a class="secret" href="https://wethegoobers.wiki/404">
+    nothing here
+</a>
+
 </body>
 </html>
