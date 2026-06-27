@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sinister Minds</title>
+
+<style>
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: black;
+}
+
+#player {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+</style>
+</head>
+<body>
+
+<div id="player"></div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+const PLAYLIST_ID = "PLZJTwh1kXr9U";
+
+let player;
+let videos = [];
+
+async function loadPlaylistVideos() {
+    // Uses YouTube's oEmbed playlist feed (no API key needed)
+    const url = `https://www.youtube.com/feeds/videos.xml?playlist_id=${PLAYLIST_ID}`;
+
+    // Uses rss2json to convert the XML feed into JSON
+    const response = await fetch(
+        "https://api.rss2json.com/v1/api.json?rss_url=" +
+        encodeURIComponent(url)
+    );
+
+    const data = await response.json();
+
+    videos = data.items.map(item => {
+        const match = item.link.match(/v=([^&]+)/);
+        return match ? match[1] : null;
+    }).filter(Boolean);
+
+    if (videos.length === 0) {
+        alert("Couldn't load playlist.");
+        return;
+    }
+
+    playRandomVideo();
+}
+
+function playRandomVideo() {
+    const randomVideo = videos[Math.floor(Math.random() * videos.length)];
+
+    if (!player) {
+        player = new YT.Player("player", {
+            videoId: randomVideo,
+            playerVars: {
+                autoplay: 1,
+                controls: 0,
+                rel: 0,
+                modestbranding: 1,
+                fs: 0
+            },
+            events: {
+                onStateChange: onPlayerStateChange
+            }
+        });
+    } else {
+        player.loadVideoById(randomVideo);
+    }
+}
+
+function onPlayerStateChange(event) {
+    if (event.data === YT.PlayerState.ENDED) {
+        playRandomVideo();
+    }
+}
+
+function onYouTubeIframeAPIReady() {
+    loadPlaylistVideos();
+}
+</script>
+
+</body>
+</html>
