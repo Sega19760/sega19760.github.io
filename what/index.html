@@ -1,53 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Clippy</title>
-
-<link rel="stylesheet" href="https://www.smore.com/clippy/build/clippy.css">
-
-<style>
-html, body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    background: #000;
-    overflow: hidden;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clippy</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      background: #000;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    #scene {
+      background: #000;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #clippy-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    #bubble {
+      background: #ffffc0;
+      border: 2px solid #333;
+      border-radius: 10px;
+      padding: 10px 16px;
+      max-width: 240px;
+      font-size: 13px;
+      color: #111;
+      font-family: 'MS Sans Serif', Tahoma, sans-serif;
+      line-height: 1.5;
+      text-align: center;
+      position: relative;
+      margin-bottom: 16px;
+      box-shadow: 3px 3px 0 #888;
+      min-height: 38px;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    #bubble.show { opacity: 1; }
+    #bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 7px solid transparent;
+      border-top-color: #333;
+    }
+    #bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #ffffc0;
+      z-index: 1;
+    }
+    #clippy-host {
+      position: relative;
+      width: 124px;
+      height: 93px;
+    }
+    #clippy-host .clippy-container,
+    #clippy-host .clippy {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      transform: none !important;
+    }
+  </style>
 </head>
 <body>
+  <div id="scene">
+    <div id="clippy-stage">
+      <div id="bubble"><span id="bubble-text"></span></div>
+      <div id="clippy-host"></div>
+    </div>
+  </div>
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://www.smore.com/clippy/build/clippy.min.js"></script>
+  <script type="module">
+    import { initAgent } from "https://cdn.jsdelivr.net/npm/clippyjs/dist/index.mjs";
+    import { Clippy } from "https://cdn.jsdelivr.net/npm/clippyjs/dist/agents/index.mjs";
 
-<script>
-clippy.load("Clippy", function(agent) {
+    const msg = "Somethin' tells me this is deeper.";
 
-    agent.show();
+    try {
+      const agent = await initAgent(Clippy, { container: document.getElementById('clippy-host') });
 
-    agent.moveTo(
-        window.innerWidth / 2 - 80,
-        window.innerHeight / 2 - 120
-    );
+      agent.show();
+      agent.animate();
 
-    setTimeout(function() {
+      const bubble = document.getElementById('bubble');
+      const bubbleText = document.getElementById('bubble-text');
 
-        agent.speak("Somethin' tells me this is deeper");
+      setTimeout(() => {
+        bubble.classList.add('show');
+        let i = 0;
+        const type = setInterval(() => {
+          bubbleText.textContent += msg[i];
+          i++;
+          if (i >= msg.length) clearInterval(type);
+        }, 45);
+      }, 600);
 
-        setTimeout(function() {
+      setTimeout(() => {
+        bubble.style.transition = 'opacity 0.6s ease';
+        bubble.classList.remove('show');
+        agent.hide();
+      }, 5000);
 
-            agent.moveTo(
-                window.innerWidth + 300,
-                window.innerHeight / 2
-            );
-
-        }, 3000);
-
-    }, 500);
-
-});
-</script>
-
+    } catch(e) {
+      console.error(e);
+    }
+  </script>
 </body>
 </html>
