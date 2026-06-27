@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>403 Forbidden</title>
+
+<style id="dynamic-style"></style>
+</head>
+<body>
+
+<div id="container">
+    <h1>403 Forbidden</h1>
+    <p>You don't have permission to access this resource.</p>
+    <hr>
+    <small>nginx</small>
+</div>
+
+<script>
+const fonts = [
+    "Arial",
+    "Verdana",
+    "Tahoma",
+    "Trebuchet MS",
+    "Georgia",
+    "Times New Roman",
+    "Courier New",
+    "Lucida Console",
+    "Segoe UI",
+    "Helvetica"
+];
+
+function rand(min, max){
+    return Math.random() * (max - min) + min;
+}
+
+function pick(arr){
+    return arr[Math.floor(Math.random()*arr.length)];
+}
+
+// Slightly off-white background
+const bgShade = Math.floor(rand(245,255));
+
+// Slightly different text color
+const txtShade = Math.floor(rand(20,60));
+
+// Random spacing
+const padding = rand(15,45);
+
+// Random font
+const font = pick(fonts);
+
+// Random title size
+const h1 = rand(26,46);
+
+// Random paragraph size
+const p = rand(13,19);
+
+// Random line height
+const lineHeight = rand(1.2,1.7);
+
+// Random text alignment
+const aligns = ["left","center"];
+const align = pick(aligns);
+
+// Random width
+const width = rand(380,760);
+
+// Random margin from top
+const marginTop = rand(30,150);
+
+// Tiny random rotation
+const rotate = rand(-0.3,0.3);
+
+// Tiny letter spacing
+const letter = rand(-0.5,1.2);
+
+// Random hr thickness
+const hr = rand(1,3);
+
+document.getElementById("dynamic-style").textContent = `
+html{
+    background: rgb(${bgShade},${bgShade},${bgShade});
+}
+
+body{
+    margin:0;
+    font-family:${font};
+    color:rgb(${txtShade},${txtShade},${txtShade});
+}
+
+#container{
+    width:${width}px;
+    max-width:92%;
+    margin:${marginTop}px auto;
+    padding:${padding}px;
+    text-align:${align};
+    transform:rotate(${rotate}deg);
+}
+
+h1{
+    font-size:${h1}px;
+    margin:0 0 12px 0;
+    letter-spacing:${letter}px;
+    font-weight:bold;
+}
+
+p{
+    font-size:${p}px;
+    line-height:${lineHeight};
+    margin-bottom:14px;
+}
+
+hr{
+    border:none;
+    border-top:${hr}px solid #bdbdbd;
+}
+
+small{
+    color:#666;
+    font-size:${rand(10,13)}px;
+}
+`;
+
+// Optional: tiny chance of using "Apache" instead of nginx.
+if(Math.random() < 0.2){
+    document.querySelector("small").textContent = "Apache";
+}
+</script>
+
+</body>
+</html>
