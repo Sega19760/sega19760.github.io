@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Oofer</title>
+
+<style>
+html, body {
+    margin: 0;
+    overflow: hidden;
+    background: black;
+    width: 100%;
+    height: 100%;
+    cursor: none;
+}
+
+img {
+    position: absolute;
+    user-select: none;
+    pointer-events: none;
+    image-rendering: auto;
+}
+</style>
+</head>
+<body>
+
+<script>
+const IMAGE_URL = "https://media.discordapp.net/stickers/1470654634367520838.webp";
+const AMOUNT = 50;
+
+const images = [];
+
+for (let i = 0; i < AMOUNT; i++) {
+
+    const img = document.createElement("img");
+    img.src = IMAGE_URL;
+
+    let size = 40 + Math.random() * 100;
+
+    img.style.width = size + "px";
+
+    document.body.appendChild(img);
+
+    images.push({
+        img,
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        vx: (Math.random() - 0.5) * 12,
+        vy: (Math.random() - 0.5) * 12,
+        angle: Math.random() * 360,
+        spin: (Math.random() - 0.5) * 8,
+        size,
+        opacity: 0.6 + Math.random() * 0.4
+    });
+}
+
+function update() {
+
+    for (const o of images) {
+
+        o.x += o.vx;
+        o.y += o.vy;
+        o.angle += o.spin;
+
+        if (o.x < 0 || o.x > window.innerWidth - o.size)
+            o.vx *= -1;
+
+        if (o.y < 0 || o.y > window.innerHeight - o.size)
+            o.vy *= -1;
+
+    
+        if (Math.random() < 0.01) {
+
+            const event = Math.floor(Math.random() * 7);
+
+            switch(event){
+
+                case 0:
+                  
+                    o.x = Math.random() * window.innerWidth;
+                    o.y = Math.random() * window.innerHeight;
+                    break;
+
+                case 1:
+                 
+                    o.size = 20 + Math.random() * 180;
+                    break;
+
+                case 2:
+                   
+                    o.vx = (Math.random() - 0.5) * 25;
+                    o.vy = (Math.random() - 0.5) * 25;
+                    break;
+
+                case 3:
+                  
+                    o.spin = (Math.random() - 0.5) * 40;
+                    break;
+
+                case 4:
+                
+                    o.opacity = Math.random();
+                    break;
+
+                case 5:
+                  
+                    o.img.style.zIndex = Math.floor(Math.random()*9999);
+                    break;
+
+                case 6:
+                    
+                    o.vx *= -1;
+                    o.vy *= -1;
+                    break;
+            }
+        }
+
+        o.img.style.left = o.x + "px";
+        o.img.style.top = o.y + "px";
+        o.img.style.width = o.size + "px";
+        o.img.style.opacity = o.opacity;
+        o.img.style.transform =
+            `rotate(${o.angle}deg)`;
+    }
+
+    requestAnimationFrame(update);
+}
+
+update();
+
+window.addEventListener("resize", () => {
+    for (const o of images) {
+        o.x = Math.min(o.x, window.innerWidth - o.size);
+        o.y = Math.min(o.y, window.innerHeight - o.size);
+    }
+});
+</script>
+
+</body>
+</html>
