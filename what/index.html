@@ -2,53 +2,47 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Clippy</title>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/clippyjs@1/build/clippy.css">
+<link rel="stylesheet" href="https://www.smore.com/clippy/build/clippy.css">
 
 <style>
 html, body {
     margin: 0;
     width: 100%;
     height: 100%;
-    background: black;
+    background: #000;
     overflow: hidden;
-    font-family: Arial, sans-serif;
 }
 </style>
 </head>
 <body>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/clippyjs@1/build/clippy.min.js"></script>
+<script src="https://www.smore.com/clippy/build/clippy.min.js"></script>
 
 <script>
-clippy.load('Clippy', function(agent) {
+clippy.load("Clippy", function(agent) {
 
-    // Spawn Clippy
     agent.show();
 
-    // Start near the center
     agent.moveTo(
-        window.innerWidth / 2 - 100,
-        window.innerHeight / 2 - 100
+        window.innerWidth / 2 - 80,
+        window.innerHeight / 2 - 120
     );
 
-    // Wait a moment, then speak
-    setTimeout(() => {
-        agent.speak("Somethin' tells me this is deeper.");
+    setTimeout(function() {
 
-        // Walk away after speaking
-        setTimeout(() => {
+        agent.speak("Somethin' tells me this is deeper");
 
-            // Move off the right side of the screen
+        setTimeout(function() {
+
             agent.moveTo(
-                window.innerWidth + 250,
+                window.innerWidth + 300,
                 window.innerHeight / 2
             );
 
-        }, 2500);
+        }, 3000);
 
     }, 500);
 
