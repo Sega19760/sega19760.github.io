@@ -69,21 +69,18 @@
         text-align: center;
         white-space: nowrap;
         letter-spacing: 1px;
-        /* Default color is visible but not glowing */
-        color: #aaa; 
+        /* The Unlit State (Dark Grey) */
+        color: #555; 
         text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
         transform-origin: center;
         transition: transform 0.1s;
     }
 
-    /* The "Lit" state: Fully white */
+    /* The Lit State (White) */
     .lit {
         color: white !important;
         text-shadow: 2px 2px 4px black;
     }
-
-    .color-blue.lit { color: #88ccff !important; text-shadow: 0 0 8px #88ccff, 2px 2px 4px black; }
-    .color-red.lit { color: #ff3333 !important; text-shadow: 0 0 8px #ff3333, 2px 2px 4px black; }
     
     #play-btn {
         position: absolute;
@@ -149,52 +146,53 @@
 </div>
 
 <script>
+// Added " " (empty space) at the end of every line to allow for one final tap
 const unsyncedLyrics = [
     { raw: "", flash: false },
-    { raw: "Tec|ton|ic |tri|bu|la|tions", flash: true },
-    { raw: "Sick|ness |that |sweeps |the |na|tions", flash: false },
-    { raw: "Be|yond |these |ti|ny |things |just", flash: false },
-    { raw: "Some|thin' |tells |me |this |is |dee|per", flash: true },
-    { raw: "Our |minds |are |spe|cial |for|ces", flash: false },
-    { raw: "Bo|dy |bags |that |co|ver |corp|ses", flash: false },
-    { raw: "Let |it |make |some |sense |to |me |that", flash: true },
-    { raw: "There's |a |rea|son |I |could|n't |keep |her", flash: false },
-    { raw: "I |could|n't |see.. |I |could|n't've |seen |it!", flash: false },
-    { raw: "There's |no|thin' |left, |but |I |can't |just |leave |her |be, |no!", flash: true },
-    { raw: "You |cast |your |sight |on |dreams |to |fer|ry |‘fore |you |count |all |your |coins", flash: false },
-    { raw: "O|thers |will |com|fort |say|ing |they’ve |seen |hell |and |back |— |Oh |real|ly?", flash: false },
-    { raw: "Well |in |this |game |of |glee, |turns |out |the |lo|sers |make |them |al|ways", flash: false },
-    { raw: "I |should’ve |stopped |be|fore |I |star|ted, |and |thought |— |“How |sil|ly!”", flash: true },
-    { raw: "What |could |it |be? |What |could |it |be!?", flash: false },
-    { raw: "I |JUST |CAN'T |TAKE |IT |A|NY|MORE!", flash: true },
-    { raw: "Played |off |the |fun|da|men|tals", flash: false },
-    { raw: "For |in |the |mo|ment |we |must", flash: false },
-    { raw: "But |it’s |in|con|se|quen|tial", flash: false },
-    { raw: "The |norm |is |not |for |both |of |us", flash: false },
-    { raw: "She |thinks |it’s |for |the |bet|ter", flash: false },
-    { raw: "But |I |still |know |how |she |lies", flash: false },
-    { raw: "When |past |a|po|ca|lypse |she’d |spread |her |false|hood |from |the |o|ther |side", flash: false },
-    { raw: "And |since |our |part, |it’s |ea|ten |my |heart, |girl", flash: false },
-    { raw: "Where’s |all |the |fun, |when |I |TEAR |THEIR |BODS |A|PART, |NOW", flash: true },
-    { raw: "You |throw |dis|cre|tion |out |the |win|dow |when |you |try |to |be |kind", flash: false },
-    { raw: "But |once |they |leave |your |zone |you’re |sit|tin |in |the |cold |— |it’s |chil|lin’!", flash: false },
-    { raw: "You |pon|der, |pi|ning |what |may |hap|pen, |or |who |could |be |the |next", flash: false },
-    { raw: "I |should’ve |stopped |be|fore |I |star|ted, |and |thought |— |“How |sil|ly!”", flash: true },
-    { raw: "What |could |it |be? |What |could |it |be!?", flash: false },
-    { raw: "I |JUST |CAN'T |TAKE |IT |A|NY|MORE!", flash: true },
-    { raw: "You |cast |your |sight |on |dreams |to |fer|ry |‘fore |you |count |all |your |coins", flash: false },
-    { raw: "O|thers |will |com|fort |say|ing |they’ve |seen |hell |and |back |— |Oh |real|ly?", flash: false },
-    { raw: "Well |in |this |game |of |glee, |turns |out |the |lo|sers |still |made |the |choice", flash: false },
-    { raw: "I |should’ve |stopped |be|fore |I |star|ted, |and |thought |— |“How |sil|ly!”", flash: true },
-    { raw: "I |knew |my|self |well |‘fore |this |flow|er |took |to |me |for |ten|ding", flash: false },
-    { raw: "So |what’s |the |point |with |just |the |blood |for |wa|ter|ing |— |So |tea|ry!", flash: false },
-    { raw: "But |still |it |wilts |a|way, |and |of |the |two, |it’s |wil|tin’ |slow|ly", flash: false },
-    { raw: "I |stand |here |dead |and |done, |and |I |have |to |ask: |What’s |kil|lin‘ |me?", flash: true },
-    { raw: "What |could |it |be? |What |could |it |be? |I |could|n’t |see |Or |was |it |me |Who |cut |us |free? |What |could |it |be?", flash: false },
-    { raw: "I |just |can’t |take |it |a|ny |moo|o|o|ooore", flash: true }
+    { raw: "Tec|ton|ic |tri|bu|la|tions| ", flash: true },
+    { raw: "Sick|ness |that |sweeps |the |na|tions| ", flash: false },
+    { raw: "Be|yond |these |ti|ny |things |just| ", flash: false },
+    { raw: "Some|thin' |tells |me |this |is |dee|per| ", flash: true },
+    { raw: "Our |minds |are |spe|cial |for|ces| ", flash: false },
+    { raw: "Bo|dy |bags |that |co|ver |corp|ses| ", flash: false },
+    { raw: "Let |it |make |some |sense |to |me |that| ", flash: true },
+    { raw: "There's |a |rea|son |I |could|n't |keep |her| ", flash: false },
+    { raw: "I |could|n't |see.. |I |could|n't've |seen |it!| ", flash: false },
+    { raw: "There's |no|thin' |left, |but |I |can't |just |leave |her |be, |no!| ", flash: true },
+    { raw: "You |cast |your |sight |on |dreams |to |fer|ry |‘fore |you |count |all |your |coins| ", flash: false },
+    { raw: "O|thers |will |com|fort |say|ing |they’ve |seen |hell |and |back |— |Oh |real|ly?| ", flash: false },
+    { raw: "Well |in |this |game |of |glee, |turns |out |the |lo|sers |make |them |al|ways| ", flash: false },
+    { raw: "I |should’ve |stopped |be|fore |I |star|ted, |and |thought |— |“How |sil|ly!”| ", flash: true },
+    { raw: "What |could |it |be? |What |could |it |be!?| ", flash: false },
+    { raw: "I |JUST |CAN'T |TAKE |IT |A|NY|MORE!| ", flash: true },
+    { raw: "Played |off |the |fun|da|men|tals| ", flash: false },
+    { raw: "For |in |the |mo|ment |we |must| ", flash: false },
+    { raw: "But |it’s |in|con|se|quen|tial| ", flash: false },
+    { raw: "The |norm |is |not |for |both |of |us| ", flash: false },
+    { raw: "She |thinks |it’s |for |the |bet|ter| ", flash: false },
+    { raw: "But |I |still |know |how |she |lies| ", flash: false },
+    { raw: "When |past |a|po|ca|lypse |she’d |spread |her |false|hood |from |the |o|ther |side| ", flash: false },
+    { raw: "And |since |our |part, |it’s |ea|ten |my |heart, |girl| ", flash: false },
+    { raw: "Where’s |all |the |fun, |when |I |TEAR |THEIR |BODS |A|PART, |NOW| ", flash: true },
+    { raw: "You |throw |dis|cre|tion |out |the |win|dow |when |you |try |to |be |kind| ", flash: false },
+    { raw: "But |once |they |leave |your |zone |you’re |sit|tin |in |the |cold |— |it’s |chil|lin’!| ", flash: false },
+    { raw: "You |pon|der, |pi|ning |what |may |hap|pen, |or |who |could |be |the |next| ", flash: false },
+    { raw: "I |should’ve |stopped |be|fore |I |star|ted, |and |thought |— |“How |sil|ly!”| ", flash: true },
+    { raw: "What |could |it |be? |What |could |it |be!?| ", flash: false },
+    { raw: "I |JUST |CAN'T |TAKE |IT |A|NY|MORE!| ", flash: true },
+    { raw: "You |cast |your |sight |on |dreams |to |fer|ry |‘fore |you |count |all |your |coins| ", flash: false },
+    { raw: "O|thers |will |com|fort |say|ing |they’ve |seen |hell |and |back |— |Oh |real|ly?| ", flash: false },
+    { raw: "Well |in |this |game |of |glee, |turns |out |the |lo|sers |still |made |the |choice| ", flash: false },
+    { raw: "I |should’ve |stopped |be|fore |I |star|ted, |and |thought |— |“How |sil|ly!”| ", flash: true },
+    { raw: "I |knew |my|self |well |‘fore |this |flow|er |took |to |me |for |ten|ding| ", flash: false },
+    { raw: "So |what’s |the |point |with |just |the |blood |for |wa|ter|ing |— |So |tea|ry!| ", flash: false },
+    { raw: "But |still |it |wilts |a|way, |and |of |the |two, |it’s |wil|tin’ |slow|ly| ", flash: false },
+    { raw: "I |stand |here |dead |and |done, |and |I |have |to |ask: |What’s |kil|lin‘ |me?| ", flash: true },
+    { raw: "What |could |it |be? |What |could |it |be? |I |could|n’t |see |Or |was |it |me |Who |cut |us |free? |What |could |it |be?| ", flash: false },
+    { raw: "I |just |can’t |take |it |a|ny |moo|o|o|ooore| ", flash: true }
 ];
 
-// --- SECRET TRIGGER ---
+// --- TRIGGER & SCALING ---
 let keySequence = "";
 window.addEventListener('keydown', (e) => {
     keySequence += e.key.toLowerCase();
@@ -202,7 +200,6 @@ window.addEventListener('keydown', (e) => {
     if (keySequence === "sega") document.getElementById('debug-panel').style.display = 'flex';
 });
 
-// --- SCALING LOGIC ---
 function adjustTextScale() {
     const display = document.getElementById('lyrics-display');
     const container = document.getElementById('video-container');
@@ -213,6 +210,7 @@ function adjustTextScale() {
     }
 }
 
+// --- LOGIC ---
 let lyricTimeline = [];
 let player, animationFrame, isSyncMode = false, syncLineIndex = 1, syncChunkIndex = 0;
 
@@ -249,15 +247,14 @@ function updateFrame() {
 
     let currentLine = (activeLineIndex !== -1 && currentTime < nextLineStartTime) ? lyricTimeline[activeLineIndex] : null;
     
-    if (currentLine && currentLine.chunks.length > 0) {
+    if (currentLine) {
         let lineHTML = "";
         currentLine.chunks.forEach(chunk => {
-            // Whole line is "lit" (white), but specific chunks pulse/glow
+            // ONLY add .lit if time is passed
             if (currentTime >= chunk.time) {
-                lineHTML += chunk.text.includes('<span') ? chunk.text.replace("class='", "class='lit ") : `<span class='lit'>${chunk.text}</span>`;
-            } else {
-                // Future chunks are just white
                 lineHTML += `<span class='lit'>${chunk.text}</span>`;
+            } else {
+                lineHTML += `<span>${chunk.text}</span>`;
             }
         });
         document.getElementById('lyrics-display').innerHTML = lineHTML;
@@ -282,13 +279,14 @@ function updateSyncStatus() {
     const line = lyricTimeline[syncLineIndex];
     if (!line) return;
     
-    // In Sync Mode, show full line immediately as "lit"
-    let fullLine = "";
-    line.chunks.forEach(c => {
-        fullLine += `<span class='lit'>${c.text}</span>`;
+    let previewHTML = "";
+    line.chunks.forEach((c, idx) => {
+        // Only light up if we have passed this chunk in sync mode
+        if (idx < syncChunkIndex) previewHTML += `<span class='lit'>${c.text}</span>`;
+        else previewHTML += `<span>${c.text}</span>`;
     });
     
-    document.getElementById('lyrics-display').innerHTML = fullLine;
+    document.getElementById('lyrics-display').innerHTML = previewHTML;
     adjustTextScale();
     document.getElementById('sync-status').innerText = `Press Space for: "${line.chunks[syncChunkIndex].text.replace(/<[^>]*>?/gm, '')}"`;
 }
