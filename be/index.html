@@ -252,42 +252,57 @@ const unsyncedLyrics = [
     }
 
     // --- ANIMATION ENGINE (Syllable Based) ---
+    // --- UPDATED ENGINE LOGIC ---
     function updateFrame() {
         if (lyricTimeline.length === 0) return;
         const currentTime = player.getCurrentTime() * 1000;
         
-        // 1. Find which line we are currently on
-        let currentLine = lyricTimeline[0];
-        for (let i = lyricTimeline.length - 1; i >= 0; i--) {
+        // 1. Find the current active line (the last one that started before now)
+        let activeLineIndex = -1;
+        for (let i = 0; i < lyricTimeline.length; i++) {
             if (currentTime >= lyricTimeline[i].lineStartTime) {
-                currentLine = lyricTimeline[i];
-                break;
+                activeLineIndex = i;
             }
         }
 
-        // 2. Build the HTML for the current line
-        if (currentLine.chunks && currentLine.chunks.length > 0) {
+        // 2. Check if we have a next line to know when to clear the screen
+        let nextLineStartTime = Infinity;
+        if (activeLineIndex !== -1 && activeLineIndex + 1 < lyricTimeline.length) {
+            nextLineStartTime = lyricTimeline[activeLineIndex + 1].lineStartTime;
+        }
+
+        // 3. Determine if we should show the line
+        // We show it if we are in an active line AND we haven't reached the next line yet
+        let currentLine = (activeLineIndex !== -1 && currentTime < nextLineStartTime) 
+                          ? lyricTimeline[activeLineIndex] 
+                          : null;
+        
+        if (currentLine && currentLine.chunks.length > 0) {
             let lineHTML = "";
             currentLine.chunks.forEach(chunk => {
-                // If the current time has passed this chunk's timestamp, light it up!
+                // If song time is past this chunk's time, show it as lit
                 if (currentTime >= chunk.time) {
-                    // Inject the 'lit' class into the span if it has one, or wrap it
                     if(chunk.text.includes('<span')) {
                         lineHTML += chunk.text.replace("class='", "class='lit ");
                     } else {
                         lineHTML += `<span class='lit'>${chunk.text}</span>`;
                     }
                 } else {
-                    lineHTML += chunk.text; // Stays dark ghost text
+                    // Otherwise, keep it as ghost text
+                    lineHTML += chunk.text;
                 }
             });
             lyricsDisplay.innerHTML = lineHTML;
+            
+            // Pulse logic
+            if (currentLine.flash) glow.classList.add('pulse');
+            else { glow.classList.remove('pulse'); glow.style.opacity = '0'; }
         } else {
-            lyricsDisplay.innerHTML = ""; // Empty string clearing
+            // Instrumental break: Clear screen
+            lyricsDisplay.innerHTML = "";
+            glow.classList.remove('pulse');
+            glow.style.opacity = '0';
         }
-        
-        if (currentLine.flash) glow.classList.add('pulse');
-        else { glow.classList.remove('pulse'); glow.style.opacity = '0'; }
 
         if (player.getPlayerState() === YT.PlayerState.PLAYING) {
             animationFrame = requestAnimationFrame(updateFrame);
