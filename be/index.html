@@ -50,7 +50,7 @@
 
         #lyrics-wrapper { 
     position: absolute; 
-    bottom: 50px; /* Moves it slightly up */
+    bottom: 25px; /* Moves it slightly up */
     width: 100%; 
     display: flex; 
     justify-content: center; 
@@ -58,7 +58,7 @@
 }
 
 #lyrics-display {
-    font-size: 32px; /* Set a larger base size */
+    font-size: 40px; /* Set a larger base size */
     text-align: center;
     color: #555;
     text-shadow: 1px 1px 2px rgba(0,0,0,1);
@@ -66,11 +66,17 @@
 }
 
 #lyrics-display span {
-    color: transparent; 
+    /* Change transparent to a dark, ghostly gray */
+    color: #444; 
+    /* Add a subtle transition so it doesn't snap instantly from gray to white */
+    transition: color 0.15s ease;
 }
 
 #lyrics-display span.lit {
+    /* The "lit" color */
     color: white; 
+    /* Optional: add a glow effect to make it look more like the reference */
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
         #play-btn { position: absolute; z-index: 20; padding: 15px 30px; font-size: 20px; background-color: rgba(255,0,0,0.7); color: white; border: none; cursor: pointer; }
