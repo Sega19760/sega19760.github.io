@@ -290,9 +290,21 @@ const tag = document.createElement('script');
 tag.src = "https://www.youtube.com/iframe_api";
 document.head.appendChild(tag);
 
-function onYouTubeIframeAPIReady() {
-    player = new YT.Player('ytplayer', { height: '1', width: '1', videoId: '6fk50hiAYTQ', playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1 }, events: { 'onReady': onPlayerReady } });
-}
+window.onYouTubeIframeAPIReady = function () {
+    player = new YT.Player('ytplayer', {
+        height: '1',
+        width: '1',
+        videoId: '6fk50hiAYTQ',
+        playerVars: {
+            playsinline: 1,
+            controls: 0,
+            disablekb: 1
+        },
+        events: {
+            onReady: onPlayerReady
+        }
+    });
+};
 
 function onPlayerReady() {
     document.getElementById('play-btn').style.display = 'block';
