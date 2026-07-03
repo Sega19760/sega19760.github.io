@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>What could it be?</title>
-<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 <style>
+    @font-face {
+        font-family: 'Merriweather';
+        src: url('Merriweather.ttf') format('truetype');
+        font-weight: 400;
+        font-style: normal;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
         background-color: black;
@@ -57,18 +63,17 @@
         text-align: center;
         width: 100%;
         letter-spacing: 1px;
-        color: rgba(20, 20, 20, 0.8); 
-        text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.15);
+        color: rgba(150, 150, 150, 0.5); /* Ghostly gray for unlit */
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
     }
 
     .lit {
-        color: white;
+        color: white !important; /* Force white when lit */
         text-shadow: 2px 2px 4px black;
-        transition: color 0.1s;
     }
 
-    .color-blue.lit { color: #88ccff; text-shadow: 0 0 8px #88ccff, 2px 2px 4px black; }
-    .color-red.lit { color: #ff3333; text-shadow: 0 0 8px #ff3333, 2px 2px 4px black; }
+    .color-blue.lit { color: #88ccff !important; text-shadow: 0 0 8px #88ccff, 2px 2px 4px black; }
+    .color-red.lit { color: #ff3333 !important; text-shadow: 0 0 8px #ff3333, 2px 2px 4px black; }
     
     #play-btn {
         position: absolute;
@@ -199,7 +204,6 @@ function onPlayerReady() {
     });
 }
 
-// FIXED PERSISTENT LOGIC
 function updateFrame() {
     if (lyricTimeline.length === 0) return;
     const currentTime = player.getCurrentTime() * 1000;
@@ -213,7 +217,6 @@ function updateFrame() {
                             ? lyricTimeline[activeLineIndex + 1].lineStartTime 
                             : Infinity;
 
-    // Line persists until the next line's start time
     let currentLine = (activeLineIndex !== -1 && currentTime < nextLineStartTime) ? lyricTimeline[activeLineIndex] : null;
     
     if (currentLine && currentLine.chunks.length > 0) {
@@ -235,7 +238,6 @@ function updateFrame() {
     if (player.getPlayerState() === 1) animationFrame = requestAnimationFrame(updateFrame);
 }
 
-// Sync logic remains the same
 document.getElementById('start-sync-btn').addEventListener('click', () => {
     isSyncMode = true; syncLineIndex = 1; syncChunkIndex = 0;
     lyricTimeline = unsyncedLyrics.map(line => ({ lineStartTime: 0, flash: line.flash, chunks: line.raw.split('|').map(p => ({ text: p, time: 0 })) }));
@@ -245,6 +247,14 @@ document.getElementById('start-sync-btn').addEventListener('click', () => {
 function updateSyncStatus() {
     const line = lyricTimeline[syncLineIndex];
     if (!line) return;
+    
+    // Explicitly update display during sync
+    let previewHTML = "";
+    line.chunks.forEach((c, idx) => {
+        if (idx < syncChunkIndex) previewHTML += `<span class='lit'>${c.text}</span>`;
+        else previewHTML += c.text;
+    });
+    document.getElementById('lyrics-display').innerHTML = previewHTML;
     document.getElementById('sync-status').innerText = `Press Space for: "${line.chunks[syncChunkIndex].text.replace(/<[^>]*>?/gm, '')}"`;
 }
 
@@ -253,10 +263,20 @@ window.addEventListener('keydown', (e) => {
         const time = Math.round(player.getCurrentTime() * 1000);
         if (syncChunkIndex === 0) lyricTimeline[syncLineIndex].lineStartTime = time;
         lyricTimeline[syncLineIndex].chunks[syncChunkIndex].time = time;
+        
         syncChunkIndex++;
-        if (syncChunkIndex >= lyricTimeline[syncLineIndex].chunks.length) { syncLineIndex++; syncChunkIndex = 0; }
-        if (syncLineIndex >= lyricTimeline.length) { isSyncMode = false; document.getElementById('export-btn').style.display = 'block'; }
-        else updateSyncStatus();
+        if (syncChunkIndex >= lyricTimeline[syncLineIndex].chunks.length) { 
+            syncLineIndex++; 
+            syncChunkIndex = 0; 
+        }
+        
+        if (syncLineIndex >= lyricTimeline.length) { 
+            isSyncMode = false; 
+            document.getElementById('export-btn').style.display = 'block';
+            document.getElementById('sync-status').innerText = "Sync Complete!";
+        } else {
+            updateSyncStatus();
+        }
     }
 });
 
