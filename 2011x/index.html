@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>2011X</title>
+<style>
+body{
+    margin:0;
+    background:black;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    overflow:hidden;
+    font-family:Arial, sans-serif;
+}
+
+#x{
+    width:350px;
+    image-rendering:pixelated;
+}
+
+h1{
+    position:absolute;
+    top:20px;
+    color:red;
+    font-size:64px;
+    text-shadow:0 0 20px red;
+}
+</style>
+</head>
+<body>
+
+<h1>2011X</h1>
+
+<img
+    id="x"
+    src="https://static.wikia.nocookie.net/continued-exe/images/2/23/XJustStandingThere.PNG"
+>
+
+<script>
+const img = document.getElementById("x");
+
+setInterval(() => {
+    img.style.transform =
+        `translateY(${Math.sin(Date.now()/300)*8}px)
+         scale(${1 + Math.sin(Date.now()/500)*0.02})`;
+}, 16);
+</script>
+
+</body>
+</html>
