@@ -4,12 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>What could it be?</title>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
         background-color: black;
         color: white;
-        font-family: 'Times New Roman', serif;
+        font-family: 'Merriweather', serif;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -21,7 +22,6 @@
         position: relative;
         width: 1280px;
         height: 720px;
-        /* UPDATED BACKGROUND IMAGE */
         background: black url("https://i.imgur.com/e5BCbUe.png") no-repeat center/cover;
         display: flex;
         flex-direction: column;
@@ -49,28 +49,24 @@
         to { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
     }
 
-    /* UPDATED LYRICS DISPLAY */
     #lyrics-display {
         position: absolute;
-        bottom: 30px; /* MOVED LOWER */
+        bottom: 30px;
         z-index: 10;
         font-size: 46px;
         text-align: center;
         width: 100%;
         letter-spacing: 1px;
-        /* Ghostly, barely visible text for un-sung syllables */
         color: rgba(20, 20, 20, 0.8); 
         text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.15);
     }
 
-    /* The class added when a syllable is "hit" */
     .lit {
         color: white;
         text-shadow: 2px 2px 4px black;
         transition: color 0.1s;
     }
 
-    /* Colors only apply if the syllable is also lit */
     .color-blue.lit { color: #88ccff; text-shadow: 0 0 8px #88ccff, 2px 2px 4px black; }
     .color-red.lit { color: #ff3333; text-shadow: 0 0 8px #ff3333, 2px 2px 4px black; }
     
@@ -88,7 +84,6 @@
     }
     #play-btn:hover { background-color: red; }
 
-    /* DEBUG PANEL */
     #debug-panel {
         position: absolute;
         top: 10px;
@@ -124,7 +119,6 @@
 
 <div id="video-container">
     <div id="ytplayer"></div>
-
     <div id="debug-panel">
         <h3>Syllable Sync Tool</h3>
         <button id="start-sync-btn" class="debug-btn">1. Start Sync (Tap Space for EACH word!)</button>
@@ -132,16 +126,12 @@
         <button id="export-btn" class="debug-btn" style="display:none;">2. Export Code</button>
         <textarea id="export-area"></textarea>
     </div>
-
     <div id="glow" class="core-glow"></div>
     <div id="lyrics-display"></div>
     <button id="play-btn">Loading Audio...</button>
 </div>
 
 <script>
-    // --- THIS IS YOUR WORKBENCH ---
-    // Use the "|" symbol to tell the engine where to split the syllables or words.
-    // ADD THE REST OF THE SONG TO THIS ARRAY!
 const unsyncedLyrics = [
     { raw: "", flash: false },
     { raw: "Tec|ton|ic |tri|bu|la|tions", flash: true },
@@ -187,250 +177,94 @@ const unsyncedLyrics = [
     { raw: "I |just |can’t |take |it |a|ny |moo|o|o|ooore", flash: true }
 ];
 
-    // This array will hold the final synced data
-    let lyricTimeline = [];
+let lyricTimeline = [];
+let player, animationFrame, isSyncMode = false, syncLineIndex = 1, syncChunkIndex = 0;
 
-    const playBtn = document.getElementById('play-btn');
-    const lyricsDisplay = document.getElementById('lyrics-display');
-    const glow = document.getElementById('glow');
+const tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(tag);
+
+function onYouTubeIframeAPIReady() {
+    player = new YT.Player('ytplayer', { height: '1', width: '1', videoId: '6fk50hiAYTQ', playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1 }, events: { 'onReady': onPlayerReady } });
+}
+
+function onPlayerReady() {
+    document.getElementById('play-btn').style.display = 'block';
+    document.getElementById('play-btn').innerText = "Play Empty Scene (Sync First!)";
+    document.getElementById('debug-panel').style.display = 'flex';
+    document.getElementById('play-btn').addEventListener('click', () => { 
+        if(lyricTimeline.length === 0) return alert("Sync first!");
+        document.getElementById('play-btn').style.display = 'none';
+        player.seekTo(30); player.playVideo(); updateFrame();
+    });
+}
+
+// FIXED PERSISTENT LOGIC
+function updateFrame() {
+    if (lyricTimeline.length === 0) return;
+    const currentTime = player.getCurrentTime() * 1000;
     
-    let isSyncMode = false;
-    let syncLineIndex = 1; 
-    let syncChunkIndex = 0;
+    let activeLineIndex = -1;
+    for (let i = 0; i < lyricTimeline.length; i++) {
+        if (currentTime >= lyricTimeline[i].lineStartTime) activeLineIndex = i;
+    }
+
+    let nextLineStartTime = (activeLineIndex !== -1 && activeLineIndex + 1 < lyricTimeline.length) 
+                            ? lyricTimeline[activeLineIndex + 1].lineStartTime 
+                            : Infinity;
+
+    // Line persists until the next line's start time
+    let currentLine = (activeLineIndex !== -1 && currentTime < nextLineStartTime) ? lyricTimeline[activeLineIndex] : null;
     
-    let player;
-    let animationFrame;
-
-    // --- YOUTUBE API SETUP ---
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('ytplayer', {
-            height: '1',
-            width: '1',
-            videoId: '6fk50hiAYTQ',
-            playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1 },
-            events: {
-                'onReady': onPlayerReady,
-                'onStateChange': onPlayerStateChange
-            }
-        });
-    }
-
-    function onPlayerReady(event) {
-        document.title = "Ready to Play";
-        playBtn.style.display = 'block';
-        playBtn.innerText = "Play Empty Scene (Sync First!)";
-        document.getElementById('debug-panel').style.display = 'flex'; 
-        
-        playBtn.addEventListener('click', () => {
-            if(lyricTimeline.length === 0) {
-                alert("You need to Sync the lyrics first using the Debug Panel!");
-                return;
-            }
-            playBtn.style.display = 'none';
-            player.seekTo(30); 
-            player.playVideo();
-        });
-    }
-
-    function onPlayerStateChange(event) {
-        if (event.data == YT.PlayerState.PLAYING && !isSyncMode) {
-            updateFrame(); 
-        } else if (event.data == YT.PlayerState.ENDED || event.data == YT.PlayerState.PAUSED) {
-            cancelAnimationFrame(animationFrame);
-            if (event.data == YT.PlayerState.ENDED && !isSyncMode) {
-                playBtn.style.display = 'block';
-                playBtn.innerText = "Replay Video";
-                lyricsDisplay.innerHTML = "";
-                glow.style.opacity = '0';
-            }
-        }
-    }
-
-    // --- ANIMATION ENGINE (Syllable Based) ---
-    // --- UPDATED ENGINE LOGIC ---
-    function updateFrame() {
-        if (lyricTimeline.length === 0) return;
-        const currentTime = player.getCurrentTime() * 1000;
-        
-        // 1. Find the current active line (the last one that started before now)
-        let activeLineIndex = -1;
-        for (let i = 0; i < lyricTimeline.length; i++) {
-            if (currentTime >= lyricTimeline[i].lineStartTime) {
-                activeLineIndex = i;
-            }
-        }
-
-        // 2. Check if we have a next line to know when to clear the screen
-        let nextLineStartTime = Infinity;
-        if (activeLineIndex !== -1 && activeLineIndex + 1 < lyricTimeline.length) {
-            nextLineStartTime = lyricTimeline[activeLineIndex + 1].lineStartTime;
-        }
-
-        // 3. Determine if we should show the line
-        // We show it if we are in an active line AND we haven't reached the next line yet
-        let currentLine = (activeLineIndex !== -1 && currentTime < nextLineStartTime) 
-                          ? lyricTimeline[activeLineIndex] 
-                          : null;
-        
-        if (currentLine && currentLine.chunks.length > 0) {
-            let lineHTML = "";
-            currentLine.chunks.forEach(chunk => {
-                // If song time is past this chunk's time, show it as lit
-                if (currentTime >= chunk.time) {
-                    if(chunk.text.includes('<span')) {
-                        lineHTML += chunk.text.replace("class='", "class='lit ");
-                    } else {
-                        lineHTML += `<span class='lit'>${chunk.text}</span>`;
-                    }
-                } else {
-                    // Otherwise, keep it as ghost text
-                    lineHTML += chunk.text;
-                }
-            });
-            lyricsDisplay.innerHTML = lineHTML;
-            
-            // Pulse logic
-            if (currentLine.flash) glow.classList.add('pulse');
-            else { glow.classList.remove('pulse'); glow.style.opacity = '0'; }
-        } else {
-            // Instrumental break: Clear screen
-            lyricsDisplay.innerHTML = "";
-            glow.classList.remove('pulse');
-            glow.style.opacity = '0';
-        }
-
-        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
-            animationFrame = requestAnimationFrame(updateFrame);
-        }
-    }
-
-    // --- DEBUG & SYLLABLE SYNC LOGIC ---
-    document.getElementById('start-sync-btn').addEventListener('click', () => {
-        isSyncMode = true;
-        syncLineIndex = 1; 
-        syncChunkIndex = 0;
-        
-        // Setup the blank timeline based on unsyncedLyrics
-        lyricTimeline = unsyncedLyrics.map((line, index) => {
-            if (line.raw === "") {
-                return { lineStartTime: 0, flash: false, chunks: [] };
-            }
-            const pieces = line.raw.split('|');
-            const chunkObjects = pieces.map(p => ({ text: p, time: 0 }));
-            return { lineStartTime: 0, flash: line.flash, chunks: chunkObjects };
-        });
-        
-        lyricsDisplay.innerHTML = ""; 
-        playBtn.style.display = 'none';
-        
-        updateSyncStatus();
-        document.getElementById('export-btn').style.display = 'none';
-        document.getElementById('export-area').style.display = 'none';
-
-        player.seekTo(30);
-        player.playVideo();
-    });
-
-    function updateSyncStatus() {
-        const line = lyricTimeline[syncLineIndex];
-        if (!line || line.chunks.length === 0) {
-            document.getElementById('sync-status').innerHTML = `Sync Complete!`;
-            return;
-        }
-        const nextSyllable = line.chunks[syncChunkIndex].text.replace(/<[^>]*>?/gm, '');
-        document.getElementById('sync-status').innerHTML = `Press Space for:<br><span style="font-size:24px; color:white;">"${nextSyllable}"</span>`;
-        
-        // Preview the line on screen so you can see your progress while tapping
-        let previewHTML = "";
-        line.chunks.forEach((c, idx) => {
-            if (idx < syncChunkIndex) {
-                if(c.text.includes('<span')) previewHTML += c.text.replace("class='", "class='lit ");
-                else previewHTML += `<span class='lit'>${c.text}</span>`;
+    if (currentLine && currentLine.chunks.length > 0) {
+        let lineHTML = "";
+        currentLine.chunks.forEach(chunk => {
+            if (currentTime >= chunk.time) {
+                lineHTML += chunk.text.includes('<span') ? chunk.text.replace("class='", "class='lit ") : `<span class='lit'>${chunk.text}</span>`;
             } else {
-                previewHTML += c.text;
+                lineHTML += chunk.text;
             }
         });
-        lyricsDisplay.innerHTML = previewHTML;
+        document.getElementById('lyrics-display').innerHTML = lineHTML;
+        if (currentLine.flash) document.getElementById('glow').classList.add('pulse');
+        else document.getElementById('glow').classList.remove('pulse');
+    } else {
+        document.getElementById('lyrics-display').innerHTML = "";
+        document.getElementById('glow').classList.remove('pulse');
     }
+    if (player.getPlayerState() === 1) animationFrame = requestAnimationFrame(updateFrame);
+}
 
-    window.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && isSyncMode) {
-            e.preventDefault(); 
-            const exactTimeMs = Math.round(player.getCurrentTime() * 1000);
-            
-            const currentLine = lyricTimeline[syncLineIndex];
+// Sync logic remains the same
+document.getElementById('start-sync-btn').addEventListener('click', () => {
+    isSyncMode = true; syncLineIndex = 1; syncChunkIndex = 0;
+    lyricTimeline = unsyncedLyrics.map(line => ({ lineStartTime: 0, flash: line.flash, chunks: line.raw.split('|').map(p => ({ text: p, time: 0 })) }));
+    player.seekTo(30); player.playVideo(); updateSyncStatus();
+});
 
-            // If this is the first chunk of the line, set the line's start time
-            if (syncChunkIndex === 0) {
-                currentLine.lineStartTime = exactTimeMs;
-            }
+function updateSyncStatus() {
+    const line = lyricTimeline[syncLineIndex];
+    if (!line) return;
+    document.getElementById('sync-status').innerText = `Press Space for: "${line.chunks[syncChunkIndex].text.replace(/<[^>]*>?/gm, '')}"`;
+}
 
-            // Set the time for the specific chunk/syllable
-            currentLine.chunks[syncChunkIndex].time = exactTimeMs;
-            
-            // Screen flash feedback
-            document.body.style.backgroundColor = '#200';
-            setTimeout(() => { document.body.style.backgroundColor = 'black'; }, 50);
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && isSyncMode) {
+        const time = Math.round(player.getCurrentTime() * 1000);
+        if (syncChunkIndex === 0) lyricTimeline[syncLineIndex].lineStartTime = time;
+        lyricTimeline[syncLineIndex].chunks[syncChunkIndex].time = time;
+        syncChunkIndex++;
+        if (syncChunkIndex >= lyricTimeline[syncLineIndex].chunks.length) { syncLineIndex++; syncChunkIndex = 0; }
+        if (syncLineIndex >= lyricTimeline.length) { isSyncMode = false; document.getElementById('export-btn').style.display = 'block'; }
+        else updateSyncStatus();
+    }
+});
 
-            // Move to next syllable
-            syncChunkIndex++;
-
-            // If we finished all syllables in this line, move to next line
-            if (syncChunkIndex >= currentLine.chunks.length) {
-                syncLineIndex++;
-                syncChunkIndex = 0;
-                lyricsDisplay.innerHTML = ""; // clear between lines
-                
-                // Skip empty lines
-                if(syncLineIndex < lyricTimeline.length && lyricTimeline[syncLineIndex].chunks.length === 0) {
-                    lyricTimeline[syncLineIndex].lineStartTime = exactTimeMs + 100; // arbitrary future time to trigger clear
-                    syncLineIndex++;
-                }
-            }
-
-            if (syncLineIndex < lyricTimeline.length) {
-                updateSyncStatus();
-            } else {
-                document.getElementById('sync-status').innerHTML = `Sync Complete!`;
-                player.pauseVideo();
-                isSyncMode = false;
-                document.getElementById('export-btn').style.display = 'block';
-            }
-        }
-    });
-
-    document.getElementById('export-btn').addEventListener('click', () => {
-        let output = "const lyricTimeline = [\n";
-        
-        lyricTimeline.forEach((line, index) => {
-            const isLast = index === lyricTimeline.length - 1;
-            if (line.chunks.length === 0) {
-                output += `    { lineStartTime: ${line.lineStartTime}, flash: false, chunks: [] }${isLast ? '' : ','}\n`;
-            } else {
-                output += `    {\n      lineStartTime: ${line.lineStartTime}, \n      flash: ${line.flash}, \n      chunks: [\n`;
-                line.chunks.forEach((chunk, cIndex) => {
-                    const cLast = cIndex === line.chunks.length - 1;
-                    // Escape quotes if necessary
-                    const safeText = chunk.text.replace(/"/g, '\\"');
-                    output += `        { text: "${safeText}", time: ${chunk.time} }${cLast ? '' : ','}\n`;
-                });
-                output += `      ]\n    }${isLast ? '' : ','}\n`;
-            }
-        });
-        
-        output += "];";
-        
-        const textArea = document.getElementById('export-area');
-        textArea.value = output;
-        textArea.style.display = 'block';
-        textArea.select();
-    });
-
+document.getElementById('export-btn').addEventListener('click', () => {
+    const textArea = document.getElementById('export-area');
+    textArea.value = JSON.stringify(lyricTimeline, null, 2);
+    textArea.style.display = 'block';
+});
 </script>
 </body>
 </html>
