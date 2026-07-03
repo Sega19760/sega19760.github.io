@@ -63,12 +63,12 @@
         text-align: center;
         width: 100%;
         letter-spacing: 1px;
-        color: rgba(150, 150, 150, 0.5); /* Ghostly gray for unlit */
+        color: rgba(200, 200, 200, 0.4); /* Faded gray when not lit */
         text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
     }
 
     .lit {
-        color: white !important; /* Force white when lit */
+        color: white !important;
         text-shadow: 2px 2px 4px black;
     }
 
@@ -94,7 +94,7 @@
         top: 10px;
         left: 10px;
         z-index: 100;
-        background-color: rgba(0, 0, 0, 0.85);
+        background-color: rgba(0, 0, 0, 0.9);
         border: 2px solid #555;
         padding: 15px;
         border-radius: 8px;
@@ -104,20 +104,13 @@
         gap: 10px;
         width: 400px;
     }
-    #debug-panel h3 { margin: 0; color: #ff3333; }
+    #debug-panel h3 { margin: 0; color: #ff3333; display: flex; justify-content: space-between; }
     #sync-status { font-size: 16px; font-weight: bold; color: yellow; }
-    #export-area {
-        width: 100%;
-        height: 150px;
-        background: #111;
-        color: #0f0;
-        font-family: monospace;
-        border: 1px solid #444;
-        display: none;
-    }
+    #export-area { width: 100%; height: 100px; background: #111; color: #0f0; font-family: monospace; border: 1px solid #444; display: none; }
     .debug-btn { padding: 8px; background: #333; color: white; border: 1px solid #666; cursor: pointer; }
     .debug-btn:hover { background: #555; }
     #ytplayer { position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; }
+    .close-btn { background: #440000; border: none; color: white; cursor: pointer; padding: 2px 8px; }
 </style>
 </head>
 <body>
@@ -125,9 +118,9 @@
 <div id="video-container">
     <div id="ytplayer"></div>
     <div id="debug-panel">
-        <h3>Syllable Sync Tool</h3>
-        <button id="start-sync-btn" class="debug-btn">1. Start Sync (Tap Space for EACH word!)</button>
-        <div id="sync-status">Status: Waiting to start...</div>
+        <h3>Sync Tool <button class="close-btn" onclick="document.getElementById('debug-panel').style.display='none'">X</button></h3>
+        <button id="start-sync-btn" class="debug-btn">1. Start Sync (Tap Space!)</button>
+        <div id="sync-status">Status: Waiting...</div>
         <button id="export-btn" class="debug-btn" style="display:none;">2. Export Code</button>
         <textarea id="export-area"></textarea>
     </div>
@@ -184,6 +177,14 @@ const unsyncedLyrics = [
 
 let lyricTimeline = [];
 let player, animationFrame, isSyncMode = false, syncLineIndex = 1, syncChunkIndex = 0;
+let keyBuffer = "";
+
+// Secret Menu Trigger
+window.addEventListener('keydown', (e) => {
+    keyBuffer += e.key.toLowerCase();
+    if(keyBuffer.length > 4) keyBuffer = keyBuffer.slice(-4);
+    if(keyBuffer === "sega") document.getElementById('debug-panel').style.display = 'flex';
+});
 
 const tag = document.createElement('script');
 tag.src = "https://www.youtube.com/iframe_api";
@@ -195,10 +196,9 @@ function onYouTubeIframeAPIReady() {
 
 function onPlayerReady() {
     document.getElementById('play-btn').style.display = 'block';
-    document.getElementById('play-btn').innerText = "Play Empty Scene (Sync First!)";
-    document.getElementById('debug-panel').style.display = 'flex';
+    document.getElementById('play-btn').innerText = "Play Scene";
     document.getElementById('play-btn').addEventListener('click', () => { 
-        if(lyricTimeline.length === 0) return alert("Sync first!");
+        if(lyricTimeline.length === 0) return alert("Sync first (Type 'sega')!");
         document.getElementById('play-btn').style.display = 'none';
         player.seekTo(30); player.playVideo(); updateFrame();
     });
@@ -222,6 +222,7 @@ function updateFrame() {
     if (currentLine && currentLine.chunks.length > 0) {
         let lineHTML = "";
         currentLine.chunks.forEach(chunk => {
+            // Force strict coloring
             if (currentTime >= chunk.time) {
                 lineHTML += chunk.text.includes('<span') ? chunk.text.replace("class='", "class='lit ") : `<span class='lit'>${chunk.text}</span>`;
             } else {
@@ -247,15 +248,13 @@ document.getElementById('start-sync-btn').addEventListener('click', () => {
 function updateSyncStatus() {
     const line = lyricTimeline[syncLineIndex];
     if (!line) return;
-    
-    // Explicitly update display during sync
     let previewHTML = "";
     line.chunks.forEach((c, idx) => {
         if (idx < syncChunkIndex) previewHTML += `<span class='lit'>${c.text}</span>`;
         else previewHTML += c.text;
     });
     document.getElementById('lyrics-display').innerHTML = previewHTML;
-    document.getElementById('sync-status').innerText = `Press Space for: "${line.chunks[syncChunkIndex].text.replace(/<[^>]*>?/gm, '')}"`;
+    document.getElementById('sync-status').innerText = `Tap Space for: "${line.chunks[syncChunkIndex].text.replace(/<[^>]*>?/gm, '')}"`;
 }
 
 window.addEventListener('keydown', (e) => {
@@ -263,20 +262,10 @@ window.addEventListener('keydown', (e) => {
         const time = Math.round(player.getCurrentTime() * 1000);
         if (syncChunkIndex === 0) lyricTimeline[syncLineIndex].lineStartTime = time;
         lyricTimeline[syncLineIndex].chunks[syncChunkIndex].time = time;
-        
         syncChunkIndex++;
-        if (syncChunkIndex >= lyricTimeline[syncLineIndex].chunks.length) { 
-            syncLineIndex++; 
-            syncChunkIndex = 0; 
-        }
-        
-        if (syncLineIndex >= lyricTimeline.length) { 
-            isSyncMode = false; 
-            document.getElementById('export-btn').style.display = 'block';
-            document.getElementById('sync-status').innerText = "Sync Complete!";
-        } else {
-            updateSyncStatus();
-        }
+        if (syncChunkIndex >= lyricTimeline[syncLineIndex].chunks.length) { syncLineIndex++; syncChunkIndex = 0; }
+        if (syncLineIndex >= lyricTimeline.length) { isSyncMode = false; document.getElementById('export-btn').style.display = 'block'; }
+        else updateSyncStatus();
     }
 });
 
