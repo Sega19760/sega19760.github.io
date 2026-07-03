@@ -10,7 +10,7 @@
     body {
         background-color: black;
         color: white;
-        font-family: 'Times New Roman', serif; /* Matching the serif font in the video */
+        font-family: 'Times New Roman', serif;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -23,21 +23,16 @@
         position: relative;
         width: 1280px;
         height: 720px;
-        /* Updated: Set the background image and remove the solid black background */
         background: black url("https://i.imgur.com/e5BCbUe.png") no-repeat center/cover;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         align-items: center;
         overflow: hidden;
-        border: 2px solid #222; /* Just to see the bounds on a large monitor */
+        border: 2px solid #222; 
     }
 
-    /* REMOVED: .cracks effect */
-    /* REMOVED: #character sprite and related styles */
-    /* REMOVED: .eye styles */
-
-    /* Glowing red core that pulses (Still present to integrate with the new scene) */
+    /* Glowing red core that pulses */
     .core-glow {
         position: absolute;
         top: 50%; left: 50%;
@@ -85,64 +80,119 @@
         border: none;
         cursor: pointer;
         border-radius: 5px;
+        display: none; /* Hidden until YouTube API loads */
     }
     #play-btn:hover { background-color: red; }
+    
+    /* Hide the actual YouTube iframe */
+    #ytplayer {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+        width: 1px;
+        height: 1px;
+    }
 
 </style>
 </head>
 <body>
 
 <div id="video-container">
+    <div id="ytplayer"></div>
+
     <div id="glow" class="core-glow"></div>
-    
     <div id="lyrics-display"></div>
-    
-    <button id="play-btn">Start Lyric Scene</button>
+    <button id="play-btn">Loading Audio...</button>
 </div>
 
 <script>
-    // 1. Define the timeline (Timestamp in milliseconds, Text, and if the screen flashes red)
-    // I am using the exact text formatting and highlights from the video frames.
-    // MODIFIED: 'showChar' is set to false for all entries.
     const lyricTimeline = [
-        { time: 0, text: "", flash: false, showChar: false },
-        { time: 1000, text: "Tectonic tribulations", flash: true, showChar: false },
-        { time: 2500, text: "Sickness that sweeps the nations", flash: false, showChar: false },
-        { time: 4000, text: "Beyond these tiny things just", flash: false, showChar: false },
-        { time: 5500, text: "Somethin' tells me this is deeper", flash: true, showChar: false },
-        { time: 7000, text: "Our minds are <span class='color-blue'>special forces</span>", flash: false, showChar: false },
-        { time: 8500, text: "Body bags that cover corpses", flash: false, showChar: false },
-        { time: 10000, text: "Let it make some sense to me that", flash: true, showChar: false },
-        { time: 11500, text: "There's a reason I couldn't keep her", flash: false, showChar: false },
-        { time: 13000, text: "I couldn't see...", flash: false, showChar: false },
-        { time: 14500, text: "I couldn't've seen it!", flash: true, showChar: false },
-        { time: 16000, text: "There's nothin' left, but", flash: false, showChar: false },
-        { time: 17000, text: "I can't just leave her be, no!", flash: false, showChar: false },
-        { time: 18500, text: "You cast <span class='color-blue'>your sight</span> on dreams", flash: true, showChar: false },
-        { time: 20000, text: "to ferry 'fore you count all your coins", flash: false, showChar: false },
-        { time: 21500, text: "Others will <span class='color-blue'>comfort</span> saying", flash: false, showChar: false },
-        { time: 23000, text: "they've seen hell and back - Oh really?", flash: true, showChar: false },
-        { time: 25000, text: "Well in this game of glee", flash: false, showChar: false },
-        { time: 26500, text: "Turns out the <span class='color-red'>losers</span> make them always", flash: false, showChar: false },
-        { time: 28500, text: "", flash: false, showChar: false }
+        { time: 0, text: "", flash: false },
+        { time: 1000, text: "Tectonic tribulations", flash: true },
+        { time: 2500, text: "Sickness that sweeps the nations", flash: false },
+        { time: 4000, text: "Beyond these tiny things just", flash: false },
+        { time: 5500, text: "Somethin' tells me this is deeper", flash: true },
+        { time: 7000, text: "Our minds are <span class='color-blue'>special forces</span>", flash: false },
+        { time: 8500, text: "Body bags that cover corpses", flash: false },
+        { time: 10000, text: "Let it make some sense to me that", flash: true },
+        { time: 11500, text: "There's a reason I couldn't keep her", flash: false },
+        { time: 13000, text: "I couldn't see...", flash: false },
+        { time: 14500, text: "I couldn't've seen it!", flash: true },
+        { time: 16000, text: "There's nothin' left, but", flash: false },
+        { time: 17000, text: "I can't just leave her be, no!", flash: false },
+        { time: 18500, text: "You cast <span class='color-blue'>your sight</span> on dreams", flash: true },
+        { time: 20000, text: "to ferry 'fore you count all your coins", flash: false },
+        { time: 21500, text: "Others will <span class='color-blue'>comfort</span> saying", flash: false },
+        { time: 23000, text: "they've seen hell and back - Oh really?", flash: true },
+        { time: 25000, text: "Well in this game of glee", flash: false },
+        { time: 26500, text: "Turns out the <span class='color-red'>losers</span> make them always", flash: false },
+        { time: 28500, text: "", flash: false }
     ];
 
     const playBtn = document.getElementById('play-btn');
     const lyricsDisplay = document.getElementById('lyrics-display');
     const glow = document.getElementById('glow');
-    // MODIFIED: 'character' variable is no longer needed
-
-    let startTime;
+    
+    let player;
     let animationFrame;
 
-    function startVideo() {
-        playBtn.style.display = 'none';
-        startTime = Date.now();
-        updateFrame();
+    // --- YOUTUBE API SETUP ---
+    // 1. Load the IFrame Player API code asynchronously.
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    // 2. This function creates an <iframe> (and YouTube player) after the API code downloads.
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('ytplayer', {
+            height: '1',
+            width: '1',
+            videoId: '6fk50hiAYTQ', // The Video ID from your URL
+            playerVars: {
+                'playsinline': 1,
+                'controls': 0,
+                'disablekb': 1
+            },
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
+        });
     }
 
+    // 3. The API will call this function when the video player is ready.
+    function onPlayerReady(event) {
+        playBtn.style.display = 'block';
+        playBtn.innerText = "Start Lyric Scene";
+        
+        playBtn.addEventListener('click', () => {
+            playBtn.style.display = 'none';
+            player.seekTo(0);
+            player.playVideo();
+        });
+    }
+
+    // 4. The API calls this function when the player's state changes.
+    function onPlayerStateChange(event) {
+        // If the video starts playing (state 1), start the sync loop
+        if (event.data == YT.PlayerState.PLAYING) {
+            updateFrame();
+        } else if (event.data == YT.PlayerState.ENDED || event.data == YT.PlayerState.PAUSED) {
+            cancelAnimationFrame(animationFrame);
+            if (event.data == YT.PlayerState.ENDED) {
+                playBtn.style.display = 'block';
+                playBtn.innerText = "Replay Scene";
+                lyricsDisplay.innerHTML = "";
+                glow.style.opacity = '0';
+            }
+        }
+    }
+
+    // --- ANIMATION SYNC LOOP ---
     function updateFrame() {
-        const currentTime = Date.now() - startTime;
+        // Get exact current time from the YouTube player (converted from seconds to milliseconds)
+        const currentTime = player.getCurrentTime() * 1000;
         
         // Find the current lyric line based on time
         let currentLine = lyricTimeline[0];
@@ -164,21 +214,11 @@
             glow.style.opacity = '0';
         }
 
-        // MODIFIED: The code to show/hide the character is removed.
-
-        // Loop until the end of the timeline
-        if (currentTime < lyricTimeline[lyricTimeline.length - 1].time) {
+        // Keep looping as long as the video is playing
+        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
             animationFrame = requestAnimationFrame(updateFrame);
-        } else {
-            // Reset when done
-            playBtn.style.display = 'block';
-            playBtn.innerText = "Replay Scene";
-            lyricsDisplay.innerHTML = "";
-            // MODIFIED: The character is no longer relevant for the reset
         }
     }
-
-    playBtn.addEventListener('click', startVideo);
 </script>
 
 </body>
