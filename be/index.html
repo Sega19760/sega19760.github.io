@@ -48,18 +48,30 @@
         #bg-start { background-image: url('https://i.imgur.com/MGd0U8B.png'); z-index: 2; }
         #bg-final { background-image: url('https://i.imgur.com/e5BCbUe.png'); z-index: 3; opacity: 0; }
 
-        #lyrics-wrapper { position: absolute; bottom: 30px; width: 90%; display: flex; justify-content: center; z-index: 10; }
-        #lyrics-display {
-            font-size: 46px;
-            text-align: center;
-            white-space: nowrap;
-            color: #555;
-            text-shadow: 1px 1px 1px rgba(0,0,0,.5);
-            transform-origin: center center;
-            transition: transform 0.05s linear;
-        }
-        
-        .lit { color: white; }
+        #lyrics-wrapper { 
+    position: absolute; 
+    bottom: 50px; /* Moves it slightly up */
+    width: 100%; 
+    display: flex; 
+    justify-content: center; 
+    z-index: 10; 
+}
+
+#lyrics-display {
+    font-size: 32px; /* Set a larger base size */
+    text-align: center;
+    color: #555;
+    text-shadow: 1px 1px 2px rgba(0,0,0,1);
+    /* Remove transform and transition properties */
+}
+
+#lyrics-display span {
+    color: transparent; 
+}
+
+#lyrics-display span.lit {
+    color: white; 
+}
 
         #play-btn { position: absolute; z-index: 20; padding: 15px 30px; font-size: 20px; background-color: rgba(255,0,0,0.7); color: white; border: none; cursor: pointer; }
     </style>
@@ -88,15 +100,28 @@
     const music = document.getElementById('music');
     const wrapper = document.getElementById("lyrics-wrapper");
 
-    function fitLyrics() {
-        display.style.transform = "scale(1)";
+    // Updated fitLyrics with stability fix
+function fitLyrics() {
+    const wrapper = document.getElementById("lyrics-wrapper");
+    const display = document.getElementById("lyrics-display");
+
+    // Reset to base state to measure accurately
+    display.style.transform = "scale(1)";
+
+    // Use requestAnimationFrame so we get the accurate width of the container
+    requestAnimationFrame(() => {
         const maxWidth = wrapper.clientWidth;
         const width = display.scrollWidth;
-        if (width > maxWidth) {
+
+        if (width > maxWidth && maxWidth > 0) {
             const scale = maxWidth / width;
-            display.style.transform = `scale(${scale})`;
+            // Use scale3d for hardware acceleration, which reduces jitter
+            display.style.transform = `scale3d(${scale}, ${scale}, 1)`;
+        } else {
+            display.style.transform = "scale3d(1, 1, 1)";
         }
-    }
+    });
+}
 
 const lyricTimeline = [
   { lineStartTime: 0, flash: false, chunks: [{ text: " ", time: 0 }] },
@@ -144,44 +169,50 @@ const lyricTimeline = [
   { lineStartTime: 198636, flash: true, chunks: [{ text: "I ", time: 198636 }, { text: "just ", time: 198904 }, { text: "can’t ", time: 199167 }, { text: "take ", time: 199473 }, { text: "it ", time: 199792 }, { text: "a", time: 200102 }, { text: "ny ", time: 200395 }, { text: "moo", time: 200701 }, { text: "o", time: 201312 }, { text: "o", time: 201608 }, { text: "ooore", time: 201938 }, { text: " ", time: 206861 }] }
 ];
     document.getElementById('play-btn').onclick = async function () {
-        this.remove();
-        music.currentTime = 0;
-        await music.play();
+    this.remove();
+    music.currentTime = 0;
+    await music.play();
 
-        function loop() {
-            const t = music.currentTime;
-            const ms = t * 1000;
+    function loop() {
+        const t = music.currentTime;
+        const ms = t * 1000;
 
-            const line = lyricTimeline.find((l, i) => 
-                ms >= l.lineStartTime && (lyricTimeline[i + 1] ? ms < lyricTimeline[i + 1].lineStartTime : true)
-            );
+        const line = lyricTimeline.find((l, i) => 
+            ms >= l.lineStartTime && (lyricTimeline[i + 1] ? ms < lyricTimeline[i + 1].lineStartTime : true)
+        );
 
-            if (line) {
-                let html = "";
-                line.chunks.forEach(c => {
-                    html += `<span class="${ms >= c.time ? "lit" : ""}">${c.text}</span>`;
-                });
+        // Lyrics Logic (Single instance, handles updates and sizing)
+        if (line) {
+            let html = "";
+            line.chunks.forEach(c => {
+                html += `<span class="${ms >= c.time ? "lit" : ""}">${c.text}</span>`;
+            });
+
+            if (display.innerHTML !== html) {
                 display.innerHTML = html;
                 fitLyrics();
             }
-
-            // Background Opacity logic
-            if (t <= 2) s.style.opacity = 1;
-            else if (t <= 9) s.style.opacity = 1 - (t - 2) / 7;
-            else s.style.opacity = 0;
-
-            let o = 0;
-            if (t >= 17 && t < 18) o = t - 17;
-            else if (t >= 18 && t < 130.934) o = 1;
-            else if (t >= 130.934 && t < 131.934) o = 1 - (t - 130.934);
-            else if (t >= 151.004 && t < 152.004) o = t - 151.004;
-            else if (t >= 152.004) o = 1;
-            f.style.opacity = Math.max(0, Math.min(1, o));
-
-            if (!music.paused && !music.ended) requestAnimationFrame(loop);
+        } else {
+            display.innerHTML = "";
         }
-        requestAnimationFrame(loop);
-    };
+
+        // Background Opacity logic
+        if (t <= 2) s.style.opacity = 1;
+        else if (t <= 9) s.style.opacity = 1 - (t - 2) / 7;
+        else s.style.opacity = 0;
+
+        let o = 0;
+        if (t >= 17 && t < 18) o = t - 17;
+        else if (t >= 18 && t < 130.934) o = 1;
+        else if (t >= 130.934 && t < 131.934) o = 1 - (t - 130.934);
+        else if (t >= 151.004 && t < 152.004) o = t - 151.004;
+        else if (t >= 152.004) o = 1;
+        f.style.opacity = Math.max(0, Math.min(1, o));
+
+        if (!music.paused && !music.ended) requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+};
 </script>
 </body>
 </html>
