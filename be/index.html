@@ -28,7 +28,7 @@
         position: relative;
         width: 1280px;
         height: 720px;
-        background: black url("https://i.imgur.com/e5BCbUe.png") no-repeat center/cover;
+        background-color: black;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -37,13 +37,34 @@
         border: 2px solid #222; 
     }
 
+    /* --- BACKGROUND LAYERS --- */
+    #bg-middle {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: url("https://i.imgur.com/lsCiQm1.png") no-repeat center/cover;
+        z-index: 1; /* Bottom visible layer */
+    }
+
+    #bg-start {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: url("https://i.imgur.com/MGd0U8B.png") no-repeat center/cover;
+        z-index: 2; /* Sits on top of middle layer, will fade out */
+    }
+
+    #bg-final {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: url("https://i.imgur.com/e5BCbUe.png") no-repeat center/cover;
+        z-index: 3; /* Top layer, starts invisible, fades in */
+        opacity: 0;
+    }
+
+    /* --- EFFECTS & UI --- */
     .core-glow {
         position: absolute;
         top: 50%; left: 50%;
         transform: translate(-50%, -50%);
         width: 150px; height: 150px;
         background: radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(255,0,0,0) 70%);
-        z-index: 2;
+        z-index: 5;
         opacity: 0;
         transition: opacity 0.1s;
     }
@@ -69,14 +90,12 @@
         text-align: center;
         white-space: nowrap;
         letter-spacing: 1px;
-        /* The Unlit State (Dark Grey) */
         color: #555; 
         text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
         transform-origin: center;
         transition: transform 0.1s;
     }
 
-    /* The Lit State (White) */
     .lit {
         color: white !important;
         text-shadow: 2px 2px 4px black;
@@ -133,6 +152,11 @@
 
 <div id="video-container">
     <div id="ytplayer"></div>
+    
+    <div id="bg-middle"></div>
+    <div id="bg-start"></div>
+    <div id="bg-final"></div>
+
     <div id="debug-panel" onclick="this.style.display='none'">
         <h3>Syllable Sync Tool</h3>
         <button id="start-sync-btn" class="debug-btn">1. Start Sync (Tap Space!)</button>
@@ -140,6 +164,7 @@
         <button id="export-btn" class="debug-btn" style="display:none;">2. Export Code</button>
         <textarea id="export-area" onclick="event.stopPropagation()"></textarea>
     </div>
+
     <div id="glow" class="core-glow"></div>
     <div id="lyrics-wrapper"><div id="lyrics-display"></div></div>
     <button id="play-btn">Loading Audio...</button>
@@ -193,9 +218,9 @@ const unsyncedLyrics = [
     { raw: "I |just |can’t |take |it |a|ny |moo|o|o|ooore| ", flash: true }
 ];
 
-// --- YOUR SYNCED DATA ---
+// --- YOUR PERFECTLY SYNCED DATA ---
 let lyricTimeline = [
-  { lineStartTime: 0, flash: false, chunks: [{ text: "‎ ", time: 0 }] },
+  { lineStartTime: 0, flash: false, chunks: [{ text: " ", time: 0 }] },
   { lineStartTime: 33873, flash: true, chunks: [{ text: "Tec", time: 33873 }, { text: "ton", time: 34103 }, { text: "ic ", time: 34355 }, { text: "tri", time: 34613 }, { text: "bu", time: 34857 }, { text: "la", time: 34983 }, { text: "tions", time: 35341 }, { text: " ", time: 35772 }] },
   { lineStartTime: 35874, flash: false, chunks: [{ text: "Sick", time: 35874 }, { text: "ness ", time: 36157 }, { text: "that ", time: 36426 }, { text: "sweeps ", time: 36709 }, { text: "the ", time: 36961 }, { text: "na", time: 37077 }, { text: "tions", time: 37481 }, { text: " ", time: 37871 }] },
   { lineStartTime: 37968, flash: false, chunks: [{ text: "Be", time: 37968 }, { text: "yond ", time: 38256 }, { text: "these ", time: 38529 }, { text: "ti", time: 38789 }, { text: "ny ", time: 39025 }, { text: "things ", time: 39148 }, { text: "just", time: 39502 }, { text: " ", time: 39974 }] },
@@ -271,19 +296,35 @@ function onYouTubeIframeAPIReady() {
 
 function onPlayerReady() {
     document.getElementById('play-btn').style.display = 'block';
-    // Changed the button text since it's now synced!
     document.getElementById('play-btn').innerText = "Play Scene";
     document.getElementById('play-btn').addEventListener('click', () => { 
         if(lyricTimeline.length === 0) return alert("Sync first!");
         document.getElementById('play-btn').style.display = 'none';
-        player.seekTo(0); player.playVideo(); updateFrame();
+        player.seekTo(0); // Starts from 0:00!
+        player.playVideo(); 
+        updateFrame();
     });
 }
 
 function updateFrame() {
     if (lyricTimeline.length === 0) return;
     const currentTime = player.getCurrentTime() * 1000;
+    const t = currentTime / 1000; // time in seconds
     
+    // --- BACKGROUND FADE LOGIC ---
+    // bg-start (MGd0U8B.png): Fades out from 2s to 9s
+    const bgStart = document.getElementById('bg-start');
+    if (t <= 2) bgStart.style.opacity = 1;
+    else if (t > 2 && t <= 9) bgStart.style.opacity = 1 - ((t - 2) / 7);
+    else bgStart.style.opacity = 0;
+
+    // bg-final (e5BCbUe.png): Fades in from 16s to 17s
+    const bgFinal = document.getElementById('bg-final');
+    if (t <= 16) bgFinal.style.opacity = 0;
+    else if (t > 16 && t <= 17) bgFinal.style.opacity = (t - 16) / 1;
+    else bgFinal.style.opacity = 1;
+
+    // --- LYRICS LOGIC ---
     let activeLineIndex = -1;
     for (let i = 0; i < lyricTimeline.length; i++) {
         if (currentTime >= lyricTimeline[i].lineStartTime) activeLineIndex = i;
@@ -314,13 +355,17 @@ function updateFrame() {
         document.getElementById('lyrics-display').innerHTML = "";
         document.getElementById('glow').classList.remove('pulse');
     }
+    
     if (player.getPlayerState() === 1) animationFrame = requestAnimationFrame(updateFrame);
 }
 
+// --- SYNC MODE ---
 document.getElementById('start-sync-btn').addEventListener('click', () => {
     isSyncMode = true; syncLineIndex = 1; syncChunkIndex = 0;
     lyricTimeline = unsyncedLyrics.map(line => ({ lineStartTime: 0, flash: line.flash, chunks: line.raw.split('|').map(p => ({ text: p, time: 0 })) }));
-    player.seekTo(0); player.playVideo(); updateSyncStatus();
+    player.seekTo(0); // Starts from 0:00!
+    player.playVideo(); 
+    updateSyncStatus();
 });
 
 function updateSyncStatus() {
