@@ -63,13 +63,23 @@
     <div id="bg-middle" class="layer"></div>
     <div id="bg-start" class="layer"></div>
     <div id="bg-final" class="layer"></div>
-    <div id="lyrics-wrapper"><div id="lyrics-display"></div></div>
+
+    <div id="lyrics-wrapper">
+        <div id="lyrics-display"></div>
+    </div>
+
     <button id="play-btn">Play Scene</button>
+
+    <audio id="music" preload="auto">
+        <source src="What could it be.mp3" type="audio/mpeg">
+    </audio>
 </div>
 
+    
 <script>
     const s = document.getElementById('bg-start'), f = document.getElementById('bg-final');
     const display = document.getElementById('lyrics-display');
+    const music = document.getElementById('music');
     
     // Lyric Timeline Data
     const lyricTimeline = [
@@ -92,43 +102,78 @@
         { lineStartTime: 80949, flash: true, chunks: [{ text: "I ", time: 80949 }, { text: "JUST ", time: 81104 }, { text: "CAN'T ", time: 81302 }, { text: "TAKE ", time: 81580 }, { text: "IT ", time: 81853 }, { text: "A", time: 82130 }, { text: "NY", time: 82399 }, { text: "MORE!", time: 82681 }, { text: " ", time: 83127 }] }
     ];
 
-    document.getElementById('play-btn').onclick = function() {
-        this.remove();
-        const t0 = performance.now();
-        requestAnimationFrame(function loop(now) {
-            const t = (now - t0) / 1000;
-            const ms = t * 1000;
+document.getElementById('play-btn').onclick = async function () {
 
-            // Lyrics Logic
-            const line = lyricTimeline.find((l, i) => 
-                ms >= l.lineStartTime && (lyricTimeline[i+1] ? ms < lyricTimeline[i+1].lineStartTime : true)
-            );
-            if (line) {
-                let html = "";
-                line.chunks.forEach(c => {
-                    html += `<span class='${ms >= c.time ? 'lit' : ''}'>${c.text}</span>`;
-                });
-                display.innerHTML = html;
-            }
+    this.remove();
 
-            // Layer Transition Logic
-            if(t <= 2) s.style.opacity = 1;
-            else if(t <= 9) s.style.opacity = 1 - (t - 2) / 7;
-            else s.style.opacity = 0;
+    // Start the music from the beginning
+    music.currentTime = 0;
 
-            let o = 0;
-            if(t < 17) o = 0;
-            else if(t < 18) o = t - 17;
-            else if(t < 130.934) o = 1;
-            else if(t < 131.934) o = 1 - (t - 130.934);
-            else if(t < 151.004) o = 0;
-            else if(t < 152.004) o = t - 151.004;
-            else o = 1;
-            
-            f.style.opacity = Math.max(0, Math.min(1, o));
+    try {
+        await music.play();
+    } catch (err) {
+        console.error(err);
+    }
+
+    const t0 = performance.now();
+
+    requestAnimationFrame(function loop(now) {
+
+        // Use the audio's actual playback time
+        const t = music.currentTime;
+        const ms = t * 1000;
+
+        // Lyrics Logic
+        const line = lyricTimeline.find((l, i) =>
+            ms >= l.lineStartTime &&
+            (lyricTimeline[i + 1] ? ms < lyricTimeline[i + 1].lineStartTime : true)
+        );
+
+        if (line) {
+            let html = "";
+
+            line.chunks.forEach(c => {
+                html += `<span class="${ms >= c.time ? "lit" : ""}">${c.text}</span>`;
+            });
+
+            display.innerHTML = html;
+        } else {
+            display.innerHTML = "";
+        }
+
+        // Background Layer Logic
+        if (t <= 2)
+            s.style.opacity = 1;
+        else if (t <= 9)
+            s.style.opacity = 1 - (t - 2) / 7;
+        else
+            s.style.opacity = 0;
+
+        let o;
+
+        if (t < 17)
+            o = 0;
+        else if (t < 18)
+            o = t - 17;
+        else if (t < 130.934)
+            o = 1;
+        else if (t < 131.934)
+            o = 1 - (t - 130.934);
+        else if (t < 151.004)
+            o = 0;
+        else if (t < 152.004)
+            o = t - 151.004;
+        else
+            o = 1;
+
+        f.style.opacity = Math.max(0, Math.min(1, o));
+
+        // Keep updating until the song ends
+        if (!music.paused && !music.ended) {
             requestAnimationFrame(loop);
-        });
-    };
+        }
+    });
+};
 </script>
 </body>
 </html>
