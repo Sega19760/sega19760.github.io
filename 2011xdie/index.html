@@ -1,0 +1,97 @@
+body{
+    margin:0;
+    overflow:hidden;
+    background:black;
+    font-family:Comic Sans MS, sans-serif;
+    color:red;
+}
+
+#x{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:320px;
+    transform:translate(-50%,-50%);
+    image-rendering:pixelated;
+    transition:.15s;
+}
+
+#text{
+    position:absolute;
+    width:100%;
+    text-align:center;
+    top:20px;
+    font-size:70px;
+    font-weight:bold;
+    text-shadow:0 0 20px red;
+}
+</style>
+</head>
+<body>
+
+<div id="text">2011X</div>
+
+<img id="x"
+src="https://static.wikia.nocookie.net/continued-exe/images/2/23/XJustStandingThere.PNG">
+
+<script>
+
+const img=document.getElementById("x");
+const text=document.getElementById("text");
+
+let alive=true;
+
+setInterval(()=>{
+
+if(!alive)return;
+
+img.style.left=(50+Math.sin(Date.now()/120)*2)+"%";
+img.style.transform=
+`translate(-50%,-50%) rotate(${Math.sin(Date.now()/70)*4}deg)`;
+
+},16);
+
+setTimeout(()=>{
+
+alive=false;
+
+text.innerHTML="2011X DIE!!!";
+
+img.style.filter="grayscale(100%) brightness(.5)";
+img.style.transform="translate(-50%,-50%) rotate(90deg)";
+img.style.top="75%";
+
+document.body.style.background="darkred";
+
+setTimeout(()=>{
+
+text.innerHTML="died 2011x";
+
+},1200);
+
+setTimeout(()=>{
+
+document.body.innerHTML=`
+<div style="
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+background:black;
+color:white;
+font-family:Comic Sans MS;
+font-size:80px;
+text-align:center;
+">
+2011x website die<br><br>died 2011x
+</div>
+`;
+
+},3000);
+
+},3000);
+
+</script>
+
+</body>
+</html>
