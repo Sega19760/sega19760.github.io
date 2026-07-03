@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>What could it be.</title>
+<title>Waiting for audio...</title>
 <style>
     /* Reset and base setup */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,7 +23,7 @@
         position: relative;
         width: 1280px;
         height: 720px;
-        background: black url("https://i.imgur.com/e5BCbUe.png") no-repeat center/cover;
+        background: black url("https://media.discordapp.net/attachments/1478247102478946456/1522458331590168698/image.png") no-repeat center/cover;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -31,7 +31,28 @@
         overflow: hidden;
         border: 2px solid #222; 
     }
+
+    /* Glowing red core that pulses */
+    .core-glow {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 150px; height: 150px;
+        background: radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(255,0,0,0) 70%);
+        z-index: 2;
+        opacity: 0;
+        transition: opacity 0.1s;
+    }
     
+    .pulse {
+        animation: heartbeat 0.5s infinite alternate;
+    }
+
+    @keyframes heartbeat {
+        from { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+        to { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    }
+
     /* Lyrics display at the bottom */
     #lyrics-display {
         position: absolute;
@@ -59,9 +80,45 @@
         border: none;
         cursor: pointer;
         border-radius: 5px;
-        display: none; /* Hidden until YouTube API loads */
+        display: none;
     }
     #play-btn:hover { background-color: red; }
+
+    /* DEBUG PANEL STYLES */
+    #debug-panel {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 100;
+        background-color: rgba(0, 0, 0, 0.85);
+        border: 2px solid #555;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: sans-serif;
+        display: none; /* Hidden until API loads */
+        flex-direction: column;
+        gap: 10px;
+        width: 350px;
+    }
+    #debug-panel h3 { margin: 0; color: #ff3333; }
+    #sync-status { font-size: 16px; font-weight: bold; color: yellow; }
+    #export-area {
+        width: 100%;
+        height: 150px;
+        background: #111;
+        color: #0f0;
+        font-family: monospace;
+        border: 1px solid #444;
+        display: none;
+    }
+    .debug-btn {
+        padding: 8px;
+        background: #333;
+        color: white;
+        border: 1px solid #666;
+        cursor: pointer;
+    }
+    .debug-btn:hover { background: #555; }
     
     /* Hide the actual YouTube iframe */
     #ytplayer {
@@ -79,12 +136,21 @@
 <div id="video-container">
     <div id="ytplayer"></div>
 
+    <div id="debug-panel">
+        <h3>Sync Tool</h3>
+        <button id="start-sync-btn" class="debug-btn">1. Start Sync Mode (Plays from 30s)</button>
+        <div id="sync-status">Status: Waiting to start...</div>
+        <button id="export-btn" class="debug-btn" style="display:none;">2. Export Updated Code</button>
+        <textarea id="export-area"></textarea>
+    </div>
+
     <div id="glow" class="core-glow"></div>
     <div id="lyrics-display"></div>
     <button id="play-btn">Loading Audio...</button>
 </div>
 
 <script>
+    // Original timeline (used for standard playback)
     const lyricTimeline = [
         { time: 0, text: "", flash: false },
         { time: 33000, text: "Tectonic tribulations", flash: true },
@@ -112,6 +178,11 @@
     const lyricsDisplay = document.getElementById('lyrics-display');
     const glow = document.getElementById('glow');
     
+    // Debug variables
+    let isSyncMode = false;
+    let syncIndex = 1; // Start at index 1 (skipping the empty string at index 0)
+    let newTimeline = [];
+
     let player;
     let animationFrame;
 
@@ -126,11 +197,7 @@
             height: '1',
             width: '1',
             videoId: '6fk50hiAYTQ',
-            playerVars: {
-                'playsinline': 1,
-                'controls': 0,
-                'disablekb': 1
-            },
+            playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1 },
             events: {
                 'onReady': onPlayerReady,
                 'onStateChange': onPlayerStateChange
@@ -141,24 +208,26 @@
     function onPlayerReady(event) {
         document.title = "Ready to Play";
         playBtn.style.display = 'block';
-        playBtn.innerText = "Start Lyric Scene";
+        playBtn.innerText = "Start Standard Video";
+        document.getElementById('debug-panel').style.display = 'flex'; // Show debug tools
         
+        // Standard Play Button
         playBtn.addEventListener('click', () => {
             playBtn.style.display = 'none';
             document.title = "Playing...";
-            player.seekTo(31); 
+            player.seekTo(30); 
             player.playVideo();
         });
     }
 
     function onPlayerStateChange(event) {
-        if (event.data == YT.PlayerState.PLAYING) {
-            updateFrame();
+        if (event.data == YT.PlayerState.PLAYING && !isSyncMode) {
+            updateFrame(); // Only run standard animation if NOT in sync mode
         } else if (event.data == YT.PlayerState.ENDED || event.data == YT.PlayerState.PAUSED) {
             cancelAnimationFrame(animationFrame);
-            if (event.data == YT.PlayerState.ENDED) {
+            if (event.data == YT.PlayerState.ENDED && !isSyncMode) {
                 playBtn.style.display = 'block';
-                playBtn.innerText = "Replay Scene";
+                playBtn.innerText = "Replay Video";
                 lyricsDisplay.innerHTML = "";
                 document.title = "Scene Ended";
                 glow.style.opacity = '0';
@@ -166,7 +235,7 @@
         }
     }
 
-    // --- ANIMATION SYNC LOOP ---
+    // --- ANIMATION SYNC LOOP (Standard Playback) ---
     function updateFrame() {
         const currentTime = player.getCurrentTime() * 1000;
         
@@ -178,31 +247,98 @@
             }
         }
 
-        // Update Text on Screen
         lyricsDisplay.innerHTML = currentLine.text;
-
-        // Update Browser Tab Title
+        
         if (currentLine.text === "") {
-            document.title = "Lord X"; // Default title when there are no lyrics
+            document.title = "Lord X";
         } else {
-            // Strip out HTML tags (like <span class='color-blue'>) so the tab text is clean
             const cleanText = currentLine.text.replace(/<[^>]*>?/gm, '');
             document.title = cleanText;
         }
         
-        // Handle red background pulsing/flashing
-        if (currentLine.flash) {
-            glow.classList.add('pulse');
-        } else {
-            glow.classList.remove('pulse');
-            glow.style.opacity = '0';
-        }
+        if (currentLine.flash) glow.classList.add('pulse');
+        else { glow.classList.remove('pulse'); glow.style.opacity = '0'; }
 
         if (player.getPlayerState() === YT.PlayerState.PLAYING) {
             animationFrame = requestAnimationFrame(updateFrame);
         }
     }
-</script>
 
+    // --- DEBUG & SYNC LOGIC ---
+
+    // 1. Start Syncing
+    document.getElementById('start-sync-btn').addEventListener('click', () => {
+        isSyncMode = true;
+        syncIndex = 1; 
+        
+        // Create a deep copy of the timeline to edit
+        newTimeline = JSON.parse(JSON.stringify(lyricTimeline));
+        
+        // Reset the text on screen so it doesn't distract
+        lyricsDisplay.innerHTML = ""; 
+        playBtn.style.display = 'none';
+        
+        document.getElementById('sync-status').innerHTML = `Press Space for:<br>"${newTimeline[syncIndex].text.replace(/<[^>]*>?/gm, '')}"`;
+        document.getElementById('export-btn').style.display = 'none';
+        document.getElementById('export-area').style.display = 'none';
+
+        // Start video at 30 seconds
+        player.seekTo(30);
+        player.playVideo();
+    });
+
+    // 2. Spacebar Event Listener
+    window.addEventListener('keydown', (e) => {
+        // Only trigger if we are in sync mode, playing, and pressed Space
+        if (e.code === 'Space' && isSyncMode) {
+            e.preventDefault(); // Stop page from scrolling down
+
+            // Grab exact current time
+            const exactTimeMs = Math.round(player.getCurrentTime() * 1000);
+            
+            // Record time for current lyric
+            newTimeline[syncIndex].time = exactTimeMs;
+            
+            // Flash red on screen just so you know you hit the button
+            document.body.style.backgroundColor = '#300';
+            setTimeout(() => { document.body.style.backgroundColor = 'black'; }, 100);
+
+            // Move to next lyric
+            syncIndex++;
+
+            if (syncIndex < newTimeline.length) {
+                // Update debug text to show what's coming next
+                let nextText = newTimeline[syncIndex].text.replace(/<[^>]*>?/gm, '');
+                if (nextText === "") nextText = "[END SCENE]";
+                document.getElementById('sync-status').innerHTML = `Press Space for:<br>"${nextText}"`;
+            } else {
+                // We finished all the lyrics!
+                document.getElementById('sync-status').innerHTML = `Sync Complete!`;
+                player.pauseVideo();
+                isSyncMode = false;
+                document.getElementById('export-btn').style.display = 'block';
+            }
+        }
+    });
+
+    // 3. Export Code
+    document.getElementById('export-btn').addEventListener('click', () => {
+        let output = "const lyricTimeline = [\n";
+        
+        newTimeline.forEach((line, index) => {
+            const isLast = index === newTimeline.length - 1;
+            // Reconstruct the JSON string properly
+            output += `    { time: ${line.time}, text: "${line.text}", flash: ${line.flash} }${isLast ? '' : ','}\n`;
+        });
+        
+        output += "];";
+        
+        const textArea = document.getElementById('export-area');
+        textArea.value = output;
+        textArea.style.display = 'block';
+        textArea.select();
+    });
+
+</script>
 </body>
 </html>
