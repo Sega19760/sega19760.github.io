@@ -55,16 +55,25 @@
         to { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
     }
 
-    #lyrics-display {
+    /* Fixed layout to ensure scaling works */
+    #lyrics-wrapper {
         position: absolute;
         bottom: 30px;
+        width: 90%;
+        display: flex;
+        justify-content: center;
         z-index: 10;
+    }
+
+    #lyrics-display {
         font-size: 46px;
         text-align: center;
-        width: 100%;
+        white-space: nowrap;
         letter-spacing: 1px;
-        color: rgba(200, 200, 200, 0.4); /* Faded gray when not lit */
-        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+        color: rgba(200, 200, 200, 0.5); 
+        text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.15);
+        transform-origin: center;
+        transition: transform 0.1s;
     }
 
     .lit {
@@ -89,12 +98,13 @@
     }
     #play-btn:hover { background-color: red; }
 
+    /* Hidden by default */
     #debug-panel {
         position: absolute;
         top: 10px;
         left: 10px;
         z-index: 100;
-        background-color: rgba(0, 0, 0, 0.9);
+        background-color: rgba(0, 0, 0, 0.85);
         border: 2px solid #555;
         padding: 15px;
         border-radius: 8px;
@@ -103,29 +113,38 @@
         flex-direction: column;
         gap: 10px;
         width: 400px;
+        cursor: pointer;
     }
-    #debug-panel h3 { margin: 0; color: #ff3333; display: flex; justify-content: space-between; }
+    #debug-panel h3 { margin: 0; color: #ff3333; }
     #sync-status { font-size: 16px; font-weight: bold; color: yellow; }
-    #export-area { width: 100%; height: 100px; background: #111; color: #0f0; font-family: monospace; border: 1px solid #444; display: none; }
+    #export-area {
+        width: 100%;
+        height: 150px;
+        background: #111;
+        color: #0f0;
+        font-family: monospace;
+        border: 1px solid #444;
+        display: none;
+        cursor: text;
+    }
     .debug-btn { padding: 8px; background: #333; color: white; border: 1px solid #666; cursor: pointer; }
     .debug-btn:hover { background: #555; }
     #ytplayer { position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; }
-    .close-btn { background: #440000; border: none; color: white; cursor: pointer; padding: 2px 8px; }
 </style>
 </head>
 <body>
 
 <div id="video-container">
     <div id="ytplayer"></div>
-    <div id="debug-panel">
-        <h3>Sync Tool <button class="close-btn" onclick="document.getElementById('debug-panel').style.display='none'">X</button></h3>
+    <div id="debug-panel" onclick="this.style.display='none'">
+        <h3>Syllable Sync Tool</h3>
         <button id="start-sync-btn" class="debug-btn">1. Start Sync (Tap Space!)</button>
         <div id="sync-status">Status: Waiting...</div>
         <button id="export-btn" class="debug-btn" style="display:none;">2. Export Code</button>
-        <textarea id="export-area"></textarea>
+        <textarea id="export-area" onclick="event.stopPropagation()"></textarea>
     </div>
     <div id="glow" class="core-glow"></div>
-    <div id="lyrics-display"></div>
+    <div id="lyrics-wrapper"><div id="lyrics-display"></div></div>
     <button id="play-btn">Loading Audio...</button>
 </div>
 
@@ -175,16 +194,27 @@ const unsyncedLyrics = [
     { raw: "I |just |can’t |take |it |a|ny |moo|o|o|ooore", flash: true }
 ];
 
+// --- SECRET TRIGGER ---
+let keySequence = "";
+window.addEventListener('keydown', (e) => {
+    keySequence += e.key.toLowerCase();
+    if (keySequence.length > 4) keySequence = keySequence.slice(-4);
+    if (keySequence === "sega") document.getElementById('debug-panel').style.display = 'flex';
+});
+
+// --- SCALING LOGIC ---
+function adjustTextScale() {
+    const display = document.getElementById('lyrics-display');
+    const container = document.getElementById('video-container');
+    display.style.transform = 'scale(1)'; // reset
+    if (display.offsetWidth > container.offsetWidth * 0.9) {
+        const scale = (container.offsetWidth * 0.9) / display.offsetWidth;
+        display.style.transform = `scale(${scale})`;
+    }
+}
+
 let lyricTimeline = [];
 let player, animationFrame, isSyncMode = false, syncLineIndex = 1, syncChunkIndex = 0;
-let keyBuffer = "";
-
-// Secret Menu Trigger
-window.addEventListener('keydown', (e) => {
-    keyBuffer += e.key.toLowerCase();
-    if(keyBuffer.length > 4) keyBuffer = keyBuffer.slice(-4);
-    if(keyBuffer === "sega") document.getElementById('debug-panel').style.display = 'flex';
-});
 
 const tag = document.createElement('script');
 tag.src = "https://www.youtube.com/iframe_api";
@@ -196,9 +226,9 @@ function onYouTubeIframeAPIReady() {
 
 function onPlayerReady() {
     document.getElementById('play-btn').style.display = 'block';
-    document.getElementById('play-btn').innerText = "Play Scene";
+    document.getElementById('play-btn').innerText = "Play Empty Scene (Sync First!)";
     document.getElementById('play-btn').addEventListener('click', () => { 
-        if(lyricTimeline.length === 0) return alert("Sync first (Type 'sega')!");
+        if(lyricTimeline.length === 0) return alert("Sync first!");
         document.getElementById('play-btn').style.display = 'none';
         player.seekTo(30); player.playVideo(); updateFrame();
     });
@@ -222,7 +252,6 @@ function updateFrame() {
     if (currentLine && currentLine.chunks.length > 0) {
         let lineHTML = "";
         currentLine.chunks.forEach(chunk => {
-            // Force strict coloring
             if (currentTime >= chunk.time) {
                 lineHTML += chunk.text.includes('<span') ? chunk.text.replace("class='", "class='lit ") : `<span class='lit'>${chunk.text}</span>`;
             } else {
@@ -230,6 +259,8 @@ function updateFrame() {
             }
         });
         document.getElementById('lyrics-display').innerHTML = lineHTML;
+        adjustTextScale();
+        
         if (currentLine.flash) document.getElementById('glow').classList.add('pulse');
         else document.getElementById('glow').classList.remove('pulse');
     } else {
@@ -248,13 +279,15 @@ document.getElementById('start-sync-btn').addEventListener('click', () => {
 function updateSyncStatus() {
     const line = lyricTimeline[syncLineIndex];
     if (!line) return;
+    
     let previewHTML = "";
     line.chunks.forEach((c, idx) => {
         if (idx < syncChunkIndex) previewHTML += `<span class='lit'>${c.text}</span>`;
         else previewHTML += c.text;
     });
     document.getElementById('lyrics-display').innerHTML = previewHTML;
-    document.getElementById('sync-status').innerText = `Tap Space for: "${line.chunks[syncChunkIndex].text.replace(/<[^>]*>?/gm, '')}"`;
+    adjustTextScale();
+    document.getElementById('sync-status').innerText = `Press Space for: "${line.chunks[syncChunkIndex].text.replace(/<[^>]*>?/gm, '')}"`;
 }
 
 window.addEventListener('keydown', (e) => {
@@ -262,10 +295,20 @@ window.addEventListener('keydown', (e) => {
         const time = Math.round(player.getCurrentTime() * 1000);
         if (syncChunkIndex === 0) lyricTimeline[syncLineIndex].lineStartTime = time;
         lyricTimeline[syncLineIndex].chunks[syncChunkIndex].time = time;
+        
         syncChunkIndex++;
-        if (syncChunkIndex >= lyricTimeline[syncLineIndex].chunks.length) { syncLineIndex++; syncChunkIndex = 0; }
-        if (syncLineIndex >= lyricTimeline.length) { isSyncMode = false; document.getElementById('export-btn').style.display = 'block'; }
-        else updateSyncStatus();
+        if (syncChunkIndex >= lyricTimeline[syncLineIndex].chunks.length) { 
+            syncLineIndex++; 
+            syncChunkIndex = 0; 
+        }
+        
+        if (syncLineIndex >= lyricTimeline.length) { 
+            isSyncMode = false; 
+            document.getElementById('export-btn').style.display = 'block';
+            document.getElementById('sync-status').innerText = "Sync Complete!";
+        } else {
+            updateSyncStatus();
+        }
     }
 });
 
