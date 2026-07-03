@@ -1,460 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>What could it be?</title>
-<style>
-    @font-face {
-        font-family: 'Merriweather';
-        src: url('Merriweather.ttf') format('truetype');
-        font-weight: 400;
-        font-style: normal;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What could it be?</title>
+    <style>
+        @font-face {
+            font-family: 'Merriweather';
+            src: url('Merriweather.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-        background-color: black;
-        color: white;
-        font-family: 'Merriweather', serif;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        overflow: hidden;
-    }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            background-color: black; 
+            color: white; 
+            font-family: 'Merriweather', serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
 
-    #video-container {
-        position: relative;
-        width: 1280px;
-        height: 720px;
-        background-color: black;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        overflow: hidden;
-        border: 2px solid #222; 
-    }
+        /* Container & Layers */
+        #video-container {
+            position: relative;
+            width: 1280px;
+            height: 720px;
+            background-color: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            overflow: hidden;
+            border: 2px solid #222;
+        }
 
-    /* --- BACKGROUND LAYERS --- */
-    #bg-middle {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: url("https://i.imgur.com/lsCiQm1.png") no-repeat center/cover;
-        z-index: 1; /* Bottom visible layer */
-    }
+        .layer {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+        }
 
-    #bg-start {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: url("https://i.imgur.com/MGd0U8B.png") no-repeat center/cover;
-        z-index: 2; /* Sits on top of middle layer, will fade out */
-    }
+        #bg-middle { background-image: url('https://i.imgur.com/lsCiQm1.png'); z-index: 1; }
+        #bg-start { background-image: url('https://i.imgur.com/MGd0U8B.png'); z-index: 2; }
+        #bg-final { background-image: url('https://i.imgur.com/e5BCbUe.png'); z-index: 3; opacity: 0; }
 
-    #bg-final {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: url("https://i.imgur.com/e5BCbUe.png") no-repeat center/cover;
-        z-index: 3; /* Top layer, starts invisible, fades in/out */
-        opacity: 0;
-    }
+        /* UI & Lyrics */
+        #lyrics-wrapper { position: absolute; bottom: 30px; width: 90%; display: flex; justify-content: center; z-index: 10; }
+        #lyrics-display { font-size: 46px; text-align: center; white-space: nowrap; color: #555; text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5); }
+        .lit { color: white !important; text-shadow: 2px 2px 4px black; }
 
-    /* --- EFFECTS & UI --- */
-    .core-glow {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        width: 150px; height: 150px;
-        background: radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(255,0,0,0) 70%);
-        z-index: 5;
-        opacity: 0;
-        transition: opacity 0.1s;
-    }
-    
-    .pulse { animation: heartbeat 0.5s infinite alternate; }
-
-    @keyframes heartbeat {
-        from { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
-        to { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-    }
-
-    #lyrics-wrapper {
-        position: absolute;
-        bottom: 30px;
-        width: 90%;
-        display: flex;
-        justify-content: center;
-        z-index: 10;
-    }
-
-    #lyrics-display {
-        font-size: 46px;
-        text-align: center;
-        white-space: nowrap;
-        letter-spacing: 1px;
-        color: #555; 
-        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
-        transform-origin: center;
-        transition: transform 0.1s;
-    }
-
-    .lit {
-        color: white !important;
-        text-shadow: 2px 2px 4px black;
-    }
-    
-    #play-btn {
-        position: absolute;
-        z-index: 20;
-        padding: 15px 30px;
-        font-size: 20px;
-        background-color: rgba(255,0,0,0.7);
-        color: white;
-        border: none;
-        cursor: pointer;
-        border-radius: 5px;
-        display: none;
-    }
-    #play-btn:hover { background-color: red; }
-
-    #debug-panel {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        z-index: 100;
-        background-color: rgba(0, 0, 0, 0.85);
-        border: 2px solid #555;
-        padding: 15px;
-        border-radius: 8px;
-        font-family: sans-serif;
-        display: none; 
-        flex-direction: column;
-        gap: 10px;
-        width: 400px;
-        cursor: pointer;
-    }
-    #debug-panel h3 { margin: 0; color: #ff3333; }
-    #sync-status { font-size: 16px; font-weight: bold; color: yellow; }
-    #export-area {
-        width: 100%;
-        height: 150px;
-        background: #111;
-        color: #0f0;
-        font-family: monospace;
-        border: 1px solid #444;
-        display: none;
-        cursor: text;
-    }
-    .debug-btn { padding: 8px; background: #333; color: white; border: 1px solid #666; cursor: pointer; }
-    .debug-btn:hover { background: #555; }
-    #ytplayer { position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; }
-</style>
+        #play-btn { position: absolute; z-index: 20; padding: 15px 30px; font-size: 20px; background-color: rgba(255,0,0,0.7); color: white; border: none; cursor: pointer; }
+    </style>
 </head>
 <body>
 
 <div id="video-container">
-    <div id="ytplayer"></div>
-    
-    <div id="bg-middle"></div>
-    <div id="bg-start"></div>
-    <div id="bg-final"></div>
-
-    <div id="debug-panel" onclick="this.style.display='none'">
-        <h3>Syllable Sync Tool</h3>
-        <button id="start-sync-btn" class="debug-btn">1. Start Sync (Tap Space!)</button>
-        <div id="sync-status">Status: Waiting...</div>
-        <button id="export-btn" class="debug-btn" style="display:none;">2. Export Code</button>
-        <textarea id="export-area" onclick="event.stopPropagation()"></textarea>
-    </div>
-
-    <div id="glow" class="core-glow"></div>
+    <div id="bg-middle" class="layer"></div>
+    <div id="bg-start" class="layer"></div>
+    <div id="bg-final" class="layer"></div>
     <div id="lyrics-wrapper"><div id="lyrics-display"></div></div>
-    <button id="play-btn">Loading Audio...</button>
+    <button id="play-btn">Play Scene</button>
 </div>
 
 <script>
-// The raw list, kept just in case you trigger Sega mode to re-sync
-const unsyncedLyrics = [
-    { raw: "", flash: false },
-    { raw: "Tec|ton|ic |tri|bu|la|tions| ", flash: true },
-    { raw: "Sick|ness |that |sweeps |the |na|tions| ", flash: false },
-    { raw: "Be|yond |these |ti|ny |things |just| ", flash: false },
-    { raw: "Some|thin' |tells |me |this |is |dee|per| ", flash: true },
-    { raw: "Our |minds |are |spe|cial |for|ces| ", flash: false },
-    { raw: "Bo|dy |bags |that |co|ver |corp|ses| ", flash: false },
-    { raw: "Let |it |make |some |sense |to |me |that| ", flash: true },
-    { raw: "There's |a |rea|son |I |could|n't |keep |her| ", flash: false },
-    { raw: "I |could|n't |see.. |I |could|n't've |seen |it!| ", flash: false },
-    { raw: "There's |no|thin' |left, |but |I |can't |just |leave |her |be, |no!| ", flash: true },
-    { raw: "You |cast |your |sight |on |dreams |to |fer|ry |‘fore |you |count |all |your |coins| ", flash: false },
-    { raw: "O|thers |will |com|fort |say|ing |they’ve |seen |hell |and |back |— |Oh |real|ly?| ", flash: false },
-    { raw: "Well |in |this |game |of |glee, |turns |out |the |lo|sers |make |them |al|ways| ", flash: false },
-    { raw: "I |should’ve |stopped |be|fore |I |star|ted, |and |thought |— |“How |sil|ly!”| ", flash: true },
-    { raw: "What |could |it |be? |What |could |it |be!?| ", flash: false },
-    { raw: "I |JUST |CAN'T |TAKE |IT |A|NY|MORE!| ", flash: true },
-    { raw: "(Going |In|sane)| ", flash: true },
-    { raw: "Played |off |the |fun|da|men|tals| ", flash: false },
-    { raw: "For |in |the |mo|ment |we |must| ", flash: false },
-    { raw: "But |it’s |in|con|se|quen|tial| ", flash: false },
-    { raw: "The |norm |is |not |for |both |of |us| ", flash: false },
-    { raw: "She |thinks |it’s |for |the |bet|ter| ", flash: false },
-    { raw: "But |I |still |know |how |she |lies| ", flash: false },
-    { raw: "When |past |a|po|ca|lypse |she’d |spread |her |false|hood |from |the |o|ther |side| ", flash: false },
-    { raw: "And |since |our |part, |it’s |ea|ten |my |heart, |girl| ", flash: false },
-    { raw: "Where’s |all |the |fun, |when |I |TEAR |THEIR |BODS |A|PART, |NOW| ", flash: true },
-    { raw: "You |throw |dis|cre|tion |out |the |win|dow |when |you |try |to |be |kind| ", flash: false },
-    { raw: "But |once |they |leave |your |zone |you’re |sit|tin |in |the |cold |— |it’s |chil|lin’!| ", flash: false },
-    { raw: "You |pon|der, |pi|ning |what |may |hap|pen, |or |who |could |be |the |next| ", flash: false },
-    { raw: "I |should’ve |stopped |be|fore |I |star|ted, |and |thought |— |“How |sil|ly!”| ", flash: true },
-    { raw: "What |could |it |be? |What |could |it |be!?| ", flash: false },
-    { raw: "I |JUST |CAN'T |TAKE |IT |A|NY|MORE!| ", flash: true },
-    { raw: "You |cast |your |sight |on |dreams |to |fer|ry |‘fore |you |count |all |your |coins| ", flash: false },
-    { raw: "O|thers |will |com|fort |say|ing |they’ve |seen |hell |and |back |— |Oh |real|ly?| ", flash: false },
-    { raw: "Well |in |this |game |of |glee, |turns |out |the |lo|sers |still |made |the |choice| ", flash: false },
-    { raw: "I |should’ve |stopped |be|fore |I |star|ted, |and |thought |— |“How |sil|ly!”| ", flash: true },
-    { raw: "I |knew |my|self |well |‘fore |this |flow|er |took |to |me |for |ten|ding| ", flash: false },
-    { raw: "So |what’s |the |point |with |just |the |blood |for |wa|ter|ing |— |So |tea|ry!| ", flash: false },
-    { raw: "But |still |it |wilts |a|way, |and |of |the |two, |it’s |wil|tin’ |slow|ly| ", flash: false },
-    { raw: "I |stand |here |dead |and |done, |and |I |have |to |ask: |What’s |kil|lin‘ |me?| ", flash: true },
-    { raw: "What |could |it |be? |What |could |it |be? |I |could|n’t |see |Or |was |it |me |Who |cut |us |free? |What |could |it |be?| ", flash: false },
-    { raw: "I |just |can’t |take |it |a|ny |moo|o|o|ooore| ", flash: true }
-];
-
-// --- YOUR PERFECTLY SYNCED DATA ---
-let lyricTimeline = [
-  { lineStartTime: 0, flash: false, chunks: [{ text: " ", time: 0 }] },
-  { lineStartTime: 33873, flash: true, chunks: [{ text: "Tec", time: 33873 }, { text: "ton", time: 34103 }, { text: "ic ", time: 34355 }, { text: "tri", time: 34613 }, { text: "bu", time: 34857 }, { text: "la", time: 34983 }, { text: "tions", time: 35341 }, { text: " ", time: 35772 }] },
-  { lineStartTime: 35874, flash: false, chunks: [{ text: "Sick", time: 35874 }, { text: "ness ", time: 36157 }, { text: "that ", time: 36426 }, { text: "sweeps ", time: 36709 }, { text: "the ", time: 36961 }, { text: "na", time: 37077 }, { text: "tions", time: 37481 }, { text: " ", time: 37871 }] },
-  { lineStartTime: 37968, flash: false, chunks: [{ text: "Be", time: 37968 }, { text: "yond ", time: 38256 }, { text: "these ", time: 38529 }, { text: "ti", time: 38789 }, { text: "ny ", time: 39025 }, { text: "things ", time: 39148 }, { text: "just", time: 39502 }, { text: " ", time: 39974 }] },
-  { lineStartTime: 40079, flash: true, chunks: [{ text: "Some", time: 40079 }, { text: "thin' ", time: 40190 }, { text: "tells ", time: 40281 }, { text: "me ", time: 40571 }, { text: "this ", time: 40858 }, { text: "is ", time: 41093 }, { text: "dee", time: 41362 }, { text: "per", time: 41621 }, { text: " ", time: 42061 }] },
-  { lineStartTime: 42167, flash: false, chunks: [{ text: "Our ", time: 42167 }, { text: "minds ", time: 42429 }, { text: "are ", time: 42704 }, { text: "spe", time: 42949 }, { text: "cial ", time: 43082 }, { text: "for", time: 43338 }, { text: "ces", time: 43704 }, { text: " ", time: 44084 }] },
-  { lineStartTime: 44195, flash: false, chunks: [{ text: "Bo", time: 44195 }, { text: "dy ", time: 44310 }, { text: "bags ", time: 44622 }, { text: "that ", time: 44789 }, { text: "co", time: 45039 }, { text: "ver ", time: 45176 }, { text: "corp", time: 45429 }, { text: "ses", time: 45796 }, { text: " ", time: 46264 }] },
-  { lineStartTime: 46373, flash: true, chunks: [{ text: "Let ", time: 46373 }, { text: "it ", time: 46484 }, { text: "make ", time: 46600 }, { text: "some ", time: 46857 }, { text: "sense ", time: 47116 }, { text: "to ", time: 47348 }, { text: "me ", time: 47465 }, { text: "that", time: 47865 }, { text: " ", time: 48111 }] },
-  { lineStartTime: 48221, flash: false, chunks: [{ text: "There's ", time: 48221 }, { text: "a ", time: 48403 }, { text: "rea", time: 48691 }, { text: "son ", time: 48810 }, { text: "I ", time: 48917 }, { text: "could", time: 49220 }, { text: "n't ", time: 49335 }, { text: "keep ", time: 49611 }, { text: "her", time: 50000 }, { text: " ", time: 50492 }] },
-  { lineStartTime: 50739, flash: false, chunks: [{ text: "I ", time: 50739 }, { text: "could", time: 50859 }, { text: "n't ", time: 50964 }, { text: "see.. ", time: 51204 }, { text: "I ", time: 52609 }, { text: "could", time: 52845 }, { text: "n't've ", time: 52956 }, { text: "seen ", time: 53241 }, { text: "it!", time: 53916 }, { text: " ", time: 54642 }] },
-  { lineStartTime: 54731, flash: true, chunks: [{ text: "There's ", time: 54731 }, { text: "no", time: 54978 }, { text: "thin' ", time: 55084 }, { text: "left, ", time: 55386 }, { text: "but ", time: 56007 }, { text: "I ", time: 56263 }, { text: "can't ", time: 56521 }, { text: "just ", time: 56781 }, { text: "leave ", time: 57063 }, { text: "her ", time: 57337 }, { text: "be, ", time: 57613 }, { text: "no!", time: 58127 }, { text: " ", time: 58856 }] },
-  { lineStartTime: 58960, flash: false, chunks: [{ text: "You ", time: 58960 }, { text: "cast ", time: 59176 }, { text: "your ", time: 59428 }, { text: "sight ", time: 59683 }, { text: "on ", time: 59961 }, { text: "dreams ", time: 60225 }, { text: "to ", time: 60485 }, { text: "fer", time: 60741 }, { text: "ry ", time: 61000 }, { text: "‘fore ", time: 61276 }, { text: "you ", time: 61521 }, { text: "count ", time: 61791 }, { text: "all ", time: 62063 }, { text: "your ", time: 62334 }, { text: "coins", time: 62594 }, { text: " ", time: 63025 }] },
-  { lineStartTime: 63126, flash: false, chunks: [{ text: "O", time: 63126 }, { text: "thers ", time: 63375 }, { text: "will ", time: 63624 }, { text: "com", time: 63892 }, { text: "fort ", time: 64134 }, { text: "say", time: 64398 }, { text: "ing ", time: 64658 }, { text: "they’ve ", time: 64913 }, { text: "seen ", time: 65172 }, { text: "hell ", time: 65436 }, { text: "and ", time: 65539 }, { text: "back ", time: 65819 }, { text: "— ", time: 66221 }, { text: "Oh ", time: 66323 }, { text: "real", time: 66487 }, { text: "ly?", time: 66759 }, { text: " ", time: 67161 }] },
-  { lineStartTime: 67259, flash: false, chunks: [{ text: "Well ", time: 67259 }, { text: "in ", time: 67481 }, { text: "this ", time: 67764 }, { text: "game ", time: 68025 }, { text: "of ", time: 68311 }, { text: "glee, ", time: 68570 }, { text: "turns ", time: 68836 }, { text: "out ", time: 69098 }, { text: "the ", time: 69360 }, { text: "lo", time: 69639 }, { text: "sers ", time: 69882 }, { text: "make ", time: 70152 }, { text: "them ", time: 70413 }, { text: "al", time: 70675 }, { text: "ways", time: 70951 }, { text: " ", time: 71429 }] },
-  { lineStartTime: 71529, flash: true, chunks: [{ text: "I ", time: 71529 }, { text: "should’ve ", time: 71736 }, { text: "stopped ", time: 71874 }, { text: "be", time: 72127 }, { text: "fore ", time: 72716 }, { text: "I ", time: 72809 }, { text: "star", time: 73072 }, { text: "ted, ", time: 73404 }, { text: "and ", time: 73686 }, { text: "thought — ", time: 73992 }, { text: "“How ", time: 74436 }, { text: "sil", time: 74548 }, { text: "ly!”", time: 74862 }, { text: " ", time: 76565 }] },
-  { lineStartTime: 76841, flash: false, chunks: [{ text: "What ", time: 76841 }, { text: "could ", time: 76957 }, { text: "it ", time: 77084 }, { text: "be?", time: 77342 }, { text: "What ", time: 78743 }, { text: "could ", time: 78984 }, { text: "it ", time: 79095 }, { text: "be!?", time: 79348 }, { text: " ", time: 80796 }] },
-  { lineStartTime: 80949, flash: true, chunks: [{ text: "I ", time: 80949 }, { text: "JUST ", time: 81104 }, { text: "CAN'T ", time: 81302 }, { text: "TAKE ", time: 81580 }, { text: "IT ", time: 81853 }, { text: "A", time: 82130 }, { text: "NY", time: 82399 }, { text: "MORE!", time: 82681 }, { text: " ", time: 83127 }] },
-  { lineStartTime: 83251, flash: true, chunks: [{ text: "(Going ", time: 83251 }, { text: "In", time: 83458 }, { text: "sane)", time: 83737 }, { text: " ", time: 83986 }] },
-  { lineStartTime: 84229, flash: false, chunks: [{ text: "Played ", time: 84229 }, { text: "off ", time: 84466 }, { text: "the ", time: 84728 }, { text: "fun", time: 84968 }, { text: "da", time: 85086 }, { text: "men", time: 85422 }, { text: "tals", time: 85791 }, { text: " ", time: 85927 }] },
-  { lineStartTime: 86205, flash: false, chunks: [{ text: "For ", time: 86205 }, { text: "in ", time: 86369 }, { text: "the ", time: 86604 }, { text: "mo", time: 86851 }, { text: "ment ", time: 87117 }, { text: "we ", time: 87388 }, { text: "must", time: 87641 }, { text: " ", time: 88062 }] },
-  { lineStartTime: 88170, flash: false, chunks: [{ text: "But ", time: 88170 }, { text: "it’s ", time: 88409 }, { text: "in", time: 88679 }, { text: "con", time: 88915 }, { text: "se", time: 89168 }, { text: "quen", time: 89286 }, { text: "tial", time: 89635 }, { text: " ", time: 90057 }] },
-  { lineStartTime: 90175, flash: false, chunks: [{ text: "The ", time: 90175 }, { text: "norm ", time: 90280 }, { text: "is ", time: 90598 }, { text: "not ", time: 90936 }, { text: "for ", time: 91202 }, { text: "both ", time: 91315 }, { text: "of ", time: 91614 }, { text: "us", time: 91739 }, { text: " ", time: 92195 }] },
-  { lineStartTime: 92307, flash: false, chunks: [{ text: "She ", time: 92307 }, { text: "thinks ", time: 92543 }, { text: "it’s ", time: 92816 }, { text: "for ", time: 93079 }, { text: "the ", time: 93326 }, { text: "bet", time: 93449 }, { text: "ter", time: 93803 }, { text: " ", time: 94274 }] },
-  { lineStartTime: 94376, flash: false, chunks: [{ text: "But ", time: 94376 }, { text: "I ", time: 94626 }, { text: "still ", time: 94895 }, { text: "know ", time: 95161 }, { text: "how ", time: 95439 }, { text: "she ", time: 95708 }, { text: "lies", time: 95973 }, { text: " ", time: 96392 }] },
-  { lineStartTime: 96484, flash: false, chunks: [{ text: "When ", time: 96484 }, { text: "past ", time: 96745 }, { text: "a", time: 96998 }, { text: "po", time: 97273 }, { text: "ca", time: 97527 }, { text: "lypse ", time: 97644 }, { text: "she’d ", time: 97765 }, { text: "spread ", time: 98484 }, { text: "her ", time: 98580 }, { text: "false", time: 98700 }, { text: "hood ", time: 99017 }, { text: "from ", time: 99311 }, { text: "the ", time: 99547 }, { text: "o", time: 99659 }, { text: "ther ", time: 99897 }, { text: "side", time: 100072 }, { text: " ", time: 100610 }] },
-  { lineStartTime: 100748, flash: false, chunks: [{ text: "And ", time: 100748 }, { text: "since ", time: 100904 }, { text: "our ", time: 101063 }, { text: "part, ", time: 101339 }, { text: "it’s ", time: 102709 }, { text: "ea", time: 102943 }, { text: "ten ", time: 103076 }, { text: "my ", time: 103305 }, { text: "heart, ", time: 103443 }, { text: "girl", time: 104052 }, { text: " ", time: 104806 }] },
-  { lineStartTime: 104907, flash: true, chunks: [{ text: "Where’s ", time: 104907 }, { text: "all ", time: 105129 }, { text: "the ", time: 105251 }, { text: "fun, ", time: 105526 }, { text: "when ", time: 106084 }, { text: "I ", time: 106318 }, { text: "TEAR ", time: 106610 }, { text: "THEIR ", time: 106897 }, { text: "BODS ", time: 107175 }, { text: "A", time: 107454 }, { text: "PART, ", time: 107729 }, { text: "NOW", time: 108230 }, { text: " ", time: 108851 }] },
-  { lineStartTime: 108955, flash: false, chunks: [{ text: "You ", time: 108955 }, { text: "throw ", time: 109215 }, { text: "dis", time: 109492 }, { text: "cre", time: 109773 }, { text: "tion ", time: 110052 }, { text: "out ", time: 110319 }, { text: "the ", time: 110611 }, { text: "win", time: 110877 }, { text: "dow ", time: 111137 }, { text: "when ", time: 111387 }, { text: "you ", time: 111640 }, { text: "try ", time: 111898 }, { text: "to ", time: 112155 }, { text: "be ", time: 112432 }, { text: "kind", time: 112677 }, { text: " ", time: 113129 }] },
-  { lineStartTime: 113371, flash: false, chunks: [{ text: "But ", time: 113371 }, { text: "once ", time: 113514 }, { text: "they ", time: 113732 }, { text: "leave ", time: 113988 }, { text: "your ", time: 114243 }, { text: "zone ", time: 114519 }, { text: "you’re ", time: 114767 }, { text: "sit", time: 115032 }, { text: "tin ", time: 115308 }, { text: "in ", time: 115566 }, { text: "the ", time: 115677 }, { text: "cold ", time: 115942 }, { text: "— ", time: 116335 }, { text: "it’s ", time: 116455 }, { text: "chil", time: 116665 }, { text: "lin’!", time: 116900 }, { text: " ", time: 117336 }] },
-  { lineStartTime: 117440, flash: false, chunks: [{ text: "You ", time: 117440 }, { text: "pon", time: 117682 }, { text: "der, ", time: 117928 }, { text: "pi", time: 118183 }, { text: "ning ", time: 118429 }, { text: "what ", time: 118690 }, { text: "may ", time: 118941 }, { text: "hap", time: 119226 }, { text: "pen, ", time: 119485 }, { text: "or ", time: 119743 }, { text: "who ", time: 119997 }, { text: "could ", time: 120259 }, { text: "be ", time: 120499 }, { text: "the ", time: 120782 }, { text: "next", time: 121071 }, { text: " ", time: 121528 }] },
-  { lineStartTime: 121642, flash: true, chunks: [{ text: "I ", time: 121642 }, { text: "should’ve ", time: 121827 }, { text: "stopped ", time: 122002 }, { text: "be", time: 122499 }, { text: "fore ", time: 122753 }, { text: "I ", time: 123057 }, { text: "star", time: 123177 }, { text: "ted, ", time: 123493 }, { text: "and ", time: 123802 }, { text: "thought ", time: 124103 }, { text: "— ", time: 124604 }, { text: "“How ", time: 124702 }, { text: "sil", time: 124948 }, { text: "ly!”", time: 125211 }, { text: " ", time: 126028 }] },
-  { lineStartTime: 126710, flash: false, chunks: [{ text: "What ", time: 126710 }, { text: "could ", time: 126957 }, { text: "it ", time: 127084 }, { text: "be?", time: 127358 }, { text: "What ", time: 128813 }, { text: "could ", time: 129052 }, { text: "it ", time: 129181 }, { text: "be!?", time: 129434 }, { text: " ", time: 130825 }] },
-  { lineStartTime: 130934, flash: true, chunks: [{ text: "I ", time: 130934 }, { text: "JUST ", time: 131166 }, { text: "CAN'T ", time: 131408 }, { text: "TAKE ", time: 131686 }, { text: "IT ", time: 131952 }, { text: "A", time: 132242 }, { text: "NY", time: 132494 }, { text: "MORE!", time: 132776 }, { text: " ", time: 150753 }] },
-  { lineStartTime: 151004, flash: false, chunks: [{ text: "You ", time: 151004 }, { text: "cast ", time: 151247 }, { text: "your ", time: 151504 }, { text: "sight ", time: 151755 }, { text: "on ", time: 152010 }, { text: "dreams ", time: 152157 }, { text: "to ", time: 152475 }, { text: "fer", time: 152719 }, { text: "ry ", time: 152962 }, { text: "‘fore ", time: 153157 }, { text: "you ", time: 153404 }, { text: "count ", time: 153624 }, { text: "all ", time: 153882 }, { text: "your ", time: 154126 }, { text: "coins", time: 154417 }, { text: " ", time: 154858 }] },
-  { lineStartTime: 154972, flash: false, chunks: [{ text: "O", time: 154972 }, { text: "thers ", time: 155185 }, { text: "will ", time: 155437 }, { text: "com", time: 155704 }, { text: "fort ", time: 155968 }, { text: "say", time: 156227 }, { text: "ing ", time: 156481 }, { text: "they’ve ", time: 156727 }, { text: "seen ", time: 156992 }, { text: "hell ", time: 157241 }, { text: "and ", time: 157364 }, { text: "back ", time: 157632 }, { text: "— ", time: 158066 }, { text: "Oh ", time: 158184 }, { text: "real", time: 158366 }, { text: "ly?", time: 158621 }, { text: " ", time: 159050 }] },
-  { lineStartTime: 159162, flash: false, chunks: [{ text: "Well ", time: 159162 }, { text: "in ", time: 159391 }, { text: "this ", time: 159655 }, { text: "game ", time: 159905 }, { text: "of ", time: 160153 }, { text: "glee, ", time: 160405 }, { text: "turns ", time: 160670 }, { text: "out ", time: 160944 }, { text: "the ", time: 161202 }, { text: "lo", time: 161464 }, { text: "sers ", time: 161718 }, { text: "still ", time: 161981 }, { text: "made ", time: 162232 }, { text: "the ", time: 162498 }, { text: "choice", time: 162792 }, { text: " ", time: 163234 }] },
-  { lineStartTime: 163341, flash: true, chunks: [{ text: "I ", time: 163341 }, { text: "should’ve ", time: 163551 }, { text: "stopped ", time: 163664 }, { text: "be", time: 164224 }, { text: "fore ", time: 164508 }, { text: "I ", time: 164748 }, { text: "star", time: 164959 }, { text: "ted, ", time: 165259 }, { text: "and ", time: 165548 }, { text: "thought ", time: 165834 }, { text: "— ", time: 166270 }, { text: "“How ", time: 166395 }, { text: "sil", time: 166651 }, { text: "ly!”", time: 166921 }, { text: " ", time: 167215 }] },
-  { lineStartTime: 167673, flash: false, chunks: [{ text: "I ", time: 167673 }, { text: "knew ", time: 167806 }, { text: "my", time: 167986 }, { text: "self ", time: 168252 }, { text: "well ", time: 168500 }, { text: "‘fore ", time: 168762 }, { text: "this ", time: 169017 }, { text: "flow", time: 169281 }, { text: "er ", time: 169525 }, { text: "took ", time: 169800 }, { text: "to ", time: 170060 }, { text: "me ", time: 170300 }, { text: "for ", time: 170561 }, { text: "ten", time: 170819 }, { text: "ding", time: 171104 }, { text: " ", time: 171552 }] },
-  { lineStartTime: 171673, flash: false, chunks: [{ text: "So ", time: 171673 }, { text: "what’s ", time: 171876 }, { text: "the ", time: 172136 }, { text: "point ", time: 172404 }, { text: "with ", time: 172671 }, { text: "just ", time: 172925 }, { text: "the ", time: 173173 }, { text: "blood ", time: 173448 }, { text: "for ", time: 173699 }, { text: "wa", time: 173966 }, { text: "ter", time: 174193 }, { text: "ing ", time: 174329 }, { text: "— ", time: 174626 }, { text: "So ", time: 174731 }, { text: "tea", time: 174953 }, { text: "ry!", time: 175243 }, { text: " ", time: 175622 }] },
-  { lineStartTime: 175736, flash: false, chunks: [{ text: "But ", time: 175736 }, { text: "still ", time: 176010 }, { text: "it ", time: 176271 }, { text: "wilts ", time: 176542 }, { text: "a", time: 176792 }, { text: "way, ", time: 177078 }, { text: "and ", time: 177326 }, { text: "of ", time: 177584 }, { text: "the ", time: 177840 }, { text: "two, ", time: 178122 }, { text: "it’s ", time: 178383 }, { text: "wil", time: 178625 }, { text: "tin’ ", time: 178882 }, { text: "slow", time: 179142 }, { text: "ly", time: 179416 }, { text: " ", time: 179833 }] },
-  { lineStartTime: 179935, flash: true, chunks: [{ text: "I ", time: 179935 }, { text: "stand ", time: 180174 }, { text: "here ", time: 180293 }, { text: "dead ", time: 180637 }, { text: "and ", time: 180920 }, { text: "done, ", time: 181203 }, { text: "and ", time: 181454 }, { text: "I ", time: 181715 }, { text: "have ", time: 182004 }, { text: "to ", time: 182304 }, { text: "ask: ", time: 182567 }, { text: "What’s ", time: 183088 }, { text: "kil", time: 183342 }, { text: "lin‘ ", time: 183453 }, { text: "me?", time: 183717 }, { text: " ", time: 184909 }] },
-  { lineStartTime: 185196, flash: false, chunks: [{ text: "What ", time: 185196 }, { text: "could ", time: 185433 }, { text: "it ", time: 185557 }, { text: "be?", time: 185829 }, { text: "What ", time: 187271 }, { text: "could ", time: 187533 }, { text: "it ", time: 187665 }, { text: "be?", time: 187945 }, { text: "I ", time: 189441 }, { text: "could", time: 189717 }, { text: "n’t ", time: 189842 }, { text: "see ", time: 190129 }, { text: "Or ", time: 191665 }, { text: "was ", time: 191910 }, { text: "it ", time: 192042 }, { text: "me ", time: 192332 }, { text: "Who ", time: 193975 }, { text: "cut ", time: 194223 }, { text: "us ", time: 194340 }, { text: "free?", time: 194617 }, { text: "What ", time: 196268 }, { text: "could ", time: 196519 }, { text: "it ", time: 196667 }, { text: "be?", time: 196953 }, { text: " ", time: 198480 }] },
-  { lineStartTime: 198636, flash: true, chunks: [{ text: "I ", time: 198636 }, { text: "just ", time: 198904 }, { text: "can’t ", time: 199167 }, { text: "take ", time: 199473 }, { text: "it ", time: 199792 }, { text: "a", time: 200102 }, { text: "ny ", time: 200395 }, { text: "moo", time: 200701 }, { text: "o", time: 201312 }, { text: "o", time: 201608 }, { text: "ooore", time: 201938 }, { text: " ", time: 206861 }] }
-];
-
-// --- TRIGGER & SCALING ---
-let keySequence = "";
-window.addEventListener('keydown', (e) => {
-    keySequence += e.key.toLowerCase();
-    if (keySequence.length > 4) keySequence = keySequence.slice(-4);
-    if (keySequence === "sega") document.getElementById('debug-panel').style.display = 'flex';
-});
-
-function adjustTextScale() {
+    const s = document.getElementById('bg-start'), f = document.getElementById('bg-final');
     const display = document.getElementById('lyrics-display');
-    const container = document.getElementById('video-container');
-    display.style.transform = 'scale(1)'; 
-    if (display.offsetWidth > container.offsetWidth * 0.9) {
-        const scale = (container.offsetWidth * 0.9) / display.offsetWidth;
-        display.style.transform = `scale(${scale})`;
-    }
-}
-
-// --- LOGIC ---
-let player, animationFrame, isSyncMode = false, syncLineIndex = 1, syncChunkIndex = 0;
-
-const tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-document.head.appendChild(tag);
-
-window.onYouTubeIframeAPIReady = function () {
-    player = new YT.Player('ytplayer', {
-        height: '1',
-        width: '1',
-        videoId: '6fk50hiAYTQ',
-        playerVars: {
-            playsinline: 1,
-            controls: 0,
-            disablekb: 1
-        },
-        events: {
-            onReady: onPlayerReady
-        }
-    });
-};
-
-function onPlayerReady() {
-    document.getElementById('play-btn').style.display = 'block';
-    document.getElementById('play-btn').innerText = "Play Scene";
-    document.getElementById('play-btn').addEventListener('click', () => { 
-        if(lyricTimeline.length === 0) return alert("Sync first!");
-        document.getElementById('play-btn').style.display = 'none';
-        player.seekTo(0); // Starts from 0:00!
-        player.playVideo(); 
-        updateFrame();
-    });
-}
-
-/*
-  --- BACKGROUND TIMELINE (bg-final, e5BCbUe.png) ---
-  Derived from the synced lyricTimeline entries so it always lines up with the vocals:
-    FADE_IN_1  : 17s   -> 18s   (1s fade in, "stays in lsCiQm1.png until 17s")
-    FADE_OUT_1 : 130.934s -> 131.934s
-                 (lineStartTime of the 2nd "I JUST CAN'T TAKE IT ANY MORE!")
-    FADE_IN_2  : 151.004s -> 152.004s
-                 (lineStartTime / "You" chunk time of the 2nd "You cast your sight on dreams...")
-*/
-const BG_FINAL_FADE_IN_1_START  = 17;
-const BG_FINAL_FADE_IN_1_END    = 18;
-const BG_FINAL_FADE_OUT_START   = 130.934;
-const BG_FINAL_FADE_OUT_END     = 131.934;
-const BG_FINAL_FADE_IN_2_START  = 151.004;
-const BG_FINAL_FADE_IN_2_END    = 152.004;
-
-function updateFrame() {
-    if (lyricTimeline.length === 0) return;
-    const currentTime = player.getCurrentTime() * 1000;
-    const t = currentTime / 1000; // time in seconds
     
-    // --- BACKGROUND FADE LOGIC ---
-    // bg-start (MGd0U8B.png): stays 0-2s, then fades out from 2s to 9s (7s fade) into bg-middle
-    const bgStart = document.getElementById('bg-start');
-    if (t <= 2) bgStart.style.opacity = 1;
-    else if (t <= 9) bgStart.style.opacity = 1 - ((t - 2) / 7);
-    else bgStart.style.opacity = 0;
+    // Lyric Timeline Data
+    const lyricTimeline = [
+        { lineStartTime: 0, flash: false, chunks: [{ text: " ", time: 0 }] },
+        { lineStartTime: 33873, flash: true, chunks: [{ text: "Tec", time: 33873 }, { text: "ton", time: 34103 }, { text: "ic ", time: 34355 }, { text: "tri", time: 34613 }, { text: "bu", time: 34857 }, { text: "la", time: 34983 }, { text: "tions", time: 35341 }, { text: " ", time: 35772 }] },
+        { lineStartTime: 35874, flash: false, chunks: [{ text: "Sick", time: 35874 }, { text: "ness ", time: 36157 }, { text: "that ", time: 36426 }, { text: "sweeps ", time: 36709 }, { text: "the ", time: 36961 }, { text: "na", time: 37077 }, { text: "tions", time: 37481 }, { text: " ", time: 37871 }] },
+        { lineStartTime: 37968, flash: false, chunks: [{ text: "Be", time: 37968 }, { text: "yond ", time: 38256 }, { text: "these ", time: 38529 }, { text: "ti", time: 38789 }, { text: "ny ", time: 39025 }, { text: "things ", time: 39148 }, { text: "just", time: 39502 }, { text: " ", time: 39974 }] },
+        { lineStartTime: 40079, flash: true, chunks: [{ text: "Some", time: 40079 }, { text: "thin' ", time: 40190 }, { text: "tells ", time: 40281 }, { text: "me ", time: 40571 }, { text: "this ", time: 40858 }, { text: "is ", time: 41093 }, { text: "dee", time: 41362 }, { text: "per", time: 41621 }, { text: " ", time: 42061 }] },
+        { lineStartTime: 42167, flash: false, chunks: [{ text: "Our ", time: 42167 }, { text: "minds ", time: 42429 }, { text: "are ", time: 42704 }, { text: "spe", time: 42949 }, { text: "cial ", time: 43082 }, { text: "for", time: 43338 }, { text: "ces", time: 43704 }, { text: " ", time: 44084 }] },
+        { lineStartTime: 44195, flash: false, chunks: [{ text: "Bo", time: 44195 }, { text: "dy ", time: 44310 }, { text: "bags ", time: 44622 }, { text: "that ", time: 44789 }, { text: "co", time: 45039 }, { text: "ver ", time: 45176 }, { text: "corp", time: 45429 }, { text: "ses", time: 45796 }, { text: " ", time: 46264 }] },
+        { lineStartTime: 46373, flash: true, chunks: [{ text: "Let ", time: 46373 }, { text: "it ", time: 46484 }, { text: "make ", time: 46600 }, { text: "some ", time: 46857 }, { text: "sense ", time: 47116 }, { text: "to ", time: 47348 }, { text: "me ", time: 47465 }, { text: "that", time: 47865 }, { text: " ", time: 48111 }] },
+        { lineStartTime: 48221, flash: false, chunks: [{ text: "There's ", time: 48221 }, { text: "a ", time: 48403 }, { text: "rea", time: 48691 }, { text: "son ", time: 48810 }, { text: "I ", time: 48917 }, { text: "could", time: 49220 }, { text: "n't ", time: 49335 }, { text: "keep ", time: 49611 }, { text: "her", time: 50000 }, { text: " ", time: 50492 }] },
+        { lineStartTime: 50739, flash: false, chunks: [{ text: "I ", time: 50739 }, { text: "could", time: 50859 }, { text: "n't ", time: 50964 }, { text: "see.. ", time: 51204 }, { text: "I ", time: 52609 }, { text: "could", time: 52845 }, { text: "n't've ", time: 52956 }, { text: "seen ", time: 53241 }, { text: "it!", time: 53916 }, { text: " ", time: 54642 }] },
+        { lineStartTime: 54731, flash: true, chunks: [{ text: "There's ", time: 54731 }, { text: "no", time: 54978 }, { text: "thin' ", time: 55084 }, { text: "left, ", time: 55386 }, { text: "but ", time: 56007 }, { text: "I ", time: 56263 }, { text: "can't ", time: 56521 }, { text: "just ", time: 56781 }, { text: "leave ", time: 57063 }, { text: "her ", time: 57337 }, { text: "be, ", time: 57613 }, { text: "no!", time: 58127 }, { text: " ", time: 58856 }] },
+        { lineStartTime: 58960, flash: false, chunks: [{ text: "You ", time: 58960 }, { text: "cast ", time: 59176 }, { text: "your ", time: 59428 }, { text: "sight ", time: 59683 }, { text: "on ", time: 59961 }, { text: "dreams ", time: 60225 }, { text: "to ", time: 60485 }, { text: "fer", time: 60741 }, { text: "ry ", time: 61000 }, { text: "‘fore ", time: 61276 }, { text: "you ", time: 61521 }, { text: "count ", time: 61791 }, { text: "all ", time: 62063 }, { text: "your ", time: 62334 }, { text: "coins", time: 62594 }, { text: " ", time: 63025 }] },
+        { lineStartTime: 63126, flash: false, chunks: [{ text: "O", time: 63126 }, { text: "thers ", time: 63375 }, { text: "will ", time: 63624 }, { text: "com", time: 63892 }, { text: "fort ", time: 64134 }, { text: "say", time: 64398 }, { text: "ing ", time: 64658 }, { text: "they’ve ", time: 64913 }, { text: "seen ", time: 65172 }, { text: "hell ", time: 65436 }, { text: "and ", time: 65539 }, { text: "back ", time: 65819 }, { text: "— ", time: 66221 }, { text: "Oh ", time: 66323 }, { text: "real", time: 66487 }, { text: "ly?", time: 66759 }, { text: " ", time: 67161 }] },
+        { lineStartTime: 67259, flash: false, chunks: [{ text: "Well ", time: 67259 }, { text: "in ", time: 67481 }, { text: "this ", time: 67764 }, { text: "game ", time: 68025 }, { text: "of ", time: 68311 }, { text: "glee, ", time: 68570 }, { text: "turns ", time: 68836 }, { text: "out ", time: 69098 }, { text: "the ", time: 69360 }, { text: "lo", time: 69639 }, { text: "sers ", time: 69882 }, { text: "make ", time: 70152 }, { text: "them ", time: 70413 }, { text: "al", time: 70675 }, { text: "ways", time: 70951 }, { text: " ", time: 71429 }] },
+        { lineStartTime: 71529, flash: true, chunks: [{ text: "I ", time: 71529 }, { text: "should’ve ", time: 71736 }, { text: "stopped ", time: 71874 }, { text: "be", time: 72127 }, { text: "fore ", time: 72716 }, { text: "I ", time: 72809 }, { text: "star", time: 73072 }, { text: "ted, ", time: 73404 }, { text: "and ", time: 73686 }, { text: "thought — ", time: 73992 }, { text: "“How ", time: 74436 }, { text: "sil", time: 74548 }, { text: "ly!”", time: 74862 }, { text: " ", time: 76565 }] },
+        { lineStartTime: 76841, flash: false, chunks: [{ text: "What ", time: 76841 }, { text: "could ", time: 76957 }, { text: "it ", time: 77084 }, { text: "be?", time: 77342 }, { text: "What ", time: 78743 }, { text: "could ", time: 78984 }, { text: "it ", time: 79095 }, { text: "be!?", time: 79348 }, { text: " ", time: 80796 }] },
+        { lineStartTime: 80949, flash: true, chunks: [{ text: "I ", time: 80949 }, { text: "JUST ", time: 81104 }, { text: "CAN'T ", time: 81302 }, { text: "TAKE ", time: 81580 }, { text: "IT ", time: 81853 }, { text: "A", time: 82130 }, { text: "NY", time: 82399 }, { text: "MORE!", time: 82681 }, { text: " ", time: 83127 }] }
+    ];
 
-    // bg-final (e5BCbUe.png): fades in at 17s, fades out at the 2nd "I JUST CAN'T TAKE IT
-    // ANY MORE!", then fades back in when the 2nd "You cast your sight..." starts.
-    const bgFinal = document.getElementById('bg-final');
-    let bgFinalOpacity;
+    document.getElementById('play-btn').onclick = function() {
+        this.remove();
+        const t0 = performance.now();
+        requestAnimationFrame(function loop(now) {
+            const t = (now - t0) / 1000;
+            const ms = t * 1000;
 
-    if (t < BG_FINAL_FADE_IN_1_START) {
-        bgFinalOpacity = 0;
-    } else if (t < BG_FINAL_FADE_IN_1_END) {
-        bgFinalOpacity = (t - BG_FINAL_FADE_IN_1_START) / (BG_FINAL_FADE_IN_1_END - BG_FINAL_FADE_IN_1_START);
-    } else if (t < BG_FINAL_FADE_OUT_START) {
-        bgFinalOpacity = 1;
-    } else if (t < BG_FINAL_FADE_OUT_END) {
-        bgFinalOpacity = 1 - ((t - BG_FINAL_FADE_OUT_START) / (BG_FINAL_FADE_OUT_END - BG_FINAL_FADE_OUT_START));
-    } else if (t < BG_FINAL_FADE_IN_2_START) {
-        bgFinalOpacity = 0;
-    } else if (t < BG_FINAL_FADE_IN_2_END) {
-        bgFinalOpacity = (t - BG_FINAL_FADE_IN_2_START) / (BG_FINAL_FADE_IN_2_END - BG_FINAL_FADE_IN_2_START);
-    } else {
-        bgFinalOpacity = 1;
-    }
-    bgFinal.style.opacity = bgFinalOpacity;
-
-    // --- LYRICS LOGIC ---
-    let activeLineIndex = -1;
-    for (let i = 0; i < lyricTimeline.length; i++) {
-        if (currentTime >= lyricTimeline[i].lineStartTime) activeLineIndex = i;
-    }
-
-    let nextLineStartTime = (activeLineIndex !== -1 && activeLineIndex + 1 < lyricTimeline.length) 
-                            ? lyricTimeline[activeLineIndex + 1].lineStartTime 
-                            : Infinity;
-
-    let currentLine = (activeLineIndex !== -1 && currentTime < nextLineStartTime) ? lyricTimeline[activeLineIndex] : null;
-    
-    if (currentLine) {
-        let lineHTML = "";
-        currentLine.chunks.forEach(chunk => {
-            // ONLY add .lit if time is passed
-            if (currentTime >= chunk.time) {
-                lineHTML += `<span class='lit'>${chunk.text}</span>`;
-            } else {
-                lineHTML += `<span>${chunk.text}</span>`;
+            // Lyrics Logic
+            const line = lyricTimeline.find((l, i) => 
+                ms >= l.lineStartTime && (lyricTimeline[i+1] ? ms < lyricTimeline[i+1].lineStartTime : true)
+            );
+            if (line) {
+                let html = "";
+                line.chunks.forEach(c => {
+                    html += `<span class='${ms >= c.time ? 'lit' : ''}'>${c.text}</span>`;
+                });
+                display.innerHTML = html;
             }
+
+            // Layer Transition Logic
+            if(t <= 2) s.style.opacity = 1;
+            else if(t <= 9) s.style.opacity = 1 - (t - 2) / 7;
+            else s.style.opacity = 0;
+
+            let o = 0;
+            if(t < 17) o = 0;
+            else if(t < 18) o = t - 17;
+            else if(t < 130.934) o = 1;
+            else if(t < 131.934) o = 1 - (t - 130.934);
+            else if(t < 151.004) o = 0;
+            else if(t < 152.004) o = t - 151.004;
+            else o = 1;
+            
+            f.style.opacity = Math.max(0, Math.min(1, o));
+            requestAnimationFrame(loop);
         });
-        document.getElementById('lyrics-display').innerHTML = lineHTML;
-        adjustTextScale();
-        
-        if (currentLine.flash) document.getElementById('glow').classList.add('pulse');
-        else document.getElementById('glow').classList.remove('pulse');
-    } else {
-        document.getElementById('lyrics-display').innerHTML = "";
-        document.getElementById('glow').classList.remove('pulse');
-    }
-    
-    if (player.getPlayerState() === 1) animationFrame = requestAnimationFrame(updateFrame);
-}
-
-// --- SYNC MODE ---
-document.getElementById('start-sync-btn').addEventListener('click', () => {
-    isSyncMode = true; syncLineIndex = 1; syncChunkIndex = 0;
-    lyricTimeline = unsyncedLyrics.map(line => ({ lineStartTime: 0, flash: line.flash, chunks: line.raw.split('|').map(p => ({ text: p, time: 0 })) }));
-    player.seekTo(0); // Starts from 0:00!
-    player.playVideo(); 
-    updateSyncStatus();
-});
-
-function updateSyncStatus() {
-    const line = lyricTimeline[syncLineIndex];
-    if (!line) return;
-    
-    let previewHTML = "";
-    line.chunks.forEach((c, idx) => {
-        // Only light up if we have passed this chunk in sync mode
-        if (idx < syncChunkIndex) previewHTML += `<span class='lit'>${c.text}</span>`;
-        else previewHTML += `<span>${c.text}</span>`;
-    });
-    
-    document.getElementById('lyrics-display').innerHTML = previewHTML;
-    adjustTextScale();
-    document.getElementById('sync-status').innerText = `Press Space for: "${line.chunks[syncChunkIndex].text.replace(/<[^>]*>?/gm, '')}"`;
-}
-
-window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' && isSyncMode) {
-        const time = Math.round(player.getCurrentTime() * 1000);
-        if (syncChunkIndex === 0) lyricTimeline[syncLineIndex].lineStartTime = time;
-        lyricTimeline[syncLineIndex].chunks[syncChunkIndex].time = time;
-        
-        syncChunkIndex++;
-        if (syncChunkIndex >= lyricTimeline[syncLineIndex].chunks.length) { 
-            syncLineIndex++; 
-            syncChunkIndex = 0; 
-        }
-        
-        if (syncLineIndex >= lyricTimeline.length) { 
-            isSyncMode = false; 
-            document.getElementById('export-btn').style.display = 'block';
-            document.getElementById('sync-status').innerText = "Sync Complete!";
-        } else {
-            updateSyncStatus();
-        }
-    }
-});
-
-document.getElementById('export-btn').addEventListener('click', () => {
-    const textArea = document.getElementById('export-area');
-    textArea.value = JSON.stringify(lyricTimeline, null, 2);
-    textArea.style.display = 'block';
-});
+    };
 </script>
 </body>
 </html>
