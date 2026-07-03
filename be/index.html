@@ -55,7 +55,6 @@
         to { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
     }
 
-    /* Fixed layout to ensure scaling works */
     #lyrics-wrapper {
         position: absolute;
         bottom: 30px;
@@ -70,12 +69,14 @@
         text-align: center;
         white-space: nowrap;
         letter-spacing: 1px;
-        color: rgba(200, 200, 200, 0.5); 
-        text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.15);
+        /* Default color is visible but not glowing */
+        color: #aaa; 
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
         transform-origin: center;
         transition: transform 0.1s;
     }
 
+    /* The "Lit" state: Fully white */
     .lit {
         color: white !important;
         text-shadow: 2px 2px 4px black;
@@ -98,7 +99,6 @@
     }
     #play-btn:hover { background-color: red; }
 
-    /* Hidden by default */
     #debug-panel {
         position: absolute;
         top: 10px;
@@ -206,7 +206,7 @@ window.addEventListener('keydown', (e) => {
 function adjustTextScale() {
     const display = document.getElementById('lyrics-display');
     const container = document.getElementById('video-container');
-    display.style.transform = 'scale(1)'; // reset
+    display.style.transform = 'scale(1)'; 
     if (display.offsetWidth > container.offsetWidth * 0.9) {
         const scale = (container.offsetWidth * 0.9) / display.offsetWidth;
         display.style.transform = `scale(${scale})`;
@@ -252,10 +252,12 @@ function updateFrame() {
     if (currentLine && currentLine.chunks.length > 0) {
         let lineHTML = "";
         currentLine.chunks.forEach(chunk => {
+            // Whole line is "lit" (white), but specific chunks pulse/glow
             if (currentTime >= chunk.time) {
                 lineHTML += chunk.text.includes('<span') ? chunk.text.replace("class='", "class='lit ") : `<span class='lit'>${chunk.text}</span>`;
             } else {
-                lineHTML += chunk.text;
+                // Future chunks are just white
+                lineHTML += `<span class='lit'>${chunk.text}</span>`;
             }
         });
         document.getElementById('lyrics-display').innerHTML = lineHTML;
@@ -280,12 +282,13 @@ function updateSyncStatus() {
     const line = lyricTimeline[syncLineIndex];
     if (!line) return;
     
-    let previewHTML = "";
-    line.chunks.forEach((c, idx) => {
-        if (idx < syncChunkIndex) previewHTML += `<span class='lit'>${c.text}</span>`;
-        else previewHTML += c.text;
+    // In Sync Mode, show full line immediately as "lit"
+    let fullLine = "";
+    line.chunks.forEach(c => {
+        fullLine += `<span class='lit'>${c.text}</span>`;
     });
-    document.getElementById('lyrics-display').innerHTML = previewHTML;
+    
+    document.getElementById('lyrics-display').innerHTML = fullLine;
     adjustTextScale();
     document.getElementById('sync-status').innerText = `Press Space for: "${line.chunks[syncChunkIndex].text.replace(/<[^>]*>?/gm, '')}"`;
 }
