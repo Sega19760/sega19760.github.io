@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>What could it be??</title>
+<title>What could it be?</title>
 <style>
     @font-face {
         font-family: 'Merriweather';
@@ -53,7 +53,7 @@
     #bg-final {
         position: absolute; top: 0; left: 0; width: 100%; height: 100%;
         background: url("https://i.imgur.com/e5BCbUe.png") no-repeat center/cover;
-        z-index: 3; /* Top layer, starts invisible, fades in */
+        z-index: 3; /* Top layer, starts invisible, fades in/out */
         opacity: 0;
     }
 
@@ -306,23 +306,55 @@ function onPlayerReady() {
     });
 }
 
+/*
+  --- BACKGROUND TIMELINE (bg-final, e5BCbUe.png) ---
+  Derived from the synced lyricTimeline entries so it always lines up with the vocals:
+    FADE_IN_1  : 17s   -> 18s   (1s fade in, "stays in lsCiQm1.png until 17s")
+    FADE_OUT_1 : 130.934s -> 131.934s
+                 (lineStartTime of the 2nd "I JUST CAN'T TAKE IT ANY MORE!")
+    FADE_IN_2  : 151.004s -> 152.004s
+                 (lineStartTime / "You" chunk time of the 2nd "You cast your sight on dreams...")
+*/
+const BG_FINAL_FADE_IN_1_START  = 17;
+const BG_FINAL_FADE_IN_1_END    = 18;
+const BG_FINAL_FADE_OUT_START   = 130.934;
+const BG_FINAL_FADE_OUT_END     = 131.934;
+const BG_FINAL_FADE_IN_2_START  = 151.004;
+const BG_FINAL_FADE_IN_2_END    = 152.004;
+
 function updateFrame() {
     if (lyricTimeline.length === 0) return;
     const currentTime = player.getCurrentTime() * 1000;
     const t = currentTime / 1000; // time in seconds
     
     // --- BACKGROUND FADE LOGIC ---
-    // bg-start (MGd0U8B.png): Fades out from 2s to 9s
+    // bg-start (MGd0U8B.png): stays 0-2s, then fades out from 2s to 9s (7s fade) into bg-middle
     const bgStart = document.getElementById('bg-start');
     if (t <= 2) bgStart.style.opacity = 1;
-    else if (t > 2 && t <= 9) bgStart.style.opacity = 1 - ((t - 2) / 7);
+    else if (t <= 9) bgStart.style.opacity = 1 - ((t - 2) / 7);
     else bgStart.style.opacity = 0;
 
-    // bg-final (e5BCbUe.png): Fades in from 16s to 17s
+    // bg-final (e5BCbUe.png): fades in at 17s, fades out at the 2nd "I JUST CAN'T TAKE IT
+    // ANY MORE!", then fades back in when the 2nd "You cast your sight..." starts.
     const bgFinal = document.getElementById('bg-final');
-    if (t <= 16) bgFinal.style.opacity = 0;
-    else if (t > 16 && t <= 17) bgFinal.style.opacity = (t - 16) / 1;
-    else bgFinal.style.opacity = 1;
+    let bgFinalOpacity;
+
+    if (t < BG_FINAL_FADE_IN_1_START) {
+        bgFinalOpacity = 0;
+    } else if (t < BG_FINAL_FADE_IN_1_END) {
+        bgFinalOpacity = (t - BG_FINAL_FADE_IN_1_START) / (BG_FINAL_FADE_IN_1_END - BG_FINAL_FADE_IN_1_START);
+    } else if (t < BG_FINAL_FADE_OUT_START) {
+        bgFinalOpacity = 1;
+    } else if (t < BG_FINAL_FADE_OUT_END) {
+        bgFinalOpacity = 1 - ((t - BG_FINAL_FADE_OUT_START) / (BG_FINAL_FADE_OUT_END - BG_FINAL_FADE_OUT_START));
+    } else if (t < BG_FINAL_FADE_IN_2_START) {
+        bgFinalOpacity = 0;
+    } else if (t < BG_FINAL_FADE_IN_2_END) {
+        bgFinalOpacity = (t - BG_FINAL_FADE_IN_2_START) / (BG_FINAL_FADE_IN_2_END - BG_FINAL_FADE_IN_2_START);
+    } else {
+        bgFinalOpacity = 1;
+    }
+    bgFinal.style.opacity = bgFinalOpacity;
 
     // --- LYRICS LOGIC ---
     let activeLineIndex = -1;
