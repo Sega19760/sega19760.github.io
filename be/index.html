@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>What could it be?</title>
+<title>Waiting for audio...</title>
 <style>
     /* Reset and base setup */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -108,25 +108,25 @@
 <script>
     const lyricTimeline = [
         { time: 0, text: "", flash: false },
-        { time: 1000, text: "Tectonic tribulations", flash: true },
-        { time: 2500, text: "Sickness that sweeps the nations", flash: false },
-        { time: 4000, text: "Beyond these tiny things just", flash: false },
-        { time: 5500, text: "Somethin' tells me this is deeper", flash: true },
-        { time: 7000, text: "Our minds are <span class='color-blue'>special forces</span>", flash: false },
-        { time: 8500, text: "Body bags that cover corpses", flash: false },
-        { time: 10000, text: "Let it make some sense to me that", flash: true },
-        { time: 11500, text: "There's a reason I couldn't keep her", flash: false },
-        { time: 13000, text: "I couldn't see...", flash: false },
-        { time: 14500, text: "I couldn't've seen it!", flash: true },
-        { time: 16000, text: "There's nothin' left, but", flash: false },
-        { time: 17000, text: "I can't just leave her be, no!", flash: false },
-        { time: 18500, text: "You cast <span class='color-blue'>your sight</span> on dreams", flash: true },
-        { time: 20000, text: "to ferry 'fore you count all your coins", flash: false },
-        { time: 21500, text: "Others will <span class='color-blue'>comfort</span> saying", flash: false },
-        { time: 23000, text: "they've seen hell and back - Oh really?", flash: true },
-        { time: 25000, text: "Well in this game of glee", flash: false },
-        { time: 26500, text: "Turns out the <span class='color-red'>losers</span> make them always", flash: false },
-        { time: 28500, text: "", flash: false }
+        { time: 33000, text: "Tectonic tribulations", flash: true },
+        { time: 34500, text: "Sickness that sweeps the nations", flash: false },
+        { time: 36000, text: "Beyond these tiny things just", flash: false },
+        { time: 37500, text: "Somethin' tells me this is deeper", flash: true },
+        { time: 39000, text: "Our minds are <span class='color-blue'>special forces</span>", flash: false },
+        { time: 40500, text: "Body bags that cover corpses", flash: false },
+        { time: 42000, text: "Let it make some sense to me that", flash: true },
+        { time: 43500, text: "There's a reason I couldn't keep her", flash: false },
+        { time: 45000, text: "I couldn't see...", flash: false },
+        { time: 46500, text: "I couldn't've seen it!", flash: true },
+        { time: 48000, text: "There's nothin' left, but", flash: false },
+        { time: 49000, text: "I can't just leave her be, no!", flash: false },
+        { time: 50500, text: "You cast <span class='color-blue'>your sight</span> on dreams", flash: true },
+        { time: 52000, text: "to ferry 'fore you count all your coins", flash: false },
+        { time: 53500, text: "Others will <span class='color-blue'>comfort</span> saying", flash: false },
+        { time: 55000, text: "they've seen hell and back - Oh really?", flash: true },
+        { time: 57000, text: "Well in this game of glee", flash: false },
+        { time: 58500, text: "Turns out the <span class='color-red'>losers</span> make them always", flash: false },
+        { time: 60500, text: "", flash: false }
     ];
 
     const playBtn = document.getElementById('play-btn');
@@ -137,18 +137,16 @@
     let animationFrame;
 
     // --- YOUTUBE API SETUP ---
-    // 1. Load the IFrame Player API code asynchronously.
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     const firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-    // 2. This function creates an <iframe> (and YouTube player) after the API code downloads.
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('ytplayer', {
             height: '1',
             width: '1',
-            videoId: '6fk50hiAYTQ', // The Video ID from your URL
+            videoId: '6fk50hiAYTQ',
             playerVars: {
                 'playsinline': 1,
                 'controls': 0,
@@ -161,21 +159,20 @@
         });
     }
 
-    // 3. The API will call this function when the video player is ready.
     function onPlayerReady(event) {
+        document.title = "Ready to Play";
         playBtn.style.display = 'block';
         playBtn.innerText = "Start Lyric Scene";
         
         playBtn.addEventListener('click', () => {
             playBtn.style.display = 'none';
-            player.seekTo(0);
+            document.title = "Playing...";
+            player.seekTo(30); 
             player.playVideo();
         });
     }
 
-    // 4. The API calls this function when the player's state changes.
     function onPlayerStateChange(event) {
-        // If the video starts playing (state 1), start the sync loop
         if (event.data == YT.PlayerState.PLAYING) {
             updateFrame();
         } else if (event.data == YT.PlayerState.ENDED || event.data == YT.PlayerState.PAUSED) {
@@ -184,6 +181,7 @@
                 playBtn.style.display = 'block';
                 playBtn.innerText = "Replay Scene";
                 lyricsDisplay.innerHTML = "";
+                document.title = "Scene Ended";
                 glow.style.opacity = '0';
             }
         }
@@ -191,10 +189,8 @@
 
     // --- ANIMATION SYNC LOOP ---
     function updateFrame() {
-        // Get exact current time from the YouTube player (converted from seconds to milliseconds)
         const currentTime = player.getCurrentTime() * 1000;
         
-        // Find the current lyric line based on time
         let currentLine = lyricTimeline[0];
         for (let i = lyricTimeline.length - 1; i >= 0; i--) {
             if (currentTime >= lyricTimeline[i].time) {
@@ -203,8 +199,17 @@
             }
         }
 
-        // Update DOM elements
+        // Update Text on Screen
         lyricsDisplay.innerHTML = currentLine.text;
+
+        // Update Browser Tab Title
+        if (currentLine.text === "") {
+            document.title = "Lord X"; // Default title when there are no lyrics
+        } else {
+            // Strip out HTML tags (like <span class='color-blue'>) so the tab text is clean
+            const cleanText = currentLine.text.replace(/<[^>]*>?/gm, '');
+            document.title = cleanText;
+        }
         
         // Handle red background pulsing/flashing
         if (currentLine.flash) {
@@ -214,7 +219,6 @@
             glow.style.opacity = '0';
         }
 
-        // Keep looping as long as the video is playing
         if (player.getPlayerState() === YT.PlayerState.PLAYING) {
             animationFrame = requestAnimationFrame(updateFrame);
         }
