@@ -142,29 +142,50 @@
     // --- THIS IS YOUR WORKBENCH ---
     // Use the "|" symbol to tell the engine where to split the syllables or words.
     // ADD THE REST OF THE SONG TO THIS ARRAY!
-    const unsyncedLyrics = [
-        { raw: "", flash: false },
-        { raw: "Tec|ton|ic |tri|bu|la|tions", flash: true },
-        { raw: "Sick|ness |that |sweeps |the |na|tions", flash: false },
-        { raw: "Be|yond |these |ti|ny |things |just", flash: false },
-        { raw: "Some|thin' |tells |me |this |is |dee|per", flash: true },
-        { raw: "Our |minds |are |<span class='color-blue'>spe</span>|<span class='color-blue'>cial </span>|<span class='color-blue'>for</span>|<span class='color-blue'>ces</span>", flash: false },
-        { raw: "Bo|dy |bags |that |co|ver |corp|ses", flash: false },
-        { raw: "Let |it |make |some |sense |to |me |that", flash: true },
-        { raw: "There's |a |rea|son |I |could|n't |keep |her", flash: false },
-        { raw: "I |could|n't |see...", flash: false },
-        { raw: "I |could|n't've |seen |it!", flash: true },
-        { raw: "There's |no|thin' |left, |but", flash: false },
-        { raw: "I |can't |just |leave |her |be, |no!", flash: false },
-        { raw: "You |cast |<span class='color-blue'>your </span>|<span class='color-blue'>sight </span>|on |dreams", flash: true },
-        { raw: "to |fer|ry |'fore |you |count |all |your |coins", flash: false },
-        { raw: "O|thers |will |<span class='color-blue'>com</span>|<span class='color-blue'>fort </span>|say|ing", flash: false },
-        { raw: "they've |seen |hell |and |back |- Oh |real|ly?", flash: true },
-        { raw: "Well |in |this |game |of |glee", flash: false },
-        { raw: "Turns |out |the |<span class='color-red'>lo</span>|<span class='color-red'>sers </span>|make |them |al|ways", flash: false },
-        { raw: "", flash: false }
-        // ---> COPY & PASTE THE REST OF THE LYRICS HERE USING THE | SYMBOL <---
-    ];
+const unsyncedLyrics = [
+    { raw: "", flash: false },
+    { raw: "Tec|ton|ic |tri|bu|la|tions", flash: true },
+    { raw: "Sick|ness |that |sweeps |the |na|tions", flash: false },
+    { raw: "Be|yond |these |ti|ny |things |just", flash: false },
+    { raw: "Some|thin' |tells |me |this |is |dee|per", flash: true },
+    { raw: "Our |minds |are |spe|cial |for|ces", flash: false },
+    { raw: "Bo|dy |bags |that |co|ver |corp|ses", flash: false },
+    { raw: "Let |it |make |some |sense |to |me |that", flash: true },
+    { raw: "There's |a |rea|son |I |could|n't |keep |her", flash: false },
+    { raw: "I |could|n't |see.. |I |could|n't've |seen |it!", flash: false },
+    { raw: "There's |no|thin' |left, |but |I |can't |just |leave |her |be, |no!", flash: true },
+    { raw: "You |cast |your |sight |on |dreams |to |fer|ry |‘fore |you |count |all |your |coins", flash: false },
+    { raw: "O|thers |will |com|fort |say|ing |they’ve |seen |hell |and |back |— |Oh |real|ly?", flash: false },
+    { raw: "Well |in |this |game |of |glee, |turns |out |the |lo|sers |make |them |al|ways", flash: false },
+    { raw: "I |should’ve |stopped |be|fore |I |star|ted, |and |thought |— |“How |sil|ly!”", flash: true },
+    { raw: "What |could |it |be? |What |could |it |be!?", flash: false },
+    { raw: "I |JUST |CAN'T |TAKE |IT |A|NY|MORE!", flash: true },
+    { raw: "Played |off |the |fun|da|men|tals", flash: false },
+    { raw: "For |in |the |mo|ment |we |must", flash: false },
+    { raw: "But |it’s |in|con|se|quen|tial", flash: false },
+    { raw: "The |norm |is |not |for |both |of |us", flash: false },
+    { raw: "She |thinks |it’s |for |the |bet|ter", flash: false },
+    { raw: "But |I |still |know |how |she |lies", flash: false },
+    { raw: "When |past |a|po|ca|lypse |she’d |spread |her |false|hood |from |the |o|ther |side", flash: false },
+    { raw: "And |since |our |part, |it’s |ea|ten |my |heart, |girl", flash: false },
+    { raw: "Where’s |all |the |fun, |when |I |TEAR |THEIR |BODS |A|PART, |NOW", flash: true },
+    { raw: "You |throw |dis|cre|tion |out |the |win|dow |when |you |try |to |be |kind", flash: false },
+    { raw: "But |once |they |leave |your |zone |you’re |sit|tin |in |the |cold |— |it’s |chil|lin’!", flash: false },
+    { raw: "You |pon|der, |pi|ning |what |may |hap|pen, |or |who |could |be |the |next", flash: false },
+    { raw: "I |should’ve |stopped |be|fore |I |star|ted, |and |thought |— |“How |sil|ly!”", flash: true },
+    { raw: "What |could |it |be? |What |could |it |be!?", flash: false },
+    { raw: "I |JUST |CAN'T |TAKE |IT |A|NY|MORE!", flash: true },
+    { raw: "You |cast |your |sight |on |dreams |to |fer|ry |‘fore |you |count |all |your |coins", flash: false },
+    { raw: "O|thers |will |com|fort |say|ing |they’ve |seen |hell |and |back |— |Oh |real|ly?", flash: false },
+    { raw: "Well |in |this |game |of |glee, |turns |out |the |lo|sers |still |made |the |choice", flash: false },
+    { raw: "I |should’ve |stopped |be|fore |I |star|ted, |and |thought |— |“How |sil|ly!”", flash: true },
+    { raw: "I |knew |my|self |well |‘fore |this |flow|er |took |to |me |for |ten|ding", flash: false },
+    { raw: "So |what’s |the |point |with |just |the |blood |for |wa|ter|ing |— |So |tea|ry!", flash: false },
+    { raw: "But |still |it |wilts |a|way, |and |of |the |two, |it’s |wil|tin’ |slow|ly", flash: false },
+    { raw: "I |stand |here |dead |and |done, |and |I |have |to |ask: |What’s |kil|lin‘ |me?", flash: true },
+    { raw: "What |could |it |be? |What |could |it |be? |I |could|n’t |see |Or |was |it |me |Who |cut |us |free? |What |could |it |be?", flash: false },
+    { raw: "I |just |can’t |take |it |a|ny |moo|o|o|ooore", flash: true }
+];
 
     // This array will hold the final synced data
     let lyricTimeline = [];
