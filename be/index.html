@@ -228,7 +228,7 @@ function onPlayerReady() {
     document.getElementById('play-btn').addEventListener('click', () => { 
         if(lyricTimeline.length === 0) return alert("Sync first!");
         document.getElementById('play-btn').style.display = 'none';
-        player.seekTo(30); player.playVideo(); updateFrame();
+        player.seekTo(0); player.playVideo(); updateFrame();
     });
 }
 
