@@ -31,28 +31,7 @@
         overflow: hidden;
         border: 2px solid #222; 
     }
-
-    /* Glowing red core that pulses */
-    .core-glow {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        width: 150px; height: 150px;
-        background: radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(255,0,0,0) 70%);
-        z-index: 2;
-        opacity: 0;
-        transition: opacity 0.1s;
-    }
     
-    .pulse {
-        animation: heartbeat 0.5s infinite alternate;
-    }
-
-    @keyframes heartbeat {
-        from { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
-        to { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-    }
-
     /* Lyrics display at the bottom */
     #lyrics-display {
         position: absolute;
@@ -167,7 +146,7 @@
         playBtn.addEventListener('click', () => {
             playBtn.style.display = 'none';
             document.title = "Playing...";
-            player.seekTo(30); 
+            player.seekTo(31); 
             player.playVideo();
         });
     }
