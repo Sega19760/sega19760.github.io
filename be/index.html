@@ -276,7 +276,7 @@ function onPlayerReady() {
     document.getElementById('play-btn').addEventListener('click', () => { 
         if(lyricTimeline.length === 0) return alert("Sync first!");
         document.getElementById('play-btn').style.display = 'none';
-        player.seekTo(30); player.playVideo(); updateFrame();
+        player.seekTo(0); player.playVideo(); updateFrame();
     });
 }
 
@@ -320,7 +320,7 @@ function updateFrame() {
 document.getElementById('start-sync-btn').addEventListener('click', () => {
     isSyncMode = true; syncLineIndex = 1; syncChunkIndex = 0;
     lyricTimeline = unsyncedLyrics.map(line => ({ lineStartTime: 0, flash: line.flash, chunks: line.raw.split('|').map(p => ({ text: p, time: 0 })) }));
-    player.seekTo(30); player.playVideo(); updateSyncStatus();
+    player.seekTo(0); player.playVideo(); updateSyncStatus();
 });
 
 function updateSyncStatus() {
