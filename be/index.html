@@ -24,10 +24,13 @@
             overflow: hidden; 
         }
 
+        /* Responsive Mobile Support Added */
         #video-container {
             position: relative;
-            width: 1280px;
-            height: 720px;
+            width: 100%;
+            max-width: 1280px;
+            aspect-ratio: 16 / 9;
+            max-height: 100vh;
             background-color: black;
             display: flex;
             flex-direction: column;
@@ -49,37 +52,65 @@
         #bg-final { background-image: url('https://i.imgur.com/e5BCbUe.png'); z-index: 3; opacity: 0; }
 
         #lyrics-wrapper { 
-    position: absolute; 
-    bottom: 25px; /* Moves it slightly up */
-    width: 100%; 
-    display: flex; 
-    justify-content: center; 
-    z-index: 10; 
-}
+            position: absolute; 
+            bottom: 5%; /* Scalable bottom position */
+            width: 100%; 
+            display: flex; 
+            justify-content: center; 
+            z-index: 10; 
+        }
 
-#lyrics-display {
-    font-size: 40px; /* Set a larger base size */
-    text-align: center;
-    color: #555;
-    text-shadow: 1px 1px 2px rgba(0,0,0,1);
-    /* Remove transform and transition properties */
-}
+        #lyrics-container {
+            position: relative;
+            width: max-content;
+            transform-origin: bottom center;
+        }
 
-#lyrics-display span {
-    /* Change transparent to a dark, ghostly gray */
-    color: #444; 
-    /* Add a subtle transition so it doesn't snap instantly from gray to white */
-    transition: color 0.15s ease;
-}
+        .lyrics-track {
+            font-size: clamp(20px, 3.5vw, 40px); /* Responsive font scaling */
+            text-align: center;
+            color: #555;
+            text-shadow: 1px 1px 2px rgba(0,0,0,1);
+            white-space: nowrap;
+        }
 
-#lyrics-display span.lit {
-    /* The "lit" color */
-    color: white; 
-    /* Optional: add a glow effect to make it look more like the reference */
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-}
+        .lyrics-track span {
+            color: #444; 
+            transition: color 0.15s ease;
+        }
 
-        #play-btn { position: absolute; z-index: 20; padding: 15px 30px; font-size: 20px; background-color: rgba(255,0,0,0.7); color: white; border: none; cursor: pointer; }
+        /* Default White Lit Lyrics */
+        #lyrics-display span.lit {
+            color: white; 
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Added Identical Dark Red Lit Lyrics Above */
+        #lyrics-display-red {
+            position: absolute;
+            bottom: 100%; /* Places it vertically above the original text */
+            left: 0;
+            width: 100%;
+            display: none; /* Hidden until activated */
+        }
+
+        #lyrics-display-red span.lit {
+            color: darkred; 
+            text-shadow: 0 0 8px rgba(139, 0, 0, 0.8);
+        }
+
+        #play-btn { 
+            position: absolute; 
+            z-index: 20; 
+            padding: 15px 30px; 
+            font-size: clamp(16px, 2vw, 20px); 
+            background-color: rgba(255,0,0,0.7); 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            top: 50%;
+            transform: translateY(-50%);
+        }
     </style>
 </head>
 <body>
@@ -90,7 +121,10 @@
     <div id="bg-final" class="layer"></div>
 
     <div id="lyrics-wrapper">
-        <div id="lyrics-display"></div>
+        <div id="lyrics-container">
+            <div id="lyrics-display-red" class="lyrics-track"></div>
+            <div id="lyrics-display" class="lyrics-track"></div>
+        </div>
     </div>
 
     <button id="play-btn">Start the demo thingy idk</button>
@@ -103,31 +137,27 @@
 <script>
     const s = document.getElementById('bg-start'), f = document.getElementById('bg-final');
     const display = document.getElementById('lyrics-display');
+    const displayRed = document.getElementById('lyrics-display-red');
+    const lyricsContainer = document.getElementById('lyrics-container');
     const music = document.getElementById('music');
     const wrapper = document.getElementById("lyrics-wrapper");
 
-    // Updated fitLyrics with stability fix
-function fitLyrics() {
-    const wrapper = document.getElementById("lyrics-wrapper");
-    const display = document.getElementById("lyrics-display");
+    function fitLyrics() {
+        // Reset scale before measurement
+        lyricsContainer.style.transform = "scale(1)";
 
-    // Reset to base state to measure accurately
-    display.style.transform = "scale(1)";
+        requestAnimationFrame(() => {
+            const maxWidth = wrapper.clientWidth * 0.95; // 95% to leave some padding on mobile
+            const width = lyricsContainer.scrollWidth;
 
-    // Use requestAnimationFrame so we get the accurate width of the container
-    requestAnimationFrame(() => {
-        const maxWidth = wrapper.clientWidth;
-        const width = display.scrollWidth;
-
-        if (width > maxWidth && maxWidth > 0) {
-            const scale = maxWidth / width;
-            // Use scale3d for hardware acceleration, which reduces jitter
-            display.style.transform = `scale3d(${scale}, ${scale}, 1)`;
-        } else {
-            display.style.transform = "scale3d(1, 1, 1)";
-        }
-    });
-}
+            if (width > maxWidth && maxWidth > 0) {
+                const scale = maxWidth / width;
+                lyricsContainer.style.transform = `scale3d(${scale}, ${scale}, 1)`;
+            } else {
+                lyricsContainer.style.transform = "scale3d(1, 1, 1)";
+            }
+        });
+    }
 
 const lyricTimeline = [
   { lineStartTime: 0, flash: false, chunks: [{ text: "", time: 0 }] },
@@ -169,13 +199,16 @@ const lyricTimeline = [
   { lineStartTime: 121590, flash: true, chunks: [{ text: "I ", time: 121590 }, { text: "should", time: 121823 }, { text: "’ve ", time: 121951 }, { text: "stopped ", time: 122190 }, { text: "be", time: 122567 }, { text: "fore ", time: 122825 }, { text: "I ", time: 122988 }, { text: "star", time: 123190 }, { text: "ted, ", time: 123559 }, { text: "and ", time: 123860 }, { text: "thought— ", time: 124131 }, { text: "“How ", time: 124641 }, { text: "sil", time: 124911 }, { text: "ly!”", time: 125173 }, { text: " ", time: 126783 }] },
   { lineStartTime: 126783, flash: false, chunks: [{ text: "What ", time: 126783 }, { text: "could ", time: 127026 }, { text: "it ", time: 127173 }, { text: "be?", time: 127412 }, { text: " ", time: 128839 }] },
   { lineStartTime: 128839, flash: false, chunks: [{ text: "What ", time: 128839 }, { text: "could ", time: 129085 }, { text: "it ", time: 129223 }, { text: "be!?", time: 129465 }, { text: " ", time: 130934 }] },
-  { lineStartTime: 130934, flash: true, chunks: [{ text: "I ", time: 130934 }, { text: "JUST ", time: 131186 }, { text: "CAN'T ", time: 131434 }, { text: "TAKE ", time: 131712 }, { text: "IT ", time: 131992 }, { text: "A", time: 132272 }, { text: "NY", time: 132532 }, { text: "MORE!", time: 132788 }, { text: " ", time: 150788 }] },
+  { lineStartTime: 130934, flash: true, chunks: [{ text: "I ", time: 130934 }, { text: "JUST ", time: 131186 }, { text: "CAN'T ", time: 131434 }, { text: "TAKE ", time: 131712 }, { text: "IT ", time: 131992 }, { text: "A", time: 132272 }, { text: "NY", time: 132532 }, { text: "MORE!", time: 132788 }, { text: " ", time: 134788 }] },
+  
+  // The 2-second clearing logic injection
+  { lineStartTime: 134788, flash: false, chunks: [{ text: "", time: 134788 }] }, 
+
   { lineStartTime: 150788, flash: false, chunks: [{ text: "You ", time: 150788 }, { text: "cast ", time: 151032 }, { text: "your ", time: 151280 }, { text: "sight ", time: 151541 }, { text: "on ", time: 151804 }, { text: "dreams ", time: 152075 }, { text: "to ", time: 152322 }, { text: "fer", time: 152589 }, { text: "ry ", time: 152843 }, { text: "‘fore ", time: 153115 }, { text: "you ", time: 153366 }, { text: "count ", time: 153624 }, { text: "all ", time: 153889 }, { text: "your ", time: 154137 }, { text: "coins", time: 154419 }, { text: " ", time: 154943 }] },
   { lineStartTime: 154943, flash: false, chunks: [{ text: "O", time: 154943 }, { text: "thers ", time: 155203 }, { text: "will ", time: 155458 }, { text: "com", time: 155722 }, { text: "fort ", time: 155987 }, { text: "say", time: 156245 }, { text: "ing ", time: 156523 }, { text: "they’ve ", time: 156792 }, { text: "seen ", time: 157049 }, { text: "hell ", time: 157301 }, { text: "and ", time: 157446 }, { text: "back— ", time: 157724 }, { text: "Oh ", time: 158108 }, { text: "real", time: 158357 }, { text: "ly?", time: 158616 }, { text: " ", time: 159126 }] },
   { lineStartTime: 159126, flash: false, chunks: [{ text: "Well ", time: 159126 }, { text: "in ", time: 159403 }, { text: "this ", time: 159645 }, { text: "game ", time: 159933 }, { text: "of ", time: 160188 }, { text: "glee, ", time: 160424 }, { text: "turns ", time: 160671 }, { text: "out ", time: 160934 }, { text: "the ", time: 161193 }, { text: "lo", time: 161460 }, { text: "sers ", time: 161729 }, { text: "still ", time: 162002 }, { text: "made ", time: 162262 }, { text: "the ", time: 162524 }, { text: "choice", time: 162810 }, { text: " ", time: 163310 }] },
   { lineStartTime: 163310, flash: true, chunks: [{ text: "I ", time: 163310 }, { text: "should", time: 163568 }, { text: "’ve ", time: 163712 }, { text: "stopped ", time: 163959 }, { text: "be", time: 164321 }, { text: "fore ", time: 164578 }, { text: "I ", time: 164719 }, { text: "star", time: 164947 }, { text: "ted, ", time: 165329 }, { text: "and ", time: 165639 }, { text: "thought— ", time: 165906 }, { text: "“How ", time: 166407 }, { text: "sil", time: 166671 }, { text: "ly!”", time: 166968 }, { text: " ", time: 167495 }] },
-  { lineStartTime: 167495, flash: false, chunks: [{ text: "I ", time: 167495 }, { text: "knew ", time: 167733 }, { text: "my", time: 167998 }, { text: "self ", time: 168259 }, { text: "well ", time: 168514 }, { text: "‘fore ", time: 168767 }, { text: "this ", time: 169037 }, { text: "flow", time: 169310 }, { text: "er ", time: 169544 }, { text: "took ", time: 169844 }, { text: "to ", time: 170123 }, { text: "me ", time: 170388 }, { text: "for ", time: 170646 }, { text: "ten", time: 170901 }, { text: "ding", time: 171168 }, { text: " ", time: 171632 }] },
-  { lineStartTime: 171632, flash: false, chunks: [{ text: "So ", time: 171632 }, { text: "what’s ", time: 171900 }, { text: "the ", time: 172166 }, { text: "point ", time: 172446 }, { text: "with ", time: 172709 }, { text: "just ", time: 172967 }, { text: "the ", time: 173231 }, { text: "blood ", time: 173481 }, { text: "for ", time: 173749 }, { text: "wa", time: 174004 }, { text: "ter", time: 174242 }, { text: "ing— ", time: 174399 }, { text: "So ", time: 174770 }, { text: "tea", time: 175024 }, { text: "ry!", time: 175282 }, { text: " ", time: 175824 }] },
+  { lineStartTime: 167495, flash: false, chunks: [{ text: "I ", time: 167495 }, { text: "knew ", time: 167733 }, { text: "my", time: 167998 }, { text: "self ", time: 168259 }, { text: "well ", time: 168514 }, { text: "‘fore ", time: 168767 }, { text: "this ", time: 169037 }, { text: "flow", time: 169310 }, { text: "er ", time: 169544 }, { text: "took ", time: 169844 }, { text: "to ", time: 170123 }, { text: "me ", time: 170388 }, { text: "for ", time: 170646 }, { text: "tea", time: 175024 }, { text: "ry!", time: 175282 }, { text: " ", time: 175824 }] },
   { lineStartTime: 175824, flash: false, chunks: [{ text: "But ", time: 175824 }, { text: "still ", time: 176073 }, { text: "it ", time: 176321 }, { text: "wilts ", time: 176577 }, { text: "a", time: 176817 }, { text: "way, ", time: 177067 }, { text: "and ", time: 177323 }, { text: "of ", time: 177608 }, { text: "the ", time: 177848 }, { text: "two, ", time: 178123 }, { text: "it’s ", time: 178386 }, { text: "wil", time: 178647 }, { text: "tin’ ", time: 178927 }, { text: "slow", time: 179190 }, { text: "ly", time: 179489 }, { text: " ", time: 179950 }] },
   { lineStartTime: 179950, flash: true, chunks: [{ text: "I ", time: 179950 }, { text: "stand ", time: 180231 }, { text: "here ", time: 180479 }, { text: "dead ", time: 180764 }, { text: "and ", time: 180927 }, { text: "done, ", time: 181162 }, { text: "and ", time: 181528 }, { text: "I ", time: 181775 }, { text: "have ", time: 182043 }, { text: "to ", time: 182316 }, { text: "ask: ", time: 182598 }, { text: "What’s ", time: 183106 }, { text: "kil", time: 183367 }, { text: "lin‘ ", time: 183498 }, { text: "me?", time: 183763 }, { text: " ", time: 185204 }] },
   { lineStartTime: 185204, flash: false, chunks: [{ text: "What ", time: 185204 }, { text: "could ", time: 185449 }, { text: "it ", time: 185584 }, { text: "be?", time: 185823 }, { text: " ", time: 187336 }] },
@@ -186,51 +219,62 @@ const lyricTimeline = [
   { lineStartTime: 196321, flash: false, chunks: [{ text: "What ", time: 196321 }, { text: "could ", time: 196574 }, { text: "it ", time: 196718 }, { text: "be?", time: 196978 }, { text: " ", time: 198635 }] },
   { lineStartTime: 198635, flash: true, chunks: [{ text: "I ", time: 198635 }, { text: "just ", time: 198929 }, { text: "can’t ", time: 199194 }, { text: "take ", time: 199476 }, { text: "it ", time: 199777 }, { text: "a", time: 200094 }, { text: "ny ", time: 200400 }, { text: "moo", time: 200722 }, { text: "o", time: 201348 }, { text: "o", time: 201648 }, { text: "ooore", time: 201991 }, { text: " ", time: 206356 }] }
 ];
+
     document.getElementById('play-btn').onclick = async function () {
-    this.remove();
-    music.currentTime = 0;
-    await music.play();
+        this.remove();
+        music.currentTime = 0;
+        await music.play();
 
-    function loop() {
-        const t = music.currentTime;
-        const ms = t * 1000;
+        function loop() {
+            const t = music.currentTime;
+            const ms = t * 1000;
 
-        const line = lyricTimeline.find((l, i) => 
-            ms >= l.lineStartTime && (lyricTimeline[i + 1] ? ms < lyricTimeline[i + 1].lineStartTime : true)
-        );
+            const line = lyricTimeline.find((l, i) => 
+                ms >= l.lineStartTime && (lyricTimeline[i + 1] ? ms < lyricTimeline[i + 1].lineStartTime : true)
+            );
 
-        // Lyrics Logic (Single instance, handles updates and sizing)
-        if (line) {
-            let html = "";
-            line.chunks.forEach(c => {
-                html += `<span class="${ms >= c.time ? "lit" : ""}">${c.text}</span>`;
-            });
+            // Lyrics Logic
+            if (line) {
+                let html = "";
+                line.chunks.forEach(c => {
+                    html += `<span class="${ms >= c.time ? "lit" : ""}">${c.text}</span>`;
+                });
 
-            if (display.innerHTML !== html) {
-                display.innerHTML = html;
-                fitLyrics();
+                if (display.innerHTML !== html) {
+                    display.innerHTML = html;
+                    displayRed.innerHTML = html; // Sync the red duplicate
+                    fitLyrics();
+                }
+            } else {
+                display.innerHTML = "";
+                displayRed.innerHTML = "";
             }
-        } else {
-            display.innerHTML = "";
+
+            // Dual red text display toggle based on timestamp (appears exactly when the word 'You' hits at 150.788)
+            if (t >= 150.788) {
+                displayRed.style.display = "block";
+            } else {
+                displayRed.style.display = "none";
+            }
+
+            // Background Opacity logic
+            if (t <= 2) s.style.opacity = 1;
+            else if (t <= 9) s.style.opacity = 1 - (t - 2) / 7;
+            else s.style.opacity = 0;
+
+            let o = 0;
+            if (t >= 17 && t < 18) o = t - 17;
+            // The opacity fade out previously targeted 130.934 ("I"), it now triggers at 132.788 ("MORE!")
+            else if (t >= 18 && t < 132.788) o = 1; 
+            else if (t >= 132.788 && t < 133.788) o = 1 - (t - 132.788); 
+            else if (t >= 151.004 && t < 152.004) o = t - 151.004;
+            else if (t >= 152.004) o = 1;
+            f.style.opacity = Math.max(0, Math.min(1, o));
+
+            if (!music.paused && !music.ended) requestAnimationFrame(loop);
         }
-
-        // Background Opacity logic
-        if (t <= 2) s.style.opacity = 1;
-        else if (t <= 9) s.style.opacity = 1 - (t - 2) / 7;
-        else s.style.opacity = 0;
-
-        let o = 0;
-        if (t >= 17 && t < 18) o = t - 17;
-        else if (t >= 18 && t < 130.934) o = 1;
-        else if (t >= 130.934 && t < 131.934) o = 1 - (t - 130.934);
-        else if (t >= 151.004 && t < 152.004) o = t - 151.004;
-        else if (t >= 152.004) o = 1;
-        f.style.opacity = Math.max(0, Math.min(1, o));
-
-        if (!music.paused && !music.ended) requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-};
+        requestAnimationFrame(loop);
+    };
 </script>
 </body>
 </html>
