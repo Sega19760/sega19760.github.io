@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport" content="width=device-width, initial-scale=0.5, maximum-scale=0.5, user-scalable=yes">
+    
     <title>What could it be?!</title>
     <style>
         @font-face {
@@ -50,6 +52,18 @@
         #bg-middle { background-image: url('https://i.imgur.com/lsCiQm1.png'); z-index: 1; }
         #bg-start { background-image: url('https://i.imgur.com/MGd0U8B.png'); z-index: 2; }
         #bg-final { background-image: url('https://i.imgur.com/e5BCbUe.png'); z-index: 3; opacity: 0; }
+        #bg-new-image { 
+    background-image: url('https://imgur.com/seepw6G.png'); 
+    z-index: 5; 
+    position: absolute; 
+    inset: 0;
+    background-size: cover; 
+    background-position: center;
+    opacity: 0;               /* Start invisible */
+    transition: opacity 1s ease; /* Fade over 1 second */
+}
+
+
 
         #lyrics-wrapper { 
             position: absolute; 
@@ -119,6 +133,8 @@
     <div id="bg-middle" class="layer"></div>
     <div id="bg-start" class="layer"></div>
     <div id="bg-final" class="layer"></div>
+<div id="bg-new-image"
+></div>
 
     <div id="lyrics-wrapper">
         <div id="lyrics-container">
@@ -137,27 +153,36 @@
 <script>
     const s = document.getElementById('bg-start'), f = document.getElementById('bg-final');
     const display = document.getElementById('lyrics-display');
+    const bgMiddle = document.getElementById('bg-middle');
+    const bgNew = document.getElementById('bg-new-image');
     const displayRed = document.getElementById('lyrics-display-red');
     const lyricsContainer = document.getElementById('lyrics-container');
     const music = document.getElementById('music');
     const wrapper = document.getElementById("lyrics-wrapper");
 
     function fitLyrics() {
-        // Reset scale before measurement
-        lyricsContainer.style.transform = "scale(1)";
+        // Reset scale first
+        lyricsContainer.style.transform = "none";
+        
+        const maxWidth = wrapper.clientWidth * 0.95;
+        const width = lyricsContainer.scrollWidth;
 
-        requestAnimationFrame(() => {
-            const maxWidth = wrapper.clientWidth * 0.95; // 95% to leave some padding on mobile
-            const width = lyricsContainer.scrollWidth;
+        // Calculate scale
+        let scale = maxWidth / width;
 
-            if (width > maxWidth && maxWidth > 0) {
-                const scale = maxWidth / width;
-                lyricsContainer.style.transform = `scale3d(${scale}, ${scale}, 1)`;
-            } else {
-                lyricsContainer.style.transform = "scale3d(1, 1, 1)";
-            }
-        });
+        // NEW: If the text is already smaller than the max width, 
+        // don't scale it up (keep it at 1).
+        if (scale > 1) {
+            scale = 1;
+        }
+
+        // Apply the scale (now it will only shrink if needed)
+        lyricsContainer.style.transform = `scale(${scale})`;
     }
+    
+    
+    
+    
 
 const lyricTimeline = [
   { lineStartTime: 0, flash: false, chunks: [{ text: "", time: 0 }] },
@@ -165,7 +190,7 @@ const lyricTimeline = [
   { lineStartTime: 35976, flash: false, chunks: [{ text: "Sick", time: 35976 }, { text: "ness ", time: 36222 }, { text: "that ", time: 36461 }, { text: "sweeps ", time: 36719 }, { text: "the ", time: 36966 }, { text: "na", time: 37104 }, { text: "tions", time: 37425 }, { text: " ", time: 38067 }] },
   { lineStartTime: 38067, flash: false, chunks: [{ text: "Be", time: 38067 }, { text: "yond ", time: 38317 }, { text: "these ", time: 38549 }, { text: "ti", time: 38788 }, { text: "ny ", time: 39031 }, { text: "things ", time: 39183 }, { text: "just", time: 39514 }, { text: " ", time: 40131 }] },
   { lineStartTime: 40131, flash: true, chunks: [{ text: "Some", time: 40131 }, { text: "thin' ", time: 40251 }, { text: "tells ", time: 40360 }, { text: "me ", time: 40622 }, { text: "this ", time: 40880 }, { text: "is ", time: 41164 }, { text: "dee", time: 41413 }, { text: "per", time: 41668 }, { text: " ", time: 42222 }] },
-  { lineStartTime: 42222, flash: false, chunks: [{ text: "Our ", time: 42222 }, { text: "minds ", time: 42473 }, { text: "are ", time: 42725 }, { text: "spe", time: 42981 }, { text: "cial ", time: 43122 }, { text: "for", time: 43398 }, { text: "ces", time: 43706 }, { text: " ", time: 44268 }] },
+  { lineStartTime: 42222, flash: false, chunks: [{ text: "Our ", time: 42222 }, { text: "minds ", time: 42473 }, { text: "are ", time: 42725 }, { text: "spe", time: 42981 }, { text: "cial ", time: 43122 }, { text: "for", time: 43398 }, { text: "ces", time: 43706 }, { text: " '", time: 44268 }] },
   { lineStartTime: 44268, flash: false, chunks: [{ text: "Bo", time: 44268 }, { text: "dy ", time: 44394 }, { text: "bags ", time: 44527 }, { text: "that ", time: 44831 }, { text: "co", time: 45078 }, { text: "ver ", time: 45212 }, { text: "corp", time: 45473 }, { text: "ses", time: 45801 }, { text: " ", time: 46334 }] },
   { lineStartTime: 46334, flash: true, chunks: [{ text: "Let ", time: 46334 }, { text: "it ", time: 46447 }, { text: "make ", time: 46579 }, { text: "some ", time: 46894 }, { text: "sense ", time: 47149 }, { text: "to ", time: 47390 }, { text: "me ", time: 47512 }, { text: "that", time: 47880 }, { text: " ", time: 48134 }] },
   { lineStartTime: 48134, flash: false, chunks: [{ text: "There's ", time: 48134 }, { text: "a ", time: 48381 }, { text: "rea", time: 48675 }, { text: "son ", time: 48815 }, { text: "I ", time: 48935 }, { text: "could", time: 49132 }, { text: "n't ", time: 49318 }, { text: "keep ", time: 49614 }, { text: "her", time: 49981 }, { text: " ", time: 50525 }] },
@@ -205,10 +230,11 @@ const lyricTimeline = [
   { lineStartTime: 134788, flash: false, chunks: [{ text: "", time: 134788 }] }, 
 
   { lineStartTime: 150788, flash: false, chunks: [{ text: "You ", time: 150788 }, { text: "cast ", time: 151032 }, { text: "your ", time: 151280 }, { text: "sight ", time: 151541 }, { text: "on ", time: 151804 }, { text: "dreams ", time: 152075 }, { text: "to ", time: 152322 }, { text: "fer", time: 152589 }, { text: "ry ", time: 152843 }, { text: "‘fore ", time: 153115 }, { text: "you ", time: 153366 }, { text: "count ", time: 153624 }, { text: "all ", time: 153889 }, { text: "your ", time: 154137 }, { text: "coins", time: 154419 }, { text: " ", time: 154943 }] },
-  { lineStartTime: 154943, flash: false, chunks: [{ text: "O", time: 154943 }, { text: "thers ", time: 155203 }, { text: "will ", time: 155458 }, { text: "com", time: 155722 }, { text: "fort ", time: 155987 }, { text: "say", time: 156245 }, { text: "ing ", time: 156523 }, { text: "they’ve ", time: 156792 }, { text: "seen ", time: 157049 }, { text: "hell ", time: 157301 }, { text: "and ", time: 157446 }, { text: "back— ", time: 157724 }, { text: "Oh ", time: 158108 }, { text: "real", time: 158357 }, { text: "ly?", time: 158616 }, { text: " ", time: 159126 }] },
+  { lineStartTime: 154943, flash: false, chunks: [{ text: "O", time: 154943 }, { text: "thers ", time: 155203 }, { text: "will ", time: 155458 }, { text: "com", time: 155722 }, { text: "fort ", time: 155987 }, { text: "say", time: 156245 }, { text: "ing ", time: 156523 }, { text: "they’ve ", time: 156792 }, { text: "seen ", time: 157049 }, { text: "hell ", time: 157301 }, { text: "and ", time: 157446 }, { text: "back— ", time: 157724 }, { text: "Oh ", time: 158108 }, { text: "real", time: 158357 }, { text: "ly?", time: 158616 }, { text: " ", time: 159126 
   { lineStartTime: 159126, flash: false, chunks: [{ text: "Well ", time: 159126 }, { text: "in ", time: 159403 }, { text: "this ", time: 159645 }, { text: "game ", time: 159933 }, { text: "of ", time: 160188 }, { text: "glee, ", time: 160424 }, { text: "turns ", time: 160671 }, { text: "out ", time: 160934 }, { text: "the ", time: 161193 }, { text: "lo", time: 161460 }, { text: "sers ", time: 161729 }, { text: "still ", time: 162002 }, { text: "made ", time: 162262 }, { text: "the ", time: 162524 }, { text: "choice", time: 162810 }, { text: " ", time: 163310 }] },
   { lineStartTime: 163310, flash: true, chunks: [{ text: "I ", time: 163310 }, { text: "should", time: 163568 }, { text: "’ve ", time: 163712 }, { text: "stopped ", time: 163959 }, { text: "be", time: 164321 }, { text: "fore ", time: 164578 }, { text: "I ", time: 164719 }, { text: "star", time: 164947 }, { text: "ted, ", time: 165329 }, { text: "and ", time: 165639 }, { text: "thought— ", time: 165906 }, { text: "“How ", time: 166407 }, { text: "sil", time: 166671 }, { text: "ly!”", time: 166968 }, { text: " ", time: 167495 }] },
-  { lineStartTime: 167495, flash: false, chunks: [{ text: "I ", time: 167495 }, { text: "knew ", time: 167733 }, { text: "my", time: 167998 }, { text: "self ", time: 168259 }, { text: "well ", time: 168514 }, { text: "‘fore ", time: 168767 }, { text: "this ", time: 169037 }, { text: "flow", time: 169310 }, { text: "er ", time: 169544 }, { text: "took ", time: 169844 }, { text: "to ", time: 170123 }, { text: "me ", time: 170388 }, { text: "for ", time: 170646 }, { text: "tea", time: 175024 }, { text: "ry!", time: 175282 }, { text: " ", time: 175824 }] },
+  { lineStartTime: 167495, flash: false, chunks: [{ text: "I ", time: 167495 }, { text: "knew ", time: 167733 }, { text: "my", time: 167998 }, { text: "self ", time: 168259 }, { text: "well ", time: 168514 }, { text: "‘fore ", time: 168767 }, { text: "this ", time: 169037 }, { text: "flow", time: 169310 }, { text: "er ", time: 169544 }, { text: "took ", time: 169844 }, { text: "to ", time: 170123 }, { text: "me ", time: 170388 }, { text: "for ", time: 170646 }, { text: "ten", time: 170819 }, { text: "ding", time: 171104 }, { text: " ", time: 171552 }] },
+  { lineStartTime: 171673, flash: false, chunks: [{ text: "So ", time: 171673 }, { text: "what’s ", time: 171876 }, { text: "the ", time: 172136 }, { text: "point ", time: 172404 }, { text: "with ", time: 172671 }, { text: "just ", time: 172925 }, { text: "the ", time: 173173 }, { text: "blood ", time: 173448 }, { text: "for ", time: 173699 }, { text: "wa", time: 173966 }, { text: "ter", time: 174193 }, { text: "ing ", time: 174329 }, { text: "— ", time: 174626 }, { text: "So ", time: 174731 }, { text: "tea", time: 175024 }, { text: "ry!", time: 175282 }, { text: " ", time: 175824 }] },
   { lineStartTime: 175824, flash: false, chunks: [{ text: "But ", time: 175824 }, { text: "still ", time: 176073 }, { text: "it ", time: 176321 }, { text: "wilts ", time: 176577 }, { text: "a", time: 176817 }, { text: "way, ", time: 177067 }, { text: "and ", time: 177323 }, { text: "of ", time: 177608 }, { text: "the ", time: 177848 }, { text: "two, ", time: 178123 }, { text: "it’s ", time: 178386 }, { text: "wil", time: 178647 }, { text: "tin’ ", time: 178927 }, { text: "slow", time: 179190 }, { text: "ly", time: 179489 }, { text: " ", time: 179950 }] },
   { lineStartTime: 179950, flash: true, chunks: [{ text: "I ", time: 179950 }, { text: "stand ", time: 180231 }, { text: "here ", time: 180479 }, { text: "dead ", time: 180764 }, { text: "and ", time: 180927 }, { text: "done, ", time: 181162 }, { text: "and ", time: 181528 }, { text: "I ", time: 181775 }, { text: "have ", time: 182043 }, { text: "to ", time: 182316 }, { text: "ask: ", time: 182598 }, { text: "What’s ", time: 183106 }, { text: "kil", time: 183367 }, { text: "lin‘ ", time: 183498 }, { text: "me?", time: 183763 }, { text: " ", time: 185204 }] },
   { lineStartTime: 185204, flash: false, chunks: [{ text: "What ", time: 185204 }, { text: "could ", time: 185449 }, { text: "it ", time: 185584 }, { text: "be?", time: 185823 }, { text: " ", time: 187336 }] },
@@ -251,13 +277,20 @@ const lyricTimeline = [
             }
 
             // Dual red text display toggle based on timestamp (appears exactly when the word 'You' hits at 150.788)
-            if (t >= 150.788) {
-                displayRed.style.display = "block";
-            } else {
-                displayRed.style.display = "none";
-            }
+// Toggle the red text AND the new image
+// Toggle the red text AND swap the Final image for the New image
+if (t >= 150.788) {
+    displayRed.style.display = "block";
+    bgNew.style.opacity = "1";    // Fade in
+    f.style.opacity = "0";        // Fade out
+} else {
+    displayRed.style.display = "none";
+    bgNew.style.opacity = "0";    // Fade out
+    f.style.display = "block";        // Show 'bg-final' layer
+}
 
-            // Background Opacity logic
+
+        // Background Opacity logic
             if (t <= 2) s.style.opacity = 1;
             else if (t <= 9) s.style.opacity = 1 - (t - 2) / 7;
             else s.style.opacity = 0;
