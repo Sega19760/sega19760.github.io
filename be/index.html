@@ -43,13 +43,20 @@
         }
 
         .layer {
-            position: absolute;
-            inset: 0;
-            background-size: cover;
-            background-position: center;
-        }
+    position: absolute; /* This makes z-index work! */
+    inset: 0;           /* This stretches the div to fill the container */
+    background-size: cover;
+    background-position: center;
+    transition: opacity 1s ease; /* Ensure smooth fades */
+}
 
-        #bg-middle { background-image: url('https://i.imgur.com/lsCiQm1.png'); z-index: 1; }
+
+       
+        #bg-middle { 
+    background-image: url('https://i.imgur.com/lsCiQm1.png'); 
+    z-index: 1; 
+    background-color: red; /* If you see red, the div is there, but the image is missing */
+}
         #bg-start { background-image: url('https://i.imgur.com/MGd0U8B.png'); z-index: 2; }
         #bg-final { background-image: url('https://i.imgur.com/e5BCbUe.png'); z-index: 3; opacity: 0; }
         #bg-new-image { 
@@ -63,8 +70,66 @@
     transition: opacity 1s ease; /* Fade over 1 second */
 }
 
+    /* --- REDGLOVE DUST EFFECT CLASSES --- */
+@keyframes dustIn {
+    0% {
+        opacity: 0;
+        filter: blur(15px) contrast(200%) brightness(150%);
+        transform: scale(0.4) translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        filter: blur(0px) contrast(100%) brightness(100%);
+        transform: scale(0.4) translateY(0px);
+    }
+}
+
+@keyframes dustOut {
+    0% {
+        opacity: 1;
+        filter: blur(0px) contrast(100%) brightness(100%);
+        transform: scale(0.4) translateY(0px);
+    }
+    100% {
+        opacity: 0;
+        filter: blur(15px) contrast(200%) brightness(150%);
+        transform: scale(0.4) translateY(-30px);
+    }
+}
+
+.dust-appear {
+    animation: dustIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.dust-vanish {
+    animation: dustOut 0.4s ease-in forwards !important;
+}
 
 
+
+     @keyframes stretchBounce {
+    /* 0%: The SNAP (Start at full stretch) */
+    0% { transform: scaleY(1.1); } 
+    
+   
+    /* 30-50%: The secondary "little bounce" (The 40% stretch) */
+    50% { transform: scaleY(1.04); } 
+    
+    /* 50-75%: Settle back to normal */
+    75% { transform: scaleY(1); }
+    
+    /* 75-100%: Freeze/Hold */
+    100% { transform: scaleY(1); }
+}
+
+#faker-gif {
+    transform-origin: center;
+    /* 1s total: 0.75s active motion, 0.25s freeze */
+    /* This cubic-bezier is the secret: it makes the "snap" feel aggressive */
+    animation: stretchBounce 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite;
+}
+
+ 
         #lyrics-wrapper { 
             position: absolute; 
             bottom: 5%; /* Scalable bottom position */
@@ -130,9 +195,28 @@
 <body>
 
 <div id="video-container">
+
+    <div id="debug-scrubber" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80%; max-width: 650px; background: rgba(0, 0, 0, 0.9); border: 2px solid #ff0000; padding: 15px; border-radius: 8px; z-index: 99999; color: white; font-family: monospace; text-align: center; box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);">
+    <div style="margin-bottom: 8px; font-weight: bold; color: #ff4444; letter-spacing: 1px;"> SINISTER DEBUGGER (Press 'P' to Hide)</div>
+    <input id="timeline-slider" type="range" min="0" max="100" value="0" step="0.01" style="width: 100%; cursor: pointer; accent-color: #ff0000;">
+    <div id="timeline-label" style="margin-top: 8px; font-size: 14px;">00:00.00 / 00:00.00 (0 ms)</div>
+</div>
+    <div id="faker-gif" class="layer" style="background-image: url('https://static.wikia.nocookie.net/continued-exe/images/4/4f/Fakerdancev2.gif'); z-index: 6; opacity: 0; pointer-events: none; background-size: 30%; background-repeat: no-repeat; background-position: center;"></div>
+      <div id="red-handed-bg" class="layer" style="background-image: url('https://i.imgur.com/ROZtBiq.png'); transition: none !important; z-index: 7; opacity: 0;"></div>
+     <div id="redglove-reveal" class="layer" style="background-image: url('https://static.wikia.nocookie.net/continued-exe/images/d/da/RedgloveRedHandTrans.png'); z-index: 13;  background-size: 30% !important; background-repeat: no-repeat !important; background-position: center !important; opacity: 0; pointer-events: none; clip-path: inset(0 0 100% 0); transition: clip-path 0.15s ease;"></div>
+    <div id="red-handed-overlay" class="layer" style="background-image: url('https://i.imgur.com/YNPu1Ex.png'); z-index: 9; opacity: 0; transition: opacity 0.75s ease;"></div>
+       <div id="lordx-img" class="layer" 
+     style="background-image: url('https://static.wikia.nocookie.net/continued-exe/images/9/90/RedHandLordXTrans.png'); 
+            z-index: 8; opacity: 0; 
+            transition: opacity 2s ease;
+            background-size: 30% !important; 
+            background-repeat: no-repeat !important; 
+            background-position: center !important;">
+</div>
     <div id="bg-middle" class="layer"></div>
     <div id="bg-start" class="layer"></div>
     <div id="bg-final" class="layer"></div>
+
 <div id="bg-new-image"
 ></div>
 
@@ -149,6 +233,10 @@
         <source src="What could it be.mp3" type="audio/mpeg">
     </audio>
 </div>
+
+
+
+
 
 <script>
     const s = document.getElementById('bg-start'), f = document.getElementById('bg-final');
@@ -180,9 +268,128 @@
         lyricsContainer.style.transform = `scale(${scale})`;
     }
     
+
+
+// --- DEBUGGER SETUP ---
+let isDraggingSlider = false;
+
+// Toggle Scrubber visibility with 'P' key
+window.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'p') {
+        const scrubber = document.getElementById('debug-scrubber');
+        if (scrubber) {
+            scrubber.style.display = scrubber.style.display === 'none' ? 'block' : 'none';
+        }
+    }
+});
+
+// Bind slider dragging to audio currentTime
+setTimeout(() => {
+    const slider = document.getElementById('timeline-slider');
+    if (slider) {
+        slider.addEventListener('mousedown', () => isDraggingSlider = true);
+        slider.addEventListener('touchstart', () => isDraggingSlider = true);
+        
+        slider.addEventListener('mouseup', () => isDraggingSlider = false);
+        slider.addEventListener('touchend', () => isDraggingSlider = false);
+        
+        slider.addEventListener('input', (e) => {
+            if (music && music.duration) {
+                music.currentTime = parseFloat(e.target.value);
+            }
+        });
+    }
+}, 500);
+
+// Helper function to update the UI every frame
+function updateScrubberUI() {
+    const scrubber = document.getElementById('debug-scrubber');
+    const slider = document.getElementById('timeline-slider');
+    const label = document.getElementById('timeline-label');
     
+    if (scrubber && scrubber.style.display !== 'none' && music && music.duration) {
+        // Only update slider position if you aren't actively clicking/dragging it
+        if (!isDraggingSlider) {
+            slider.max = music.duration;
+            slider.value = music.currentTime;
+        }
+        
+        // Format MM:SS.xx and exact milliseconds
+        const mins = Math.floor(music.currentTime / 60).toString().padStart(2, '0');
+        const secs = (music.currentTime % 60).toFixed(2).padStart(5, '0');
+        const msExact = Math.floor(music.currentTime * 1000);
+        
+        label.innerText = `${mins}:${secs} / ${(music.duration / 60).toFixed(2)} mins | EXACT TIME: ${msExact} ms`;
+    }
+}
+
+let isRedHanded = false;
+let fakerMode = false;
+window.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'f' && !fakerMode) {
+        // Logic to check if user typed "faker" would go here
+        // For simplicity, press 'F' to trigger the sequence
+        triggerFakerSequence();
+    }
+});
+
+async function triggerFakerSequence() {
+    fakerMode = true;
+    music.pause();
     
+    const fakerGif = document.getElementById('faker-gif');
+    const redBg = document.getElementById('red-handed-bg');
+    const overlay = document.getElementById('red-handed-overlay');
+    const lordX = document.getElementById('lordx-img');
+    const redgloveReveal = document.getElementById('redglove-reveal'); // NEW
+
+    // 1. Start St. Solis Faker sequence
+    fakerGif.style.opacity = "1";
+    music.src = "St.Solis.mp3";
+    music.currentTime = 53;
+    await music.play();
     
+    // 2. Wait 4 seconds for Faker sequence to finish, then start Red-Handed
+    setTimeout(() => {
+        fakerGif.style.opacity = "0";
+        
+        isRedHanded = true; 
+        activeTimeline = redHandedTimeline;
+        music.src = "Red-Handed.mp3";
+        music.currentTime = 0;
+        music.play();
+
+        // --- AT 0 SECONDS OF RED-HANDED ---
+        redBg.style.transition = "none";
+        redBg.style.opacity = "1";
+
+        overlay.style.transition = "opacity 0.75s ease";
+        overlay.style.opacity = "1";
+
+        lordX.style.transition = "none";
+        lordX.style.opacity = "0"; 
+
+        // Reset Redglove to 0% visible (100% clipped from bottom) and hidden
+        redgloveReveal.style.transition = "none";
+        redgloveReveal.style.opacity = "0";
+        redgloveReveal.style.clipPath = "inset(0 0 100% 0)";
+
+        // --- AT 2 SECONDS OF RED-HANDED ---
+        setTimeout(() => {
+            lordX.style.transition = "opacity 2s ease";
+            lordX.style.opacity = "1"; 
+
+            // Fade in Redglove wrapper alongside Lord X (still 100% clipped out visually!)
+            redgloveReveal.style.transition = "opacity 2s ease, clip-path 0.15s ease";
+            redgloveReveal.style.opacity = "1";
+
+            overlay.style.transition = "opacity 4s linear";
+            overlay.style.opacity = "0";
+        }, 2000); 
+
+    }, 4000); 
+}
+
 
 const lyricTimeline = [
   { lineStartTime: 0, flash: false, chunks: [{ text: "", time: 0 }] },
@@ -246,68 +453,277 @@ const lyricTimeline = [
   { lineStartTime: 198635, flash: true, chunks: [{ text: "I ", time: 198635 }, { text: "just ", time: 198929 }, { text: "can’t ", time: 199194 }, { text: "take ", time: 199476 }, { text: "it ", time: 199777 }, { text: "a", time: 200094 }, { text: "ny ", time: 200400 }, { text: "moo", time: 200722 }, { text: "o", time: 201348 }, { text: "o", time: 201648 }, { text: "ooore", time: 201991 }, { text: " ", time: 206356 }] }
 ];
 
-    document.getElementById('play-btn').onclick = async function () {
-        this.remove();
-        music.currentTime = 0;
-        await music.play();
+const redHandedTimeline = [
+  { lineStartTime: 0, flash: false, chunks: [{ text: "", time: 0 }] },
+  { lineStartTime: 552, flash: false, chunks: [{ text: "It's ", time: 552 }, { text: "in ", time: 724 }, { text: "the ", time: 892 }, { text: "dark ", time: 1152 }, { text: "", time: 2193 }] },
+  { lineStartTime: 2193, flash: false, chunks: [{ text: "It's ", time: 2193 }, { text: "get", time: 2360 }, { text: "ting ", time: 2565 }, { text: "clo", time: 2823 }, { text: "ser, ", time: 3022 }, { text: "clo", time: 3247 }, { text: "ser ", time: 3436 }, { text: "", time: 3882 }] },
+  { lineStartTime: 3882, flash: false, chunks: [{ text: "It's ", time: 3882 }, { text: "in ", time: 4234 }, { text: "the ", time: 4424 }, { text: "eye, ", time: 4583 }, { text: "so ", time: 4955 }, { text: "blind ", time: 5166 }, { text: "", time: 5532 }] },
+  { lineStartTime: 5532, flash: false, chunks: [{ text: "For ", time: 5532 }, { text: "not ", time: 5736 }, { text: "a ", time: 5930 }, { text: "one ", time: 6182 }, { text: "be", time: 6405 }, { text: "hol", time: 6605 }, { text: "der ", time: 6829 }, { text: "", time: 7265 }] },
+  { lineStartTime: 7265, flash: false, chunks: [{ text: "And ", time: 7265 }, { text: "yet ", time: 7459 }, { text: "you ", time: 7633 }, { text: "stand ", time: 7855 }, { text: "", time: 8943 }] },
+  { lineStartTime: 8943, flash: false, chunks: [{ text: "And ", time: 8943 }, { text: "drown ", time: 9149 }, { text: "in ", time: 9380 }, { text: "ter", time: 9618 }, { text: "ror, ", time: 9856 }, { text: "ter", time: 10042 }, { text: "ror ", time: 10247 }, { text: "", time: 10900 }] },
+  { lineStartTime: 10900, flash: true, chunks: [{ text: "Do ", time: 10900 }, { text: "you ", time: 11277 }, { text: "de", time: 11659 }, { text: "cide ", time: 11858 }, { text: "or ", time: 12314 }, { text: "is ", time: 12504 }, { text: "it ", time: 12735 }, { text: "ta", time: 12983 }, { text: "king ", time: 13207 }, { text: "o", time: 13407 }, { text: "ver? ", time: 13631 }, { text: "", time: 14085 }] },
+  { lineStartTime: 14085, flash: false, chunks: [{ text: "With", time: 14085 }, { text: "out ", time: 14311 }, { text: "a ", time: 14509 }, { text: "thought ", time: 14715 }, { text: "", time: 15697 }] },
+  { lineStartTime: 15697, flash: false, chunks: [{ text: "With", time: 15697 }, { text: "out ", time: 15906 }, { text: "a ", time: 16113 }, { text: "rea", time: 16364 }, { text: "son, ", time: 16610 }, { text: "rea", time: 16810 }, { text: "son ", time: 17050 }, { text: "", time: 17420 }] },
+  { lineStartTime: 17420, flash: false, chunks: [{ text: "With", time: 17420 }, { text: "out ", time: 17650 }, { text: "a ", time: 17822 }, { text: "mor", time: 18046 }, { text: "tal ", time: 18495 }, { text: "mind ", time: 18687 }, { text: "", time: 19098 }] },
+  { lineStartTime: 19098, flash: false, chunks: [{ text: "To ", time: 19098 }, { text: "make ", time: 19286 }, { text: "a ", time: 19505 }, { text: "time", time: 19729 }, { text: "ly ", time: 19964 }, { text: "trea", time: 20160 }, { text: "son ", time: 20394 }, { text: "", time: 20812 }] },
+  { lineStartTime: 20812, flash: false, chunks: [{ text: "Cry ", time: 20812 }, { text: "for ", time: 21026 }, { text: "the ", time: 21221 }, { text: "moon ", time: 21431 }, { text: "", time: 22465 }] },
+  { lineStartTime: 22465, flash: false, chunks: [{ text: "Cry ", time: 22465 }, { text: "for ", time: 22690 }, { text: "the ", time: 22864 }, { text: "dawn", time: 23108 }, { text: "ing, ", time: 23331 }, { text: "dawn", time: 23570 }, { text: "ing ", time: 23783 }, { text: "", time: 24339 }] },
+  { lineStartTime: 24339, flash: true, chunks: [{ text: "Where", time: 24339 }, { text: "in ", time: 24766 }, { text: "de", time: 25141 }, { text: "mise ", time: 25374 }, { text: "could", time: 25747 }, { text: "n't ", time: 25860 }, { text: "pull ", time: 26014 }, { text: "the ", time: 26313 }, { text: "strings ", time: 26600 }, { text: "", time: 26811 }] },
+  { lineStartTime: 26811, flash: false, chunks: [{ text: "Make ", time: 26811 }, { text: "it ", time: 27025 }, { text: "right ", time: 27202 }, { text: "on ", time: 27544 }, { text: "the ", time: 27767 }, { text: "line ", time: 27984 }, { text: "", time: 28325 }] },
+  { lineStartTime: 28325, flash: false, chunks: [{ text: "Let ", time: 28325 }, { text: "it ", time: 28544 }, { text: "shine ", time: 28755 }, { text: "as ", time: 29182 }, { text: "the ", time: 29397 }, { text: "tic", time: 29602 }, { text: "king ", time: 29990 }, { text: "time ", time: 30422 }, { text: "counts ", time: 31771 }, { text: "you ", time: 31976 }, { text: "down ", time: 32191 }, { text: "", time: 33494 }] },
+  { lineStartTime: 33494, flash: false, chunks: [{ text: "Rol", time: 33494 }, { text: "ling ", time: 33667 }, { text: "through ", time: 33901 }, { text: "to ", time: 34305 }, { text: "the ", time: 34514 }, { text: "tomb ", time: 34739 }, { text: "", time: 35129 }] },
+  { lineStartTime: 35129, flash: false, chunks: [{ text: "Clo", time: 35129 }, { text: "sing ", time: 35345 }, { text: "soon ", time: 35601 }, { text: "", time: 35989 }] },
+  { lineStartTime: 35989, flash: false, chunks: [{ text: "On", time: 35989 }, { text: "ly ", time: 36203 }, { text: "you ", time: 36423 }, { text: "that ", time: 36790 }, { text: "it's ", time: 37009 }, { text: "all, ", time: 37218 }, { text: "all ", time: 38527 }, { text: "with", time: 38728 }, { text: "out ", time: 38961 }, { text: "", time: 40250 }] },
+  { lineStartTime: 40250, flash: true, chunks: [{ text: "Just ", time: 40250 }, { text: "know ", time: 40435 }, { text: "I've ", time: 40652 }, { text: "", time: 40883 }] },
+  { lineStartTime: 40883, flash: false, chunks: [{ text: "Got ", time: 40883 }, { text: "my ", time: 41300 }, { text: "hands ", time: 41542 }, { text: "on ", time: 41922 }, { text: "the ", time: 42104 }, { text: "one ", time: 42319 }, { text: "that ", time: 42751 }, { text: "you ", time: 42973 }, { text: "love ", time: 43185 }, { text: "", time: 43617 }] },
+  { lineStartTime: 43617, flash: false, chunks: [{ text: "Wat", time: 43617 }, { text: "ching ", time: 43824 }, { text: "you ", time: 44011 }, { text: "try ", time: 44229 }, { text: "to ", time: 44682 }, { text: "fight ", time: 44890 }, { text: "", time: 45314 }] },
+  { lineStartTime: 45314, flash: false, chunks: [{ text: "But ", time: 45314 }, { text: "it ", time: 45533 }, { text: "is", time: 45742 }, { text: "n't ", time: 46172 }, { text: "e", time: 46380 }, { text: "ver ", time: 46603 }, { text: "quite ", time: 46826 }, { text: "e", time: 47054 }, { text: "nough ", time: 47274 }, { text: "", time: 47586 }] },
+  { lineStartTime: 47586, flash: false, chunks: [{ text: "I ", time: 47586 }, { text: "do ", time: 47802 }, { text: "the ", time: 48004 }, { text: "things ", time: 48201 }, { text: "that ", time: 48601 }, { text: "a", time: 48821 }, { text: "re ", time: 49081 }, { text: "free", time: 49465 }, { text: "ing ", time: 49690 }, { text: "to ", time: 49874 }, { text: "me ", time: 50204 }, { text: "", time: 50386 }] },
+  { lineStartTime: 50386, flash: false, chunks: [{ text: "Would ", time: 50386 }, { text: "you ", time: 50605 }, { text: "ab", time: 50804 }, { text: "hor ", time: 50993 }, { text: "the ", time: 51438 }, { text: "dark ", time: 51647 }, { text: "", time: 52047 }] },
+  { lineStartTime: 52047, flash: false, chunks: [{ text: "If ", time: 52047 }, { text: "it ", time: 52252 }, { text: "brought ", time: 52494 }, { text: "you ", time: 52864 }, { text: "un", time: 53080 }, { text: "end", time: 53294 }, { text: "ing ", time: 53710 }, { text: "glee? ", time: 53932 }, { text: "", time: 54345 }] },
+  { lineStartTime: 54345, flash: false, chunks: [{ text: "Code ", time: 54345 }, { text: "of ", time: 54577 }, { text: "a ", time: 54786 }, { text: "heart, ", time: 55049 }, { text: "wat", time: 55428 }, { text: "ching ", time: 55677 }, { text: "stance ", time: 55870 }, { text: "on ", time: 56276 }, { text: "a ", time: 56519 }, { text: "dime ", time: 56741 }, { text: "", time: 57126 }] },
+  { lineStartTime: 57126, flash: false, chunks: [{ text: "Un", time: 57126 }, { text: "til ", time: 57352 }, { text: "the ", time: 57559 }, { text: "bea", time: 57998 }, { text: "ting ", time: 58201 }, { text: "stops ", time: 58396 }, { text: "", time: 58793 }] },
+  { lineStartTime: 58793, flash: false, chunks: [{ text: "Ed", time: 58793 }, { text: "ges ", time: 59023 }, { text: "sharp ", time: 59231 }, { text: "on ", time: 59642 }, { text: "such ", time: 59864 }, { text: "a ", time: 60092 }, { text: "dul", time: 60322 }, { text: "ling ", time: 60533 }, { text: "knife ", time: 60731 }, { text: "", time: 61151 }] },
+  { lineStartTime: 61151, flash: true, chunks: [{ text: "Cut ", time: 61151 }, { text: "to ", time: 61373 }, { text: "the ", time: 61594 }, { text: "chase, ", time: 61834 }, { text: "where ", time: 62211 }, { text: "the ", time: 62446 }, { text: "roles ", time: 62671 }, { text: "are ", time: 63008 }, { text: "un", time: 63254 }, { text: "de", time: 63475 }, { text: "ci", time: 63710 }, { text: "ded ", time: 63950 }, { text: "a", time: 64174 }, { text: "gain ", time: 64400 }, { text: "", time: 64704 }] },
+  { lineStartTime: 64704, flash: false, chunks: [{ text: "The ", time: 64704 }, { text: "ne", time: 64926 }, { text: "ver", time: 65151 }, { text: "en", time: 65383 }, { text: "ding ", time: 65592 }, { text: "is ", time: 65777 }, { text: "you ", time: 66082 }, { text: "", time: 66437 }] },
+  { lineStartTime: 66437, flash: true, chunks: [{ text: "Be", time: 66437 }, { text: "fore ", time: 66654 }, { text: "your ", time: 66878 }, { text: "act ", time: 67074 }, { text: "is ", time: 67291 }, { text: "through ", time: 67500 }, { text: "", time: 67999 }] },
+  { lineStartTime: 67999, flash: true, chunks: [{ text: "", time: 67999 }, { text: "", time: 81816 }] },
+  { lineStartTime: 81816, flash: false, chunks: [{ text: "So ", time: 81816 }, { text: "what? ", time: 82215 }, { text: "If ", time: 82654 }, { text: "you ", time: 82845 }, { text: "real", time: 83045 }, { text: "ly ", time: 83220 }, { text: "can ", time: 83723 }, { text: "do ", time: 84369 }, { text: "it ", time: 84563 }, { text: "", time: 85192 }] },
+  { lineStartTime: 85192, flash: false, chunks: [{ text: "What ", time: 85192 }, { text: "would ", time: 85591 }, { text: "it ", time: 85810 }, { text: "prove ", time: 86256 }, { text: "", time: 86643 }] },
+  { lineStartTime: 86643, flash: false, chunks: [{ text: "When ", time: 86643 }, { text: "it's ", time: 86831 }, { text: "a", time: 87051 }, { text: "bout ", time: 87260 }, { text: "to ", time: 87489 }, { text: "strike? ", time: 87702 }, { text: "", time: 88596 }] },
+  { lineStartTime: 88596, flash: false, chunks: [{ text: "I ", time: 88596 }, { text: "don't ", time: 89019 }, { text: "think ", time: 89438 }, { text: "that ", time: 89634 }, { text: "you're ", time: 89810 }, { text: "a ", time: 89994 }, { text: "fool ", time: 90512 }, { text: "", time: 90926 }] },
+  { lineStartTime: 90926, flash: false, chunks: [{ text: "But ", time: 90926 }, { text: "if ", time: 91123 }, { text: "I'm ", time: 91330 }, { text: "in ", time: 91975 }, { text: "the ", time: 92172 }, { text: "wrong ", time: 92393 }, { text: "", time: 92813 }] },
+  { lineStartTime: 92813, flash: false, chunks: [{ text: "Then ", time: 92813 }, { text: "can ", time: 93034 }, { text: "you ", time: 93400 }, { text: "real", time: 93601 }, { text: "ly ", time: 93802 }, { text: "tell ", time: 94038 }, { text: "me ", time: 94252 }, { text: "who's ", time: 94490 }, { text: "right? ", time: 94918 }, { text: "", time: 95313 }] },
+  { lineStartTime: 95313, flash: false, chunks: [{ text: "Don't ", time: 95313 }, { text: "step ", time: 95734 }, { text: "to ", time: 96144 }, { text: "the ", time: 96382 }, { text: "winds ", time: 96596 }, { text: "of ", time: 96806 }, { text: "change ", time: 97237 }, { text: "", time: 98750 }] },
+  { lineStartTime: 98750, flash: false, chunks: [{ text: "Are ", time: 98750 }, { text: "you ", time: 98968 }, { text: "real", time: 99176 }, { text: "ly ", time: 99389 }, { text: "try", time: 99620 }, { text: "na ", time: 99848 }, { text: "stay ", time: 100054 }, { text: "the ", time: 100282 }, { text: "same? ", time: 100681 }, { text: "", time: 101213 }] },
+  { lineStartTime: 101213, flash: false, chunks: [{ text: "'Cause ", time: 101213 }, { text: "I've ", time: 101456 }, { text: "been ", time: 102193 }, { text: "a", time: 102420 }, { text: "fraid ", time: 102600 }, { text: "", time: 103004 }] },
+  { lineStartTime: 103004, flash: false, chunks: [{ text: "That ", time: 103004 }, { text: "you'd ", time: 103194 }, { text: "run ", time: 103823 }, { text: "a", time: 103998 }, { text: "way ", time: 104282 }, { text: "", time: 104668 }] },
+  { lineStartTime: 104668, flash: true, chunks: [{ text: "From ", time: 104668 }, { text: "all ", time: 104854 }, { text: "that ", time: 105499 }, { text: "you ", time: 105699 }, { text: "say ", time: 105909 }, { text: "you'd ", time: 106231 }, { text: "do ", time: 106567 }, { text: "", time: 106966 }] },
+  { lineStartTime: 106966, flash: false, chunks: [{ text: "And ", time: 106966 }, { text: "if ", time: 107190 }, { text: "you ", time: 107411 }, { text: "can't ", time: 107597 }, { text: "make ", time: 107819 }, { text: "it ", time: 108023 }, { text: "right ", time: 108255 }, { text: "on ", time: 108665 }, { text: "the ", time: 108859 }, { text: "line ", time: 109130 }, { text: "", time: 109504 }] },
+  { lineStartTime: 109504, flash: false, chunks: [{ text: "Let ", time: 109504 }, { text: "it ", time: 109711 }, { text: "shine ", time: 109873 }, { text: "as ", time: 110342 }, { text: "the ", time: 110536 }, { text: "tic", time: 110755 }, { text: "king ", time: 111178 }, { text: "time ", time: 111595 }, { text: "counts ", time: 112954 }, { text: "you ", time: 113162 }, { text: "down ", time: 113389 }, { text: "", time: 113765 }] },
+  { lineStartTime: 113765, flash: false, chunks: [{ text: "All ", time: 113765 }, { text: "the ", time: 113952 }, { text: "way ", time: 114162 }, { text: "to ", time: 114550 }, { text: "the ", time: 114755 }, { text: "ground ", time: 114979 }, { text: "", time: 115590 }] },
+  { lineStartTime: 115590, flash: false, chunks: [{ text: "And ", time: 115590 }, { text: "I'll ", time: 115795 }, { text: "have ", time: 116168 }, { text: "you ", time: 116391 }, { text: "know ", time: 116607 }, { text: "that ", time: 116801 }, { text: "it's ", time: 117363 }, { text: "you ", time: 117544 }, { text: "it's ", time: 117924 }, { text: "all ", time: 118325 }, { text: "with", time: 119365 }, { text: "out ", time: 120015 }, { text: "", time: 121323 }] },
+  { lineStartTime: 121323, flash: true, chunks: [{ text: "Just ", time: 121323 }, { text: "know ", time: 121533 }, { text: "I'll ", time: 121729 }, { text: "", time: 122350 }] },
+  { lineStartTime: 122350, flash: false, chunks: [{ text: "Er", time: 122350 }, { text: "setzt ", time: 122560 }, { text: "dein ", time: 123189 }, { text: "e", time: 123417 }, { text: "go ", time: 124043 }, { text: "dein ", time: 124273 }, { text: "A", time: 124725 }, { text: "li", time: 124929 }, { text: "bi ", time: 125151 }, { text: "", time: 127310 }] },
+  { lineStartTime: 127310, flash: false, chunks: [{ text: "Ich ", time: 127310 }, { text: "den", time: 127488 }, { text: "ke ", time: 127876 }, { text: "so ", time: 128282 }, { text: "weit ", time: 128536 }, { text: "", time: 129132 }] },
+  { lineStartTime: 129132, flash: false, chunks: [{ text: "Die ", time: 129132 }, { text: "Au", time: 129340 }, { text: "di", time: 129760 }, { text: "enz ", time: 129972 }, { text: "be", time: 130827 }, { text: "trügt ", time: 131032 }, { text: "wird, ", time: 131479 }, { text: "Au", time: 131699 }, { text: "wei ", time: 131948 }, { text: "", time: 133393 }] },
+  { lineStartTime: 133393, flash: false, chunks: [{ text: "Ist ", time: 133393 }, { text: "est ", time: 133570 }, { text: "nur ", time: 134139 }, { text: "ein ", time: 134356 }, { text: "Spiel ", time: 134789 }, { text: "der ", time: 135006 }, { text: "Zeit ", time: 135220 }, { text: "", time: 135935 }] },
+  { lineStartTime: 135935, flash: false, chunks: [{ text: "Bis ", time: 135935 }, { text: "dann ", time: 136156 }, { text: "die ", time: 136375 }, { text: "Fas", time: 136618 }, { text: "sa", time: 137018 }, { text: "de ", time: 137645 }, { text: "zer", time: 137825 }, { text: "fällt? ", time: 138440 }, { text: "", time: 139942 }] },
+  { lineStartTime: 139942, flash: false, chunks: [{ text: "Du ", time: 139942 }, { text: "sitzt ", time: 140143 }, { text: "mit ", time: 140360 }, { text: "Däum", time: 140539 }, { text: "chen ", time: 140762 }, { text: "am ", time: 140963 }, { text: "dre", time: 141142 }, { text: "hen ", time: 141585 }, { text: "", time: 141793 }] },
+  { lineStartTime: 141793, flash: false, chunks: [{ text: "Und ", time: 141793 }, { text: "willst ", time: 142007 }, { text: "ein", time: 142231 }, { text: "fach ", time: 142446 }, { text: "nicht ", time: 142652 }, { text: "se", time: 142833 }, { text: "hen ", time: 143111 }, { text: "", time: 143480 }] },
+  { lineStartTime: 143480, flash: false, chunks: [{ text: "Das ", time: 143480 }, { text: "es ", time: 143653 }, { text: "so ", time: 144345 }, { text: "nicht ", time: 144761 }, { text: "hält ", time: 145193 }, { text: "", time: 146907 }] },
+  { lineStartTime: 146907, flash: false, chunks: [{ text: "E", time: 146907 }, { text: "ben", time: 147080 }, { text: "drum ", time: 147744 }, { text: "", time: 148518 }] },
+  { lineStartTime: 148518, flash: true, chunks: [{ text: "\"You ", time: 148518 }, { text: "should ", time: 148695 }, { text: "know ", time: 148932 }, { text: "it ", time: 150278 }, { text: "on", time: 150654 }, { text: "ly ", time: 151075 }, { text: "takes ", time: 152006 }, { text: "one.\" ", time: 152459 }, { text: "", time: 154951 }] },
+  { lineStartTime: 154951, flash: false, chunks: [{ text: "How ", time: 154951 }, { text: "could ", time: 155165 }, { text: "I ", time: 155397 }, { text: "", time: 155799 }] },
+  { lineStartTime: 155799, flash: false, chunks: [{ text: "Pay ", time: 155799 }, { text: "the ", time: 156199 }, { text: "price ", time: 156408 }, { text: "for ", time: 156802 }, { text: "what ", time: 157010 }, { text: "I ", time: 157180 }, { text: "ha", time: 157657 }, { text: "ven't ", time: 157871 }, { text: "done? ", time: 158143 }, { text: "", time: 158547 }] },
+  { lineStartTime: 158547, flash: false, chunks: [{ text: "I", time: 158547 }, { text: "ni", time: 158759 }, { text: "ti", time: 158977 }, { text: "ate ", time: 159183 }, { text: "the ", time: 159530 }, { text: "weight ", time: 159785 }, { text: "of ", time: 160186 }, { text: "a ", time: 160412 }, { text: "game ", time: 160640 }, { text: "you ", time: 161058 }, { text: "know ", time: 161274 }, { text: "I've ", time: 161511 }, { text: "ne", time: 161729 }, { text: "ver ", time: 161921 }, { text: "won ", time: 162153 }, { text: "", time: 162752 }] },
+  { lineStartTime: 162752, flash: false, chunks: [{ text: "'Till ", time: 162752 }, { text: "to", time: 162947 }, { text: "day, ", time: 163188 }, { text: "they ", time: 163588 }, { text: "fi", time: 163807 }, { text: "nal", time: 164019 }, { text: "ly ", time: 164249 }, { text: "smiled ", time: 164498 }, { text: "at ", time: 164743 }, { text: "me ", time: 164930 }, { text: "", time: 165371 }] },
+  { lineStartTime: 165371, flash: false, chunks: [{ text: "Would ", time: 165371 }, { text: "you ", time: 165545 }, { text: "ab", time: 165718 }, { text: "hor ", time: 165955 }, { text: "the ", time: 166334 }, { text: "dark ", time: 166590 }, { text: "", time: 166981 }] },
+  { lineStartTime: 166981, flash: true, chunks: [{ text: "As ", time: 166981 }, { text: "it ", time: 167156 }, { text: "brings ", time: 167419 }, { text: "you ", time: 167810 }, { text: "un", time: 167981 }, { text: "end", time: 168215 }, { text: "ing ", time: 168633 }, { text: "glee? ", time: 168875 }, { text: "", time: 169295 }] },
+  { lineStartTime: 169295, flash: false, chunks: [{ text: "Code ", time: 169295 }, { text: "of ", time: 169476 }, { text: "a ", time: 169671 }, { text: "heart, ", time: 169927 }, { text: "wat", time: 170327 }, { text: "ching ", time: 170527 }, { text: "stance ", time: 170742 }, { text: "on ", time: 171188 }, { text: "a ", time: 171377 }, { text: "dime ", time: 171658 }, { text: "", time: 172053 }] },
+  { lineStartTime: 172053, flash: false, chunks: [{ text: "Un", time: 172053 }, { text: "til ", time: 172259 }, { text: "the ", time: 172452 }, { text: "bea", time: 172933 }, { text: "ting ", time: 173135 }, { text: "stops ", time: 173330 }, { text: "", time: 173761 }] },
+  { lineStartTime: 173761, flash: false, chunks: [{ text: "Ed", time: 173761 }, { text: "ges ", time: 173940 }, { text: "sharp ", time: 174142 }, { text: "on ", time: 174554 }, { text: "such ", time: 174733 }, { text: "a ", time: 174932 }, { text: "dul", time: 175140 }, { text: "ling ", time: 175364 }, { text: "knife ", time: 175550 }, { text: "", time: 176078 }] },
+  { lineStartTime: 176078, flash: true, chunks: [{ text: "Cut ", time: 176078 }, { text: "to ", time: 176264 }, { text: "the ", time: 176487 }, { text: "chase, ", time: 176750 }, { text: "where ", time: 177141 }, { text: "the ", time: 177354 }, { text: "roles ", time: 177567 }, { text: "were ", time: 177893 }, { text: "un", time: 178107 }, { text: "de", time: 178312 }, { text: "ci", time: 178541 }, { text: "ded ", time: 178749 }, { text: "a", time: 178944 }, { text: "gain ", time: 179112 }, { text: "", time: 179739 }] },
+  { lineStartTime: 179739, flash: false, chunks: [{ text: "The ", time: 179739 }, { text: "ne", time: 179927 }, { text: "ver", time: 180138 }, { text: "en", time: 180325 }, { text: "ding ", time: 180545 }, { text: "is ", time: 180760 }, { text: "you ", time: 180994 }, { text: "", time: 181360 }] },
+  { lineStartTime: 181360, flash: true, chunks: [{ text: "Be", time: 181360 }, { text: "fore ", time: 181551 }, { text: "your ", time: 181724 }, { text: "act ", time: 181934 }, { text: "is ", time: 182139 }, { text: "through ", time: 182342 }, { text: "", time: 182574 }] },
+  { lineStartTime: 182574, flash: false, chunks: [{ text: "Or ", time: 182574 }, { text: "can't ", time: 183432 }, { text: "you ", time: 183829 }, { text: "curb ", time: 184236 }, { text: "the ", time: 184888 }, { text: "hun", time: 185090 }, { text: "ger ", time: 185519 }, { text: "pangs ", time: 185972 }, { text: "(I'll ", time: 188103 }, { text: "ne", time: 188283 }, { text: "ver ", time: 188491 }, { text: "go ", time: 188739 }, { text: "a", time: 188976 }, { text: "way) ", time: 189465 }, { text: "", time: 189821 }] },
+  { lineStartTime: 189821, flash: true, chunks: [{ text: "Or ", time: 189821 }, { text: "bite ", time: 190231 }, { text: "the ", time: 190615 }, { text: "bul", time: 191017 }, { text: "let ", time: 191613 }, { text: "ant ", time: 191826 }, { text: "in ", time: 192352 }, { text: "two ", time: 192533 }, { text: "fangs ", time: 193108 }, { text: "(What ", time: 193289 }, { text: "have ", time: 193464 }, { text: "you ", time: 193690 }, { text: "got ", time: 193892 }, { text: "to ", time: 194418 }, { text: "say?) ", time: 194825 }, { text: "", time: 196763 }] },
+  { lineStartTime: 196763, flash: false, chunks: [{ text: "One ", time: 196763 }, { text: "more ", time: 197169 }, { text: "would", time: 197618 }, { text: "n't ", time: 197809 }, { text: "real", time: 198015 }, { text: "ly ", time: 198251 }, { text: "hurt ", time: 198643 }, { text: "", time: 200137 }] },
+  { lineStartTime: 200137, flash: false, chunks: [{ text: "Is ", time: 200137 }, { text: "ad", time: 200299 }, { text: "dic", time: 200545 }, { text: "tion ", time: 200769 }, { text: "real", time: 200997 }, { text: "ly ", time: 201215 }, { text: "so ", time: 201431 }, { text: "ab", time: 201690 }, { text: "surd? ", time: 202115 }, { text: "", time: 202690 }] },
+  { lineStartTime: 202690, flash: false, chunks: [{ text: "I ", time: 202690 }, { text: "know ", time: 202876 }, { text: "that ", time: 203517 }, { text: "you ", time: 203717 }, { text: "like ", time: 203964 }, { text: "", time: 204369 }] },
+  { lineStartTime: 204369, flash: false, chunks: [{ text: "To ", time: 204369 }, { text: "see ", time: 204543 }, { text: "through ", time: 205269 }, { text: "the ", time: 205517 }, { text: "lines ", time: 205678 }, { text: "", time: 206076 }] },
+  { lineStartTime: 206076, flash: true, chunks: [{ text: "So ", time: 206076 }, { text: "sift ", time: 206224 }, { text: "through ", time: 206918 }, { text: "the ", time: 207111 }, { text: "sands ", time: 207331 }, { text: "of ", time: 207739 }, { text: "time ", time: 207994 }, { text: "", time: 210275 }] },
+  { lineStartTime: 210275, flash: false, chunks: [{ text: "Let", time: 210275 }, { text: "ters ", time: 210454 }, { text: "writ", time: 210682 }, { text: "ten ", time: 210919 }, { text: "out ", time: 211359 }, { text: "with ", time: 212019 }, { text: "spells ", time: 212182 }, { text: "of ", time: 212581 }, { text: "the ", time: 212800 }, { text: "past ", time: 213030 }, { text: "", time: 215132 }] },
+  { lineStartTime: 215132, flash: false, chunks: [{ text: "In ", time: 215132 }, { text: "the ", time: 215331 }, { text: "lan", time: 215563 }, { text: "guage ", time: 215961 }, { text: "of ", time: 216183 }, { text: "dance ", time: 216613 }, { text: "", time: 217072 }] },
+  { lineStartTime: 217072, flash: false, chunks: [{ text: "You're ", time: 217072 }, { text: "try", time: 217485 }, { text: "in' ", time: 217658 }, { text: "your ", time: 217892 }, { text: "best ", time: 218107 }, { text: "to ", time: 218754 }, { text: "raise ", time: 218960 }, { text: "up ", time: 219359 }, { text: "your ", time: 219603 }, { text: "shield ", time: 219844 }, { text: "", time: 221940 }] },
+  { lineStartTime: 221940, flash: false, chunks: [{ text: "Bro", time: 221940 }, { text: "ken ", time: 222144 }, { text: "up ", time: 222393 }, { text: "by ", time: 222757 }, { text: "your ", time: 222948 }, { text: "lance ", time: 223364 }, { text: "", time: 223935 }] },
+  { lineStartTime: 223935, flash: false, chunks: [{ text: "Blood's ", time: 223935 }, { text: "been ", time: 224400 }, { text: "stri", time: 224593 }, { text: "ken ", time: 224898 }, { text: "", time: 225160 }] },
+  { lineStartTime: 225160, flash: false, chunks: [{ text: "All ", time: 225160 }, { text: "the ", time: 225347 }, { text: "words ", time: 225625 }, { text: "are ", time: 226130 }, { text: "writ", time: 226358 }, { text: "ten ", time: 226564 }, { text: "", time: 226971 }] },
+  { lineStartTime: 226971, flash: false, chunks: [{ text: "So ", time: 226971 }, { text: "I've ", time: 227185 }, { text: "got ", time: 227399 }, { text: "none ", time: 227613 }, { text: "left ", time: 227911 }, { text: "to ", time: 228162 }, { text: "say ", time: 228517 }, { text: "", time: 230222 }] },
+  { lineStartTime: 230222, flash: true, chunks: [{ text: "No... ", time: 230222 }, { text: "", time: 233570 }] },
+  { lineStartTime: 233570, flash: true, chunks: [{ text: " ", time: 233570 }, { text: "", time: 288355 }] }
+];
 
-        function loop() {
-            const t = music.currentTime;
-            const ms = t * 1000;
 
-            const line = lyricTimeline.find((l, i) => 
-                ms >= l.lineStartTime && (lyricTimeline[i + 1] ? ms < lyricTimeline[i + 1].lineStartTime : true)
-            );
+let activeTimeline = lyricTimeline; // Default start
 
-            // Lyrics Logic
-            if (line) {
-                let html = "";
-                line.chunks.forEach(c => {
-                    html += `<span class="${ms >= c.time ? "lit" : ""}">${c.text}</span>`;
-                });
+document.getElementById('play-btn').onclick = async function () {
+    this.remove();
+    music.currentTime = 0;
+    await music.play();
 
-                if (display.innerHTML !== html) {
-                    display.innerHTML = html;
-                    displayRed.innerHTML = html; // Sync the red duplicate
-                    fitLyrics();
-                }
-            } else {
-                display.innerHTML = "";
-                displayRed.innerHTML = "";
-            }
+    function loop() {
+    const t = music.currentTime;
+    const ms = t * 1000;
+	
+	updateScrubberUI();
 
-            // Dual red text display toggle based on timestamp (appears exactly when the word 'You' hits at 150.788)
-// Toggle the red text AND the new image
-// Toggle the red text AND swap the Final image for the New image
-if (t >= 150.788) {
-    displayRed.style.display = "block";
-    bgNew.style.opacity = "1";    // Fade in
-    f.style.opacity = "0";        // Fade out
-} else {
-    displayRed.style.display = "none";
-    bgNew.style.opacity = "0";    // Fade out
-    f.style.display = "block";        // Show 'bg-final' layer
-}
+    // --- 1. SCENE CONTROL ---
+    if (!isRedHanded) {
+        // Original first-song logic
+        if (t >= 150.788) {
+            displayRed.style.display = "block";
+            bgNew.style.opacity = "1";
+            f.style.opacity = "0";
+        } else {
+            displayRed.style.display = "none";
+            bgNew.style.opacity = "0";
+            f.style.display = "block"; 
+        }
 
+        // Background Opacity Logic for first song
+        if (t <= 2) s.style.opacity = 1;
+        else if (t <= 9) s.style.opacity = 1 - (t - 2) / 7;
+        else s.style.opacity = 0;
 
-        // Background Opacity logic
-            if (t <= 2) s.style.opacity = 1;
-            else if (t <= 9) s.style.opacity = 1 - (t - 2) / 7;
-            else s.style.opacity = 0;
-
+        // bg-final fade logic for first song
+        if (t < 150.788) {
             let o = 0;
             if (t >= 17 && t < 18) o = t - 17;
-            // The opacity fade out previously targeted 130.934 ("I"), it now triggers at 132.788 ("MORE!")
             else if (t >= 18 && t < 132.788) o = 1; 
             else if (t >= 132.788 && t < 133.788) o = 1 - (t - 132.788); 
             else if (t >= 151.004 && t < 152.004) o = t - 151.004;
             else if (t >= 152.004) o = 1;
             f.style.opacity = Math.max(0, Math.min(1, o));
-
-            if (!music.paused && !music.ended) requestAnimationFrame(loop);
         }
-        requestAnimationFrame(loop);
-    };
+    } else {
+        // --- RED HANDED MODE ---
+        // Ensure the double red text layer is explicitly hidden!
+        displayRed.style.display = "none";
+    }
+
+    // --- 2. TIMELINE LOGIC ---
+    const line = activeTimeline.find((l, i) => 
+        ms >= l.lineStartTime && (activeTimeline[i + 1] ? ms < activeTimeline[i + 1].lineStartTime : true)
+    );
+
+    if (line) {
+        let html = "";
+        line.chunks.forEach(c => {
+            html += `<span class="${ms >= c.time ? "lit" : ""}">${c.text}</span>`;
+        });
+
+        if (isRedHanded) {
+    const lordX = document.getElementById('lordx-img');
+    const redglove = document.getElementById('redglove-reveal');
+
+    if (lordX && redglove) {
+        // 1. NORMAL SINGING (4.5s to ~68s)
+        if (ms > 4500 && ms < 67999) {
+            if (lordX.style.transition !== "none") lordX.style.transition = "none";
+            lordX.style.opacity = "1";
+        }
+
+        // 2. THE BREAK FADE-OUT (67999 ms to 81816 ms)
+        else if (ms >= 67999 && ms < 81816) {
+            lordX.style.transition = "opacity 1s ease";
+            lordX.style.opacity = "0";
+        }
+
+        // 3. THE BREAK FADE-IN (81816 ms to 121323 ms)
+        else if (ms >= 81816 && ms < 121323) {
+            lordX.style.transition = "opacity 1s ease";
+            lordX.style.opacity = "1";
+        }
+
+        // --- THE SNAPPY REDGLOVE SECTION ---
+        // 4. "Just " -> Top 33% Redglove reveal
+        else if (ms >= 121323 && ms < 121533) {
+            lordX.style.transition = "none";
+            redglove.style.transition = "none";
+            lordX.style.opacity = "1";
+            redglove.style.opacity = "1";
+            redglove.className = "layer"; // Clear any lingering animation classes
+            redglove.style.clipPath = "inset(0 0 67% 0)";
+            lordX.style.clipPath = "inset(33% 0 0 0)";
+        } 
+        // 5. "know " -> Top 66% Redglove reveal
+        else if (ms >= 121533 && ms < 121729) {
+            lordX.style.opacity = "1";
+            redglove.style.opacity = "1";
+            redglove.style.clipPath = "inset(0 0 34% 0)";
+            lordX.style.clipPath = "inset(66% 0 0 0)";
+        } 
+        // 6. "I'll " through German Section
+        else if (ms >= 121729 && ms < 155799) {
+            lordX.style.opacity = "0";
+            redglove.style.opacity = "1";
+            redglove.style.clipPath = "inset(0 0 0% 0)";
+            lordX.style.clipPath = "inset(100% 0 0 0)";
+        } 
+        // 7. "Pay the price..." -> Return to Lord X
+        else if (ms >= 155799 && ms < 188103) {
+            lordX.style.transition = "none";
+            redglove.style.transition = "none";
+            lordX.style.opacity = "1";
+            redglove.style.opacity = "0";
+            redglove.className = "layer"; // Reset class
+            lordX.style.clipPath = "inset(0 0 0% 0)";
+        }
+
+        // --- THE PARENTHESIS DUST REVEALS ---
+        // 8. LEFT CORNER DUST IN: "(I'll never go away)"
+        else if (ms >= 188103 && ms < 189465) {
+            redglove.style.clipPath = "inset(0 0 0% 0)"; // Full unclipped image
+            redglove.style.left = "20px";                // Anchor to Left Corner
+            redglove.style.right = "auto";
+            redglove.style.bottom = "-50px";             // Push down slightly for corner framing
+            redglove.style.top = "auto";
+            redglove.style.transformOrigin = "bottom left";
+            
+            if (!redglove.classList.contains("dust-appear")) {
+                redglove.className = "layer dust-appear";
+            }
+        }
+        // 9. LEFT CORNER DUST OUT (Gap between parenthesis lines)
+        else if (ms >= 189465 && ms < 193289) {
+            if (!redglove.classList.contains("dust-vanish")) {
+                redglove.className = "layer dust-vanish";
+            }
+        }
+        // 10. RIGHT CORNER DUST IN: "(What have you got to say?)"
+        else if (ms >= 193289 && ms < 194825) {
+            redglove.style.left = "auto";
+            redglove.style.right = "20px";               // Anchor to Right Corner
+            redglove.style.bottom = "-50px";
+            redglove.style.top = "auto";
+            redglove.style.transformOrigin = "bottom right";
+
+            if (!redglove.classList.contains("dust-appear")) {
+                redglove.className = "layer dust-appear";
+            }
+        }
+        // 11. RIGHT CORNER DUST OUT (End of second parenthesis)
+        else if (ms >= 194825 && ms < 233570) {
+            if (!redglove.classList.contains("dust-vanish")) {
+                redglove.className = "layer dust-vanish";
+            }
+        }
+
+        // --- THE FINAL CUT ---
+        // 12. PERMANENT LORD X DISAPPEARANCE (233570 ms to Song End)
+        else if (ms >= 233570) {
+            lordX.style.transition = "none";
+            lordX.style.opacity = "0";
+            redglove.style.opacity = "0"; // Ensure Redglove is fully gone too
+            redglove.className = "layer"; 
+        }
+    }
+}
+
+        if (display.innerHTML !== html) {
+            display.innerHTML = html;
+            if (!isRedHanded) {
+                displayRed.innerHTML = html;
+            }
+            fitLyrics();
+        }
+    }
+
+    if (!music.paused && !music.ended) requestAnimationFrame(loop);
+}
+    requestAnimationFrame(loop);
+};
 </script>
 </body>
 </html>
