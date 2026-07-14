@@ -8,11 +8,11 @@
     <title>What could it be?!</title>
     <style>
         @font-face {
-            font-family: 'Merriweather';
-            src: url('Merriweather.ttf') format('truetype');
-            font-weight: 400;
-            font-style: normal;
-        }
+    font-family: 'Merriweather';
+    src: url('Merriweather.ttf') format('truetype');
+    font-weight: 900; /* Map it to 900 */
+    font-style: normal;
+}
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
@@ -139,45 +139,93 @@
             z-index: 10; 
         }
 
-        #lyrics-container {
-            position: relative;
-            width: max-content;
-            transform-origin: bottom center;
-        }
+      /* Push the lyrics even further down */
+#lyrics-container {
+    position: absolute;
+    bottom: 2%; /* Hugs the very bottom of the screen (previously 5%) */
+    width: 100%;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    pointer-events: none; 
+}
 
-        .lyrics-track {
-            font-size: clamp(20px, 3.5vw, 40px); /* Responsive font scaling */
-            text-align: center;
-            color: #555;
-            text-shadow: 1px 1px 2px rgba(0,0,0,1);
-            white-space: nowrap;
-        }
+/* Make the lyrics even bigger */
+.lyrics-track {
+    font-family: 'Merriweather', serif;
+    font-weight: 900; 
+    text-align: center;
+    color: #555;
+    white-space: nowrap;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: 0.08em; 
+    
+    /* --- UPDATED: Bigger font scale limits --- */
+    font-size: clamp(32px, 5.5vw, 60px); 
 
+    /* Heavy 2px shadow outline */
+    text-shadow: 
+        -2px -2px 0 #000,  2px -2px 0 #000,
+        -2px  2px 0 #000,  2px  2px 0 #000,
+        -2px  0px 0 #000,  2px  0px 0 #000,
+         0px -2px 0 #000,  0px  2px 0 #000;
+}
+		
         .lyrics-track span {
             color: #444; 
             transition: color 0.15s ease;
         }
+ 
+        .red-handed .lyrics-track {
+    color: #945953;
+}
 
-        /* Default White Lit Lyrics */
-        #lyrics-display span.lit {
-            color: white; 
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-        }
+.red-handed .lyrics-track span {
+    color: #945953;
+}
+  
 
-        /* Added Identical Dark Red Lit Lyrics Above */
-        #lyrics-display-red {
-            position: absolute;
-            bottom: 100%; /* Places it vertically above the original text */
-            left: 0;
-            width: 100%;
-            display: none; /* Hidden until activated */
-        }
 
-        #lyrics-display-red span.lit {
-            color: darkred; 
-            text-shadow: 0 0 8px rgba(139, 0, 0, 0.8);
-        }
 
+.lyrics-track {
+    font-family: 'Merriweather', serif;
+    font-weight: 900; 
+    font-size: clamp(20px, 3.5vw, 40px); 
+    text-align: center;
+    color: #555;
+    white-space: nowrap;
+    -webkit-font-smoothing: antialiased;
+    
+    /* --- UPDATED: Spaces out the letters to match the video --- */
+    letter-spacing: 0.08em; 
+    
+    /* Heavy 2px shadow outline */
+    text-shadow: 
+        -2px -2px 0 #000,  2px -2px 0 #000,
+        -2px  2px 0 #000,  2px  2px 0 #000,
+        -2px  0px 0 #000,  2px  0px 0 #000,
+         0px -2px 0 #000,  0px  2px 0 #000;
+}
+
+/* 2. White Lit Lyrics */
+#lyrics-display span.lit {
+    color: white; 
+    text-shadow: 
+        -2px -2px 0 #000,  2px -2px 0 #000,
+        -2px  2px 0 #000,  2px  2px 0 #000,
+        -2px  0px 0 #000,  2px  0px 0 #000,
+         0px -2px 0 #000,  0px  2px 0 #000;
+}
+
+/* 3. Red Lit Lyrics */
+#lyrics-display-red span.lit {
+    color: darkred; 
+    text-shadow: 
+        -2px -2px 0 #000,  2px -2px 0 #000,
+        -2px  2px 0 #000,  2px  2px 0 #000,
+        -2px  0px 0 #000,  2px  0px 0 #000,
+         0px -2px 0 #000,  0px  2px 0 #000;
+}
         #play-btn { 
             position: absolute; 
             z-index: 20; 
@@ -205,13 +253,16 @@
       <div id="red-handed-bg" class="layer" style="background-image: url('https://i.imgur.com/ROZtBiq.png'); transition: none !important; z-index: 7; opacity: 0;"></div>
      <div id="redglove-reveal" class="layer" style="background-image: url('https://static.wikia.nocookie.net/continued-exe/images/d/da/RedgloveRedHandTrans.png'); z-index: 13;  background-size: 30% !important; background-repeat: no-repeat !important; background-position: center !important; opacity: 0; pointer-events: none; clip-path: inset(0 0 100% 0); transition: clip-path 0.15s ease;"></div>
     <div id="red-handed-overlay" class="layer" style="background-image: url('https://i.imgur.com/YNPu1Ex.png'); z-index: 9; opacity: 0; transition: opacity 0.75s ease;"></div>
-       <div id="lordx-img" class="layer" 
+ <div id="lordx-img" class="layer" 
      style="background-image: url('https://static.wikia.nocookie.net/continued-exe/images/9/90/RedHandLordXTrans.png'); 
-            z-index: 8; opacity: 0; 
+            z-index: 8; 
+            opacity: 0; 
             transition: opacity 2s ease;
-            background-size: 30% !important; 
             background-repeat: no-repeat !important; 
-            background-position: center !important;">
+            /* --- UPDATED: 78% (1% bigger than your 77% baseline) --- */
+            background-size: auto 78% !important; 
+            /* --- UPDATED: 52% (slightly right), 46% (slightly up) --- */
+            background-position: 53.3% 46% !important;">
 </div>
     <div id="bg-middle" class="layer"></div>
     <div id="bg-start" class="layer"></div>
@@ -360,6 +411,7 @@ async function triggerFakerSequence() {
         music.play();
 
         // --- AT 0 SECONDS OF RED-HANDED ---
+		lyricsContainer.classList.add('red-handed');
         redBg.style.transition = "none";
         redBg.style.opacity = "1";
 
@@ -711,6 +763,7 @@ document.getElementById('play-btn').onclick = async function () {
     }
 }
 
+        // 4. SAFE DOM RENDERING
         if (display.innerHTML !== html) {
             display.innerHTML = html;
             if (!isRedHanded) {
@@ -727,3 +780,6 @@ document.getElementById('play-btn').onclick = async function () {
 </script>
 </body>
 </html>
+
+
+
