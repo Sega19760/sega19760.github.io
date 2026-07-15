@@ -5,12 +5,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=0.5, maximum-scale=0.5, user-scalable=yes">
     
-    <title>What could it be?</title>
-	<meta content="What could it be?" property="og:title" />
-<meta content="Sinister minds What could it be so sinister (Press F after pressing the start demo thingy idk)" property="og:description" />
-<meta content="http://wethegoobers.wiki/be" property="og:url" />
-<meta content="https://i.scdn.co/image/ab67616d0000b2738befe17b908af4a7c1a2eab9" property="og:image" />
-<meta content="#23475d" data-react-helmet="true" name="theme-color" />
+    <title>What could it be?!</title>
     <style>
         @font-face {
     font-family: 'Merriweather';
@@ -141,7 +136,7 @@
             width: 100%; 
             display: flex; 
             justify-content: center; 
-            z-index: 10; 
+            z-index: 9999; 
         }
 
       /* Push the lyrics even further down */
@@ -192,6 +187,7 @@
 
 
 
+
 .lyrics-track {
     font-family: 'Merriweather', serif;
     font-weight: 900; 
@@ -212,9 +208,20 @@
          0px -2px 0 #000,  0px  2px 0 #000;
 }
 
+
+.suputa-mode .lyrics-track {
+    color: #24a730 !important;
+}
+
+.suputa-mode .lyrics-track span {
+    color: #24a730 !important;
+}
+
+
+
 /* 2. White Lit Lyrics */
 #lyrics-display span.lit {
-    color: white; 
+    color: white !important; 
     text-shadow: 
         -2px -2px 0 #000,  2px -2px 0 #000,
         -2px  2px 0 #000,  2px  2px 0 #000,
@@ -273,8 +280,7 @@
     <div id="bg-start" class="layer"></div>
     <div id="bg-final" class="layer"></div>
 
-<div id="bg-new-image"
-></div>
+<div id="bg-new-image" style="transition: opacity 1s ease; opacity: 0;"></div>
 
     <div id="lyrics-wrapper">
         <div id="lyrics-container">
@@ -378,6 +384,65 @@ function updateScrubberUI() {
         label.innerText = `${mins}:${secs} / ${(music.duration / 60).toFixed(2)} mins | EXACT TIME: ${msExact} ms`;
     }
 }
+
+
+
+
+
+
+
+
+let stoppedMode = false;
+
+window.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 't' && !stoppedMode) {
+        triggerStopSequence();
+    }
+});
+
+function triggerStopSequence() {
+    stoppedMode = true;
+    
+    // 1. Music setup
+    music.pause();
+    music.src = "suputamadrex.mp3";
+    music.load();
+    music.play().catch(e => console.error("Audio play failed:", e));
+    
+    // 2. Set the active timeline to your new lyrics
+    activeTimeline = suputamadrelyrics; 
+    
+    // 3. Ensure the container is visible
+    const container = document.getElementById('lyrics-container');
+    container.style.display = "flex";
+    container.classList.add('suputa-mode'); // This triggers the CSS change
+    
+    // 4. Background setup (INSIDE THE FUNCTION)
+    const bgsuputamadre = document.getElementById('bg-new-image');
+    bgsuputamadre.style.backgroundImage = "url('https://i.imgur.com/jOQ2fT4.png')";
+    bgsuputamadre.style.opacity = "1";
+    bgsuputamadre.style.zIndex = "100"; 
+    
+    // 5. 0.85s delay for second image (INSIDE THE FUNCTION)
+    setTimeout(() => {
+        const fadeImg = document.createElement('div');
+        fadeImg.style.position = "absolute";
+        fadeImg.style.inset = "0";
+        fadeImg.style.backgroundImage = "url('https://i.imgur.com/lurVzMO.png')";
+        fadeImg.style.backgroundSize = "cover";
+        fadeImg.style.backgroundPosition = "center";
+        fadeImg.style.opacity = "0";
+        fadeImg.style.transition = "opacity 1s ease";
+        fadeImg.style.zIndex = "101"; 
+        fadeImg.style.pointerEvents = "none"; 
+        
+        document.getElementById('video-container').appendChild(fadeImg);
+        
+        requestAnimationFrame(() => {
+            fadeImg.style.opacity = "1";
+        });
+    }, 850); 
+} // <--- FUNCTION ENDS HERE. All your code must be before this.
 
 let isRedHanded = false;
 let fakerMode = false;
@@ -601,6 +666,17 @@ const redHandedTimeline = [
   { lineStartTime: 233570, flash: true, chunks: [{ text: " ", time: 233570 }, { text: "", time: 288355 }] }
 ];
 
+const suputamadrelyrics = [
+  { lineStartTime: 0, flash: false, chunks: [{ text: "", time: 0 }, { text: " ", time: 0 }, { text: "", time: 0 }] },
+  { lineStartTime: 1690, flash: false, chunks: [{ text: "And ", time: 1690 }, { text: "as ", time: 1863 }, { text: "the ", time: 2018 }, { text: "thun", time: 2194 }, { text: "der ", time: 2577 }, { text: "strikes, ", time: 2761 }, { text: "you're ", time: 3297 }, { text: "all ", time: 3485 }, { text: "a", time: 3998 }, { text: "lone ", time: 4212 }, { text: "", time: 4605 }] },
+  { lineStartTime: 4605, flash: false, chunks: [{ text: "You ", time: 4605 }, { text: "have ", time: 4782 }, { text: "no ", time: 4951 }, { text: "spe", time: 5150 }, { text: "cial ", time: 5510 }, { text: "friend ", time: 5726 }, { text: "to ", time: 6255 }, { text: "call ", time: 6490 }, { text: "your ", time: 7022 }, { text: "own ", time: 7219 }, { text: "", time: 7582 }] },
+  { lineStartTime: 7582, flash: false, chunks: [{ text: "Your ", time: 7582 }, { text: "words ", time: 7746 }, { text: "are ", time: 7912 }, { text: "just ", time: 8133 }, { text: "as ", time: 8520 }, { text: "ha", time: 8691 }, { text: "zy ", time: 9212 }, { text: "as ", time: 9390 }, { text: "your ", time: 9944 }, { text: "thoughts ", time: 10127 }, { text: "", time: 10568 }] },
+  { lineStartTime: 10568, flash: false, chunks: [{ text: "Which ", time: 10568 }, { text: "means ", time: 10747 }, { text: "it's ", time: 10908 }, { text: "hard ", time: 11103 }, { text: "for ", time: 11504 }, { text: "you ", time: 11675 }, { text: "to ", time: 12051 }, { text: "re", time: 12203 }, { text: "mem", time: 12379 }, { text: "ber ", time: 13012 }, { text: "what ", time: 13190 }, { text: "", time: 13779 }] },
+  { lineStartTime: 13779, flash: true, chunks: [{ text: "i ", time: 13779 }, { text: "said ", time: 14135 }, { text: "", time: 14920 }] },
+  { lineStartTime: 14920, flash: true, chunks: [{ text: "\"E", time: 14920 }, { text: "very", time: 15302 }, { text: "one ", time: 15702 }, { text: "needs ", time: 16242 }, { text: "a ", time: 16822 }, { text: "friend\" ", time: 17159 }, { text: "", time: 19324 }] },
+  { lineStartTime: 19324, flash: true, chunks: [{ text: "I'm ", time: 19324 }, { text: "hap", time: 19485 }, { text: "py ", time: 19661 }, { text: "I'm ", time: 19836 }, { text: "yours ", time: 20027 }, { text: "", time: 21633 }] },
+  { lineStartTime: 21633, flash: true, chunks: [{ text: " ", time: 21633 }, { text: "", time: 31695 }] }
+];
 
 let activeTimeline = lyricTimeline; // Default start
 
