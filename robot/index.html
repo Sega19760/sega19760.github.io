@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .controller-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .btn {
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn:hover { background-color: #45a049; }
+        .btn:active { background-color: #3e8e41; }
+        .wide { grid-column: span 3; background-color: #f44336; }
+        .wide:hover { background-color: #da190b; }
+    </style>
+</head>
+<body>
+
+    <h2 style="text-align: center; font-family: Arial;">Live Robot Arm Control</h2>
+
+    <div class="controller-grid">
+        <!-- Empty cell for spacing -->
+        <div></div> 
+        <button class="btn" onclick="sendMove('shoulder_up')">Shoulder Up</button>
+        <div></div>
+
+        <button class="btn" onclick="sendMove('base_left')">Base Left</button>
+        <button class="btn" onclick="sendMove('shoulder_down')">Shoulder Down</button>
+        <button class="btn" onclick="sendMove('base_right')">Base Right</button>
+
+        <button class="btn" onclick="sendMove('elbow_in')">Elbow In</button>
+        <div></div>
+        <button class="btn" onclick="sendMove('elbow_out')">Elbow Out</button>
+
+        <button class="btn wide" onclick="sendMove('gripper_toggle')">Toggle Gripper</button>
+    </div>
+
+    <script>
+        // *** PASTE YOUR NGROK URL HERE ***
+        // Keep the "/move?action=" at the end!
+        const NGROK_URL = "https://margarita-evacuee-reprint.ngrok-free.dev/move?action=";
+
+        function sendMove(action) {
+            fetch(NGROK_URL + action, {
+                // Required by Ngrok to bypass their "Warning" interstitial page
+                headers: { "ngrok-skip-browser-warning": "69420" } 
+            })
+            .then(response => response.json())
+            .then(data => console.log("Robot moved to:", data.angles))
+            .catch(error => console.error("Error connecting to robot:", error));
+        }
+    </script>
+</body>
+</html>
