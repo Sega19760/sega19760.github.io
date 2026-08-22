@@ -2,63 +2,132 @@
 <html>
 <head>
     <style>
-        .controller-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            gap: 10px;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
             justify-content: center;
-            margin-top: 20px;
-            font-family: Arial, sans-serif;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
-        .btn {
-            padding: 15px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
+        .controller-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 350px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+        .slider-container {
+            margin-bottom: 25px;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
             font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
         }
-        .btn:hover { background-color: #45a049; }
-        .btn:active { background-color: #3e8e41; }
-        .wide { grid-column: span 3; background-color: #f44336; }
-        .wide:hover { background-color: #da190b; }
+        .slider {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 10px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .slider::-webkit-slider-thumb:hover {
+            background: #45a049;
+        }
+        .slider::-webkit-slider-thumb:active {
+            background: #3e8e41;
+        }
     </style>
 </head>
 <body>
 
-    <h2 style="text-align: center; font-family: Arial;">Live Robot Arm Control</h2>
+    <div class="controller-panel">
+        <h2>Robot Arm Control</h2>
 
-    <div class="controller-grid">
-        <!-- Empty cell for spacing -->
-        <div></div> 
-        <button class="btn" onclick="sendMove('shoulder_up')">Shoulder Up</button>
-        <div></div>
+        <div class="slider-container">
+            <div class="slider-label">
+                <span>Base</span>
+                <span id="base_val">90°</span>
+            </div>
+            <input type="range" min="0" max="180" value="90" class="slider" id="base" oninput="updateArm('base', this.value)">
+        </div>
 
-        <button class="btn" onclick="sendMove('base_left')">Base Left</button>
-        <button class="btn" onclick="sendMove('shoulder_down')">Shoulder Down</button>
-        <button class="btn" onclick="sendMove('base_right')">Base Right</button>
+        <div class="slider-container">
+            <div class="slider-label">
+                <span>Shoulder</span>
+                <span id="shoulder_val">90°</span>
+            </div>
+            <input type="range" min="0" max="180" value="90" class="slider" id="shoulder" oninput="updateArm('shoulder', this.value)">
+        </div>
 
-        <button class="btn" onclick="sendMove('elbow_in')">Elbow In</button>
-        <div></div>
-        <button class="btn" onclick="sendMove('elbow_out')">Elbow Out</button>
+        <div class="slider-container">
+            <div class="slider-label">
+                <span>Elbow</span>
+                <span id="elbow_val">90°</span>
+            </div>
+            <input type="range" min="0" max="180" value="90" class="slider" id="elbow" oninput="updateArm('elbow', this.value)">
+        </div>
 
-        <button class="btn wide" onclick="sendMove('gripper_toggle')">Toggle Gripper</button>
+        <div class="slider-container">
+            <div class="slider-label">
+                <span>Gripper</span>
+                <span id="gripper_val">0%</span>
+            </div>
+            <input type="range" min="0" max="100" value="0" class="slider" id="gripper" oninput="updateArm('gripper', this.value)">
+        </div>
     </div>
 
     <script>
-        // *** PASTE YOUR NGROK URL HERE ***
-        // Keep the "/move?action=" at the end!
-        const NGROK_URL = "https://margarita-evacuee-reprint.ngrok-free.dev/move?action=";
+        // Note: Removed "?action=" from the end so we can build a new query string
+        const NGROK_URL = "https://margarita-evacuee-reprint.ngrok-free.dev/move";
+        
+        // Timer used to prevent network spam
+        let debounceTimer = null;
 
-        function sendMove(action) {
-            fetch(NGROK_URL + action, {
-                // Required by Ngrok to bypass their "Warning" interstitial page
-                headers: { "ngrok-skip-browser-warning": "69420" } 
-            })
-            .then(response => response.json())
-            .then(data => console.log("Robot moved to:", data.angles))
-            .catch(error => console.error("Error connecting to robot:", error));
+        function updateArm(joint, value) {
+            // 1. Update the text on the screen immediately so it feels responsive
+            const unit = joint === 'gripper' ? '%' : '°';
+            document.getElementById(joint + '_val').innerText = value + unit;
+
+            // 2. Clear the previous timer if the user is still dragging the slider
+            clearTimeout(debounceTimer);
+            
+            // 3. Wait 100ms after they stop dragging before sending the fetch request
+            debounceTimer = setTimeout(() => {
+                
+                // Formats the URL like: /move?joint=base&angle=90
+                const targetUrl = `${NGROK_URL}?joint=${joint}&angle=${value}`;
+                
+                fetch(targetUrl, {
+                    headers: { "ngrok-skip-browser-warning": "69420" } 
+                })
+                .then(response => response.json())
+                .then(data => console.log(`Success: ${joint} moved to ${value}`, data))
+                .catch(error => console.error("Error connecting to robot:", error));
+                
+            }, 100); // 100 milliseconds delay
         }
     </script>
 </body>
