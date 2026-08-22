@@ -71,7 +71,10 @@
                 <span>Base</span>
                 <span id="base_val">90°</span>
             </div>
-            <input type="range" min="0" max="180" value="90" class="slider" id="base" oninput="updateArm('base', this.value)">
+            <!-- oninput updates the text, onchange sends the server request when released -->
+            <input type="range" min="0" max="180" value="90" class="slider" id="base" 
+                   oninput="updateLabel('base', this.value)" 
+                   onchange="sendMove('base', this.value)">
         </div>
 
         <div class="slider-container">
@@ -79,7 +82,9 @@
                 <span>Shoulder</span>
                 <span id="shoulder_val">90°</span>
             </div>
-            <input type="range" min="0" max="180" value="90" class="slider" id="shoulder" oninput="updateArm('shoulder', this.value)">
+            <input type="range" min="0" max="180" value="90" class="slider" id="shoulder" 
+                   oninput="updateLabel('shoulder', this.value)" 
+                   onchange="sendMove('shoulder', this.value)">
         </div>
 
         <div class="slider-container">
@@ -87,7 +92,9 @@
                 <span>Elbow</span>
                 <span id="elbow_val">90°</span>
             </div>
-            <input type="range" min="0" max="180" value="90" class="slider" id="elbow" oninput="updateArm('elbow', this.value)">
+            <input type="range" min="0" max="180" value="90" class="slider" id="elbow" 
+                   oninput="updateLabel('elbow', this.value)" 
+                   onchange="sendMove('elbow', this.value)">
         </div>
 
         <div class="slider-container">
@@ -95,39 +102,36 @@
                 <span>Gripper</span>
                 <span id="gripper_val">0%</span>
             </div>
-            <input type="range" min="0" max="100" value="0" class="slider" id="gripper" oninput="updateArm('gripper', this.value)">
+            <input type="range" min="0" max="100" value="0" class="slider" id="gripper" 
+                   oninput="updateLabel('gripper', this.value)" 
+                   onchange="sendMove('gripper', this.value)">
         </div>
     </div>
 
     <script>
-        // Note: Removed "?action=" from the end so we can build a new query string
         const NGROK_URL = "https://margarita-evacuee-reprint.ngrok-free.dev/move";
-        
-        // Timer used to prevent network spam
-        let debounceTimer = null;
 
-        function updateArm(joint, value) {
-            // 1. Update the text on the screen immediately so it feels responsive
+        // 1. Only updates the text on the screen while you drag
+        function updateLabel(joint, value) {
             const unit = joint === 'gripper' ? '%' : '°';
             document.getElementById(joint + '_val').innerText = value + unit;
+        }
 
-            // 2. Clear the previous timer if the user is still dragging the slider
-            clearTimeout(debounceTimer);
+        // 2. Only fires when you let go of the mouse/slider
+        function sendMove(joint, value) {
+            const targetUrl = `${NGROK_URL}?joint=${joint}&angle=${value}`;
             
-            // 3. Wait 100ms after they stop dragging before sending the fetch request
-            debounceTimer = setTimeout(() => {
-                
-                // Formats the URL like: /move?joint=base&angle=90
-                const targetUrl = `${NGROK_URL}?joint=${joint}&angle=${value}`;
-                
-                fetch(targetUrl, {
-                    headers: { "ngrok-skip-browser-warning": "69420" } 
-                })
-                .then(response => response.json())
-                .then(data => console.log(`Success: ${joint} moved to ${value}`, data))
-                .catch(error => console.error("Error connecting to robot:", error));
-                
-            }, 100); // 100 milliseconds delay
+            fetch(targetUrl, {
+                headers: { "ngrok-skip-browser-warning": "69420" } 
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => console.log(`Success: ${joint} moved to ${value}`, data))
+            .catch(error => console.error("Error connecting to robot:", error));
         }
     </script>
 </body>
