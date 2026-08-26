@@ -42,23 +42,23 @@
             status.innerText = "Uploading...";
         }
 
-        try {
-            // Sends the file to your Node.js backend
-            let response = await fetch('/upload', {
+       try {
+            // Point this directly to your ngrok URL!
+            let response = await fetch('https://margarita-evacuee-reprint.ngrok-free.dev/upload', {
                 method: 'POST',
                 body: formData
             });
 
             if (response.ok) {
-                if (basename !== "alex") { // Keep Alex's special message on screen
-                    status.innerText = "Uploaded to C:\\Users\\lucas\\goober!";
+                if (basename !== "alex") { 
+                    status.innerText = "Uploaded successfully!";
                 }
             } else {
                 status.innerText = "Upload failed.";
             }
         } catch (error) {
             console.error("Error:", error);
-            status.innerText = "Server offline.";
+            status.innerText = "My computer is currently offline.";
         }
     }
     </script>
