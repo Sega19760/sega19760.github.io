@@ -1,99 +1,79 @@
-<html lang='en'>
-<head>
-  <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'>
-  <meta charset='utf-8'>
-  <meta content='width=device-width' name='viewport'>
-  <meta content='#000000' name='theme-color'>
-  <meta content='noindex' name='robots'>
-  <title>room_dogcheck</title>
-  <link href='/assets/css/extra.css' rel='stylesheet' type='text/css'>
-</head>
-<body>
-  <main>
-    <script crossorigin='anonymous' integrity='sha512-yBpuflZmP5lwMzZ03hiCLzA94N0K2vgBtJgqQ2E1meJzmIBfjbb7k4Y23k2i2c/rIeSUGc7jojyIY5waK3ZxCQ==' referrerpolicy='no-referrer' src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.slim.min.js'></script>
-    <script crossorigin='anonymous' integrity='sha512-6+YN/9o9BWrk6wSfGxQGpt3EUK6XeHi6yeHV+TYD2GR0Sj/cggRpXr1BrAQf0as6XslxomMUxXp2vIl+fv0QRA==' referrerpolicy='no-referrer' src='https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js'></script>
-
+<html lang='en'><head>  <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'>  <meta charset='utf-8'>  <meta content='width=device-width' name='viewport'>  <meta content='#000000' name='theme-color'>  <meta content='noindex' name='robots'>  <title>room_dogcheck</title>  <link href='/assets/css/extra.css' rel='stylesheet' type='text/css'></head><body style="background-color: black; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh;">  <main>    <script crossorigin='anonymous' integrity='sha512-yBpuflZmP5lwMzZ03hiCLzA94N0K2vgBtJgqQ2E1meJzmIBfjbb7k4Y23k2i2c/rIeSUGc7jojyIY5waK3ZxCQ==' referrerpolicy='no-referrer' src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.slim.min.js'></script>
+    
     <div id="center">
-<div class="dog" id="dog_sleep">
-<img alt="Sleeping dog" class="dog1" src="/assets/images/dog-sleep.png">
-<img alt="Sleeping dog" class="dog2" src="/assets/images/dog-sleep.gif">
-</div>
-<div class="dog hidden" id="dog_maraca">
-<img alt="Maraca dog" class="dog1" src="/assets/images/dog-maraca.png">
-<img alt="Maraca dog" class="dog2" src="/assets/images/dog-maraca.gif">
-</div>
-</div>
-<style>
-  .dog {
-    min-width: 320px;
-    max-width: 100%;
-    min-height: 320px;
-    max-height: 100%;
-    position: relative;
-    color: black;
-    cursor: pointer;
-  }
-  .dog img {
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    object-fit: contain;
-    image-rendering: pixelated;
-  }
-  .dog2 {
-    opacity: 0;
-  }
-</style>
-<script>
-  var maraca = false;
-  
-  var results = new Howl({
-    src: ['/assets/audio/results.ogg', '/assets/audio/results.mp3'],
-    volume: 0.5,
-    loop: true
-  });
-  
-  var baci = new Howl({
-    src: ['/assets/audio/baci_perugina2.ogg', '/assets/audio/baci_perugina2.mp3'],
-    volume: 0.5,
-    loop: true
-  });
-  
-  $(function() {
-    var r = Math.random();
-    if (Math.random() >= 0.95) {
-      $('#dog_sleep').addClass('hidden');
-      $('#dog_maraca').removeClass('hidden');
-      maraca = true;
-    }
-  });
-  
-  $(document).on('click', '.dog:not(.playing)', function() {
-    if (maraca) {
-      baci.play();
-    } else {
-      results.play();
-    }
-    $('.dog').addClass('playing');
-    $('.dog1').css('opacity', 0);
-    $('.dog2').css('opacity', 1);
-  });
-  
-  $(document).on('click', '.dog.playing', function() {
-    if (maraca) {
-      baci.pause();
-    } else {
-      results.pause();
-    }
-    $('.dog').removeClass('playing');
-    $('.dog1').css('opacity', 1);
-    $('.dog2').css('opacity', 0);
-  });
-</script>
+      <div class="dog" id="dog_sleep">
+        <img alt="Sleeping dog" class="dog1" src="https://i.imgur.com/I0l2Wga.gif">
+      </div>
+    </div>
+    
+    <style>  
+      .dog {    
+        min-width: 320px;    
+        max-width: 100%;    
+        min-height: 320px;    
+        max-height: 100%;    
+        position: relative;    
+        color: black;    
+        cursor: pointer;  
+      }  
+      .dog img {    
+        position: absolute;    
+        height: 100%;    
+        width: 100%;    
+        object-fit: contain;    
+        image-rendering: pixelated;  
+      }  
+    </style>
+    
+    <script>  
+      // Function to freeze a GIF by drawing it to a canvas and extracting the first frame as a static image
+      function freezeGif(imgElement, callback) {
+        var c = document.createElement('canvas');
+        var w = c.width = imgElement.naturalWidth || imgElement.width || 320;
+        var h = c.height = imgElement.naturalHeight || imgElement.height || 320;
+        var ctx = c.getContext('2d');
+        
+        // Draw the current state (first frame) of the image onto the canvas
+        ctx.drawImage(imgElement, 0, 0, w, h);
+        
+        // Replace the image source with the canvas data URL (freezing it)
+        var staticDataUrl = c.toDataURL();
+        imgElement.dataset.staticSrc = staticDataUrl;
+        imgElement.dataset.animatedSrc = imgElement.src;
+        
+        // Start frozen
+        imgElement.src = staticDataUrl;
+        if (callback) callback();
+      }
 
-  </main>
-  <script defer>if(!window.plausibleloaded){window.plausibleloaded=true;var onloadfunc = function() {!function(){"use strict";var t=window.location,e=window.document;function a(t,e){t&&console.warn("Ignoring Event: "+t),e&&e.callback&&e.callback()}function n(n,i){if(/^localhost$|^127(\.[0-9]+){0,2}\.[0-9]+$|^\[::1?\]$/.test(t.hostname)||"file:"===t.protocol)return a("localhost",i);if(window._phantom||window.__nightmare||window.navigator.webdriver||window.Cypress)return a(null,i);try{if("true"===window.localStorage.plausible_ignore)return a("localStorage flag",i)}catch(r){}var l={},o=(l.n=n,l.u=t.href,l.d="deltarune.com",l.r=e.referrer||null,i&&i.meta&&(l.m=JSON.stringify(i.meta)),i&&i.props&&(l.p=i.props),new XMLHttpRequest);o.open("POST","https://plausible.fangamer.eu/api/event",!0),o.setRequestHeader("Content-Type","text/plain"),o.send(JSON.stringify(l)),o.onreadystatechange=function(){4===o.readyState&&i&&i.callback&&i.callback()}}e.currentScript;var i=window.plausible&&window.plausible.q||[];window.plausible=n;for(var r,l=0;l<i.length;l++)n.apply(this,i[l]);function o(){r!==t.pathname&&(r=t.pathname,n("pageview"))};o();}();}; onloadfunc();}</script>
-  
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"377f50f2716b474ea394c9bbd3aaef87","r":1}' crossorigin="anonymous"></script>
-</body>
-</html>
+      $(function() {    
+        var img = $('#dog_sleep img')[0];
+        if (img.complete) {
+          freezeGif(img);
+        } else {
+          $(img).on('load', function() {
+            freezeGif(this);
+          });
+        }
+      });    
+
+      $(document).on('click', '.dog:not(.playing)', function() {    
+        var img = $(this).find('img')[0];
+        if (img.dataset.animatedSrc) {
+          img.src = img.dataset.animatedSrc; // Switch back to animated GIF
+        }    
+        $(this).addClass('playing');    
+      });    
+
+      $(document).on('click', '.dog.playing', function() {    
+        var img = $(this).find('img')[0];
+        if (img.dataset.staticSrc) {
+          img.src = img.dataset.staticSrc; // Switch back to frozen frame canvas image
+        }    
+        $(this).removeClass('playing');    
+      });
+    </script>
+  </main>  
+  <script defer>if(!window.plausibleloaded){window.plausibleloaded=true;var onloadfunc = function() {!function(){"use strict";var t=window.location,e=window.document;function a(t,e){t&&console.warn("Ignoring Event: "+t),e&&e.callback&&e.callback()}function n(n,i){if(/^localhost$|^127(\.[0-9]+){0,2}\.[0-9]+$|^\[::1?\]$/.test(t.hostname)||"file:"===t.protocol)return a("localhost",i);if(window._phantom||window.__nightmare||window.navigator.webdriver||window.Cypress)return a(null,i);try{if("true"===window.localStorage.plausible_ignore)return a("localStorage flag",i)}catch(r){}var l={},o=(l.n=n,l.u=t.href,l.d="deltarune.com",l.r=e.referrer||null,i&&i.meta&&(l.m=JSON.stringify(i.meta)),i&&i.props&&(l.p=i.props),new XMLHttpRequest);o.open("POST","https://plausible.fangamer.eu/api/event",!0),o.setRequestHeader("Content-Type","text/plain"),o.send(JSON.stringify(l)),o.onreadystatechange=function(){4===o.readyState&&i&&i.callback&&i.callback()}}e.currentScript;var i=window.plausible&&window.plausible.q||[];window.plausible=n;for(var r,l=0;l<i.length;l++)n.apply(this,i[l]);function o(){r!==t.pathname&&(r=t.pathname,n("pageview"))};o();}();}; onloadfunc();}</script>  
+  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"377f50f2716b474ea394c9bbd3aaef87","r":1}' crossorigin="anonymous"></script>
+</body></html>
