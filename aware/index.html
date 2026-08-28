@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content aware scaling!!!!</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #121212;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .controls {
+            margin: 20px 0;
+            background: #252525;
+            padding: 15px 25px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        input[type="file"] { color: #00ffcc; font-size: 1rem; }
+        
+        .canvas-wrapper {
+            resize: both;
+            overflow: hidden;
+            border: 2px solid #00ffcc;
+            background: #000;
+            position: relative;
+            min-width: 50px; 
+            min-height: 50px;
+            box-shadow: 0 10px 30px rgba(0,255,204,0.1);
+        }
+        canvas { display: block; }
+        
+        #status {
+            margin-top: 15px;
+            font-family: monospace;
+            color: #00ffcc;
+            background: rgba(0,255,204,0.1);
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+        .note {
+            max-width: 600px;
+            text-align: center;
+            color: #888;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>True Rewind Seam Carving</h2>
+    <p class="note">
+        Upload an image, shrink it, and then expand it again. The algorithm now memorizes every pixel it deletes and visually inserts them back in chronological order and im too lazy to explain the rest
+    </p>
+
+    <div class="controls">
+        <label for="imageUpload"><strong>Upload Image:</strong> </label>
+        <input type="file" id="imageUpload" accept="image/png, image/jpeg, image/webp">
+    </div>
+
+    <div class="canvas-wrapper" id="resizableBox">
+        <canvas id="canvas"></canvas>
+    </div>
+    
+    <div id="status">Waiting for image...</div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const resizableBox = document.getElementById('resizableBox');
+        const statusEl = document.getElementById('status');
+        const imageUpload = document.getElementById('imageUpload');
+        
+        let originalImgData = null;
+        let currentImgData = null;
+        let currentProcessId = 0; 
+        
+        // This stack memorizes every removed seam so we can perfectly reverse it!
+        let undoStack = [];
+        
+        const MAX_DIMENSION = 1200; 
+
+        const defaultImgSrc = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/4gIcSUNDX1BST0ZJTEUAAQEAAAIMbGNtcwIQAABtbnRyUkdCIFhZWiAH3AABABkAAwApADlhY3NwQVBQTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9tYAAQAAAADTLWxjbXMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApkZXNjAAAA/AAAAF5jcHJ0AAABXAAAAAt3dHB0AAABaAAAABRia3B0AAABfAAAABRyWFlaAAABkAAAABRnWFlaAAABpAAAABRiWFlaAAABuAAAABRyVFJDAAABzAAAAEBnVFJDAAABzAAAAEBiVFJDAAABzAAAAEBkZXNjAAAAAAAAAANjMgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB0ZXh0AAAAAElCAABYWVogAAAAAAAA9tYAAQAAAADTLVhZWiAAAAAAAAAD21gAABAAAAAB8VhZWiAAAAAAAABaQAAM3QAABMzWFlaIAAAAAAAAEEAAAOIwAABsFhZWiAAAAAAAABilwAAt4cAABjZcGFyYQAAAAAAAwAAAAJmZgAA8qcAAA1ZAAAT0AAACltjdXJ2AAAAAAAAAAEBzQAA/+ESZGh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8APD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNC40LjAtRXhjd20xIj4KIDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+CiAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIvPgogPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KPD94cGFja2V0IGVuZD0idyI/Pv/bAEMABgQEBQQEBgQEBQYGBgcICwsJCAgICwwLCwwMCQwNCw0NDQwNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDf/bAEMBBgYGCQgJCwwMCwwNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDf/AABEIAMgASwMBIgACEQEDEQH/xAAaAAACAwEBAAAAAAAAAAAAAAADBAIFBgEA/8QAMxAAAQMCBAQDBQACAQUAAAAAAQACAwQRBRIhMRNBUWEGInEUMoGRoRVSscE00SNC4fD/xAAXAQEBAQEAAAAAAAAAAAAAAAACAQAD/8QAHREBAQEAAgMBAQAAAAAAAAAAAAERAhITITFRQf/aAAwDAQACEQMRAD8A92c7KFT187y8a/JPTu3VZVHNKbLk2wN0rjI7XZGjPksgBpv5pU/R8Kgbp+Jj3u8rSfohxtu/qrmgGULXqYDFRyE+bT6otXSSNpwBcnsvO/HPxSbgmLvoKSkjmMTW8R0l7FxANha2wIV38PfiBTeJ8Nke6IQVdO4NnjB0F9nN7H+Fbr/Wbi/eC02I1QzdN1g+Xqkm4F/wDFc8K693h0m65xO5Q5nWQDJ3XN6VqT591U4s4tkYR4nS7oD9rLq5kRtdyfpd1W1Lmtk13TkUo0LTomk6q0iVvh7wWnRU0M+v0VpDVA2AKy2iR+afjbQ1Xj3GY52uaWyhtjoS0NFlmvgdDPLjtbU/8ATbShp00uXAi/4K9R+KWAP8ReDK+ngZnqIv8AuIWgXJczUgDuC4fVeGfDHxyzwli9VHWxuNDWNayUsHmjc0mzrbkC5uF04/zUcvZ73j0x4wZfRLRTHKjVssWICOrppWS08rQ+OSM3a5pG4KRjBFlx7elN/q0mfdgQOIey+qT5UBp3WfXQ1M+qg9t9wvl9aH1rTzT9I7S10oWphjsuyFvV7L8hR58wT9HKBZZ+F7mOGqtaWbcFao1V1TVFm+q+f/AIn/AAoMsz8X8NwAPcS+ejYLEnm6PuebfxyXttLPrdWMUgLUznf1ln14h8J48QZhk2H1sE0Tacgx8Vpbodzrz/tejw+UKzxOQcKx5rPOmsdLrny91vH0anfdpS9117wWoN11qFw9UGRuikFwgZ2I+DqNlFw1WpMxu5I69rU40FpuEI23XY32Oq6M9tZc6q1pZtFnoZP2rmjkuVnStBRzXsFcwPuxZmik1V/SPvHZZWsBjn/UqnklsTdaDEIrkqnmpg43S4YtU90hS70xM0s0Ssiy9m6hZfLq+WshYVq41cK+B1Xy1aJ00a2j0jOylI0O3KXY9HjcpNf9sT7tNl9Vw16y9C+1leUkt7JatLzD5LlXsB0WXw99nBaOndomxX4q2xVRUu1V9iDb3WcqfK8pTjN5I4xYnVIvCcqJbXVbPL5isvT6+Xy+WqOIXy6vlqOtcjtdc5XQ7ohjK2s/16x9rWhkvdXtHLoFmqJ1jZXVLLsmxH4tXQzWcNVpKWS7Vj6WS1loqGW7d02K2a/6J4gNCs/XxXWhqBdpVTWM8hSY3mPOxVbUC6t6yPVVs7Fy6r+zNl8uuZ18uS5Xy+Xy1E8qKwqAXy7Y+1pA+ysoJdFSxu1VjA/ROxX4tZSza6LQ4fNoFj6aTW6vsPntYXTZ6r6X192Ktrj5SjCbzBCrPeCmVrnGYrI+SoZmLQ1jdCqSZtlzrf2Y318g3Xy5Ll8vl8tXy+Xy+Wo8D7Kyp3a3VIHKwppU5R+L6nk9Vb0c2xJWZp5PVWtLNtsmyvpfUtRd1ro1R5o3a8lT0k2xBVrDLdrVsr6r8R0NlUz6hWeJkXVPM9cvY5yY318uL5c11//9k=";
+        loadImageFromSource(defaultImgSrc);
+
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => loadImageFromSource(event.target.result);
+            reader.readAsDataURL(file);
+        });
+
+        function loadImageFromSource(src) {
+            currentProcessId++; 
+            undoStack = []; // Clear history on new image
+            
+            const img = new Image();
+            img.onload = () => {
+                let targetW = img.width;
+                let targetH = img.height;
+
+                if (targetW > MAX_DIMENSION || targetH > MAX_DIMENSION) {
+                    const ratio = Math.min(MAX_DIMENSION / targetW, MAX_DIMENSION / targetH);
+                    targetW = Math.floor(targetW * ratio);
+                    targetH = Math.floor(targetH * ratio);
+                }
+
+                canvas.width = targetW;
+                canvas.height = targetH;
+                
+                resizableBox.style.width = targetW + 'px';
+                resizableBox.style.height = targetH + 'px';
+                resizableBox.style.maxWidth = targetW + 'px';
+                resizableBox.style.maxHeight = targetH + 'px';
+
+                ctx.drawImage(img, 0, 0, targetW, targetH);
+                originalImgData = ctx.getImageData(0, 0, targetW, targetH);
+                currentImgData = originalImgData;
+
+                statusEl.innerText = `Ready. Image: ${targetW}px × ${targetH}px`;
+            };
+            img.src = src;
+        }
+
+        const resizeObserver = new ResizeObserver(entries => {
+            if (!currentImgData) return;
+            
+            const targetWidth = Math.min(originalImgData.width, Math.max(50, Math.floor(entries[0].contentRect.width)));
+            const targetHeight = Math.min(originalImgData.height, Math.max(50, Math.floor(entries[0].contentRect.height)));
+            
+            adjustToTarget(targetWidth, targetHeight);
+        });
+
+        resizeObserver.observe(resizableBox);
+
+        function updateCanvas() {
+            canvas.width = currentImgData.width;
+            canvas.height = currentImgData.height;
+            ctx.putImageData(currentImgData, 0, 0);
+        }
+
+        // Master controller for growing AND shrinking
+        async function adjustToTarget(targetW, targetH) {
+            currentProcessId++;
+            const activeId = currentProcessId;
+            statusEl.innerText = `Adjusting to ${targetW}x${targetH}...`;
+
+            // 1. REWIND: If the target is larger than our current size, pop history to restore seams!
+            while (undoStack.length > 0 && (currentImgData.width < targetW || currentImgData.height < targetH)) {
+                if (activeId !== currentProcessId) return;
+
+                const lastAction = undoStack.pop();
+                if (lastAction.type === 'W') {
+                    currentImgData = restoreVerticalSeam(currentImgData, lastAction.seam, lastAction.pixels);
+                } else {
+                    currentImgData = restoreHorizontalSeam(currentImgData, lastAction.seam, lastAction.pixels);
+                }
+
+                updateCanvas();
+                if (undoStack.length % 3 === 0) await new Promise(r => setTimeout(r, 0));
+            }
+
+            // 2. CARVE: Once we are at least as big as the target, carve away the excess
+            let remW = currentImgData.width - targetW;
+            let remH = currentImgData.height - targetH;
+
+            while (remW > 0 || remH > 0) {
+                if (activeId !== currentProcessId) return;
+
+                if (remW > 0) {
+                    currentImgData = removeVerticalSeam(currentImgData);
+                    remW--;
+                }
+                if (remH > 0) {
+                    currentImgData = removeHorizontalSeam(currentImgData);
+                    remH--;
+                }
+
+                updateCanvas();
+                if ((remW + remH) % 3 === 0) await new Promise(r => setTimeout(r, 0));
+            }
+
+            if (activeId === currentProcessId) {
+                statusEl.innerText = `Ready. Image: ${currentImgData.width}px × ${currentImgData.height}px`;
+            }
+        }
+
+        // ==========================================
+        // ALGORITHM: REMOVE & SAVE WIDTH (Vertical)
+        // ==========================================
+        function removeVerticalSeam(imgData) {
+            const w = imgData.width;
+            const h = imgData.height;
+            const data = imgData.data;
+
+            const dp = new Float32Array(w * h);
+            for (let x = 0; x < w; x++) dp[x] = getPixelEnergy(data, w, h, x, 0);
+
+            for (let y = 1; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const e = getPixelEnergy(data, w, h, x, y);
+                    let minPrev = dp[(y - 1) * w + x]; 
+                    if (x > 0) minPrev = Math.min(minPrev, dp[(y - 1) * w + (x - 1)]); 
+                    if (x < w - 1) minPrev = Math.min(minPrev, dp[(y - 1) * w + (x + 1)]); 
+                    dp[y * w + x] = e + minPrev;
+                }
+            }
+
+            const seam = new Int32Array(h);
+            let minEnergy = Infinity;
+            let minX = 0;
+            for (let x = 0; x < w; x++) {
+                if (dp[(h - 1) * w + x] < minEnergy) { minEnergy = dp[(h - 1) * w + x]; minX = x; }
+            }
+            seam[h - 1] = minX;
+
+            for (let y = h - 2; y >= 0; y--) {
+                const x = seam[y + 1];
+                let nextX = x;
+                let minPrev = dp[y * w + x];
+                if (x > 0 && dp[y * w + (x - 1)] < minPrev) { minPrev = dp[y * w + (x - 1)]; nextX = x - 1; }
+                if (x < w - 1 && dp[y * w + (x + 1)] < minPrev) { nextX = x + 1; }
+                seam[y] = nextX;
+            }
+
+            // Save the exact pixels we are deleting!
+            const removedPixels = new Uint8ClampedArray(h * 4);
+            const newImgData = new ImageData(w - 1, h);
+            
+            for (let y = 0; y < h; y++) {
+                const seamX = seam[y];
+                
+                // Store pixel
+                const srcSeamIdx = (y * w + seamX) * 4;
+                removedPixels[y*4] = data[srcSeamIdx];
+                removedPixels[y*4+1] = data[srcSeamIdx+1];
+                removedPixels[y*4+2] = data[srcSeamIdx+2];
+                removedPixels[y*4+3] = data[srcSeamIdx+3];
+
+                // Shift remaining
+                for (let x = 0; x < w - 1; x++) {
+                    const srcX = x >= seamX ? x + 1 : x;
+                    const destIdx = (y * (w - 1) + x) * 4;
+                    const srcIdx = (y * w + srcX) * 4;
+                    newImgData.data[destIdx] = data[srcIdx];
+                    newImgData.data[destIdx+1] = data[srcIdx+1];
+                    newImgData.data[destIdx+2] = data[srcIdx+2];
+                    newImgData.data[destIdx+3] = data[srcIdx+3];
+                }
+            }
+            
+            undoStack.push({ type: 'W', seam, pixels: removedPixels });
+            return newImgData;
+        }
+
+        // ==========================================
+        // ALGORITHM: REMOVE & SAVE HEIGHT (Horizontal)
+        // ==========================================
+        function removeHorizontalSeam(imgData) {
+            const w = imgData.width;
+            const h = imgData.height;
+            const data = imgData.data;
+
+            const dp = new Float32Array(w * h);
+            for (let y = 0; y < h; y++) dp[y * w] = getPixelEnergy(data, w, h, 0, y);
+
+            for (let x = 1; x < w; x++) {
+                for (let y = 0; y < h; y++) {
+                    const e = getPixelEnergy(data, w, h, x, y);
+                    let minPrev = dp[y * w + (x - 1)]; 
+                    if (y > 0) minPrev = Math.min(minPrev, dp[(y - 1) * w + (x - 1)]); 
+                    if (y < h - 1) minPrev = Math.min(minPrev, dp[(y + 1) * w + (x - 1)]); 
+                    dp[y * w + x] = e + minPrev;
+                }
+            }
+
+            const seam = new Int32Array(w);
+            let minEnergy = Infinity;
+            let minY = 0;
+            for (let y = 0; y < h; y++) {
+                if (dp[y * w + (w - 1)] < minEnergy) { minEnergy = dp[y * w + (w - 1)]; minY = y; }
+            }
+            seam[w - 1] = minY;
+
+            for (let x = w - 2; x >= 0; x--) {
+                const y = seam[x + 1];
+                let nextY = y;
+                let minPrev = dp[y * w + x];
+                if (y > 0 && dp[(y - 1) * w + x] < minPrev) { minPrev = dp[(y - 1) * w + x]; nextY = y - 1; }
+                if (y < h - 1 && dp[(y + 1) * w + x] < minPrev) { nextY = y + 1; }
+                seam[x] = nextY;
+            }
+
+            const removedPixels = new Uint8ClampedArray(w * 4);
+            const newImgData = new ImageData(w, h - 1);
+            
+            for (let x = 0; x < w; x++) {
+                const seamY = seam[x];
+                
+                // Store pixel
+                const srcSeamIdx = (seamY * w + x) * 4;
+                removedPixels[x*4] = data[srcSeamIdx];
+                removedPixels[x*4+1] = data[srcSeamIdx+1];
+                removedPixels[x*4+2] = data[srcSeamIdx+2];
+                removedPixels[x*4+3] = data[srcSeamIdx+3];
+
+                // Shift remaining
+                for (let y = 0; y < h - 1; y++) {
+                    const srcY = y >= seamY ? y + 1 : y;
+                    const destIdx = (y * w + x) * 4;
+                    const srcIdx = (srcY * w + x) * 4;
+                    newImgData.data[destIdx] = data[srcIdx];
+                    newImgData.data[destIdx+1] = data[srcIdx+1];
+                    newImgData.data[destIdx+2] = data[srcIdx+2];
+                    newImgData.data[destIdx+3] = data[srcIdx+3];
+                }
+            }
+            
+            undoStack.push({ type: 'H', seam, pixels: removedPixels });
+            return newImgData;
+        }
+
+        // ==========================================
+        // ALGORITHM: RESTORE WIDTH (Undo)
+        // ==========================================
+        function restoreVerticalSeam(imgData, seam, pixels) {
+            const w = imgData.width;
+            const h = imgData.height;
+            const data = imgData.data;
+            const newImgData = new ImageData(w + 1, h);
+            const newData = newImgData.data;
+
+            for (let y = 0; y < h; y++) {
+                const seamX = seam[y];
+                for (let x = 0; x < w + 1; x++) {
+                    const destIdx = (y * (w + 1) + x) * 4;
+                    if (x < seamX) {
+                        const srcIdx = (y * w + x) * 4;
+                        newData[destIdx] = data[srcIdx]; newData[destIdx+1] = data[srcIdx+1];
+                        newData[destIdx+2] = data[srcIdx+2]; newData[destIdx+3] = data[srcIdx+3];
+                    } else if (x === seamX) {
+                        // Re-insert the exact pixel we saved
+                        newData[destIdx] = pixels[y*4]; newData[destIdx+1] = pixels[y*4+1];
+                        newData[destIdx+2] = pixels[y*4+2]; newData[destIdx+3] = pixels[y*4+3];
+                    } else {
+                        const srcIdx = (y * w + (x - 1)) * 4;
+                        newData[destIdx] = data[srcIdx]; newData[destIdx+1] = data[srcIdx+1];
+                        newData[destIdx+2] = data[srcIdx+2]; newData[destIdx+3] = data[srcIdx+3];
+                    }
+                }
+            }
+            return newImgData;
+        }
+
+        // ==========================================
+        // ALGORITHM: RESTORE HEIGHT (Undo)
+        // ==========================================
+        function restoreHorizontalSeam(imgData, seam, pixels) {
+            const w = imgData.width;
+            const h = imgData.height;
+            const data = imgData.data;
+            const newImgData = new ImageData(w, h + 1);
+            const newData = newImgData.data;
+
+            for (let x = 0; x < w; x++) {
+                const seamY = seam[x];
+                for (let y = 0; y < h + 1; y++) {
+                    const destIdx = (y * w + x) * 4;
+                    if (y < seamY) {
+                        const srcIdx = (y * w + x) * 4;
+                        newData[destIdx] = data[srcIdx]; newData[destIdx+1] = data[srcIdx+1];
+                        newData[destIdx+2] = data[srcIdx+2]; newData[destIdx+3] = data[srcIdx+3];
+                    } else if (y === seamY) {
+                        // Re-insert the exact pixel we saved
+                        newData[destIdx] = pixels[x*4]; newData[destIdx+1] = pixels[x*4+1];
+                        newData[destIdx+2] = pixels[x*4+2]; newData[destIdx+3] = pixels[x*4+3];
+                    } else {
+                        const srcIdx = ((y - 1) * w + x) * 4;
+                        newData[destIdx] = data[srcIdx]; newData[destIdx+1] = data[srcIdx+1];
+                        newData[destIdx+2] = data[srcIdx+2]; newData[destIdx+3] = data[srcIdx+3];
+                    }
+                }
+            }
+            return newImgData;
+        }
+
+        // Math Helpers
+        function getPixelEnergy(data, w, h, x, y) {
+            const left = Math.max(0, x - 1);
+            const right = Math.min(w - 1, x + 1);
+            const up = Math.max(0, y - 1);
+            const down = Math.min(h - 1, y + 1);
+            const cxX = getLuminance(data, w, right, y) - getLuminance(data, w, left, y);
+            const cxY = getLuminance(data, w, x, down) - getLuminance(data, w, x, up);
+            return Math.sqrt(cxX * cxX + cxY * cxY);
+        }
+
+        function getLuminance(data, w, x, y) {
+            const idx = (y * w + x) * 4;
+            return data[idx]*0.299 + data[idx+1]*0.587 + data[idx+2]*0.114;
+        }
+    </script>
+</body>
+</html>
