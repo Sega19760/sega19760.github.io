@@ -1,177 +1,166 @@
-<!DOCTYPE html><html>
+<!DOCTYPE html>
+<html>
 <head>
-  <title>We The Goobers Wiki</title>  <!-- Mobile scaling -->  <meta name="viewport" content="width=device-width, initial-scale=1.0">  <style>
+  <title>We The Goobers Wiki</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* Basic, classic web typography */
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #111;
+      font-family: Arial, Helvetica, sans-serif;
       color: white;
-    }
-
-    .banner {
-      position: relative;
-      height: 200px;
+      
+      /* The banner now covers the entire screen background */
+      background-color: #111;
       background-size: cover;
       background-position: center;
+      background-attachment: fixed; /* Keeps the image still while scrolling */
+      transition: background-image 0.5s ease-in-out; /* Smooth fade when changing pages */
     }
 
-    .banner::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
+    /* A semi-transparent overlay so we can actually read the text over the background image */
+    .page-wrapper {
+      background-color: rgba(0, 0, 0, 0.75);
+      min-height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
     }
 
-    .banner-title {
-      position: absolute;
-      bottom: 15px;
-      left: 15px;
-      font-size: 28px;
-      font-weight: bold;
-      z-index: 1;
+    /* Simple centered header */
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      border-bottom: 2px solid #555;
+      margin-bottom: 20px;
+      max-width: 1000px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
-    /* Layout */
+    .header h1 {
+      margin: 0;
+      font-size: 36px;
+    }
+
+    /* Standard classic layout */
     .container {
       display: flex;
       gap: 20px;
-      padding: 15px;
+      max-width: 1000px;
+      margin: 0 auto; /* Centers the content */
     }
 
-    /* Sidebar */
+    /* Simple sidebar box */
     .sidebar {
       width: 200px;
-      background: #1a1a1a;
-      padding: 10px;
-      border-radius: 10px;
+      background-color: rgba(30, 30, 30, 0.9);
+      padding: 15px;
+      border: 1px solid #666;
     }
 
     .sidebar h3 {
       margin-top: 0;
+      border-bottom: 1px solid #444;
+      padding-bottom: 5px;
     }
 
+    /* Classic links */
     .sidebar a {
       display: block;
-      color: #4ea3ff;
-      margin: 6px 0;
-      text-decoration: none;
+      color: #66b3ff;
+      margin: 10px 0;
+      text-decoration: underline; /* Classic beginner link style */
       cursor: pointer;
+      font-size: 16px;
     }
 
-    /* Content */
+    .sidebar a:hover {
+      color: #ffffff;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Simple content box */
     .content {
       flex: 1;
-      padding: 15px;
-      border-radius: 10px;
-      transition: 0.3s;
+      background-color: rgba(40, 40, 40, 0.9);
+      padding: 20px;
+      border: 1px solid #666;
+      transition: background-color 0.4s; /* Smooth color change */
     }
 
-    h1 {
+    .content h2 {
       margin-top: 0;
+      border-bottom: 1px dashed #777;
+      padding-bottom: 10px;
     }
 
-    img {
-      width: 100%;
-      max-height: 300px;
-      object-fit: cover;
-      border-radius: 8px;
+    #article {
+      line-height: 1.5;
     }
 
-    /* 📱 MOBILE FIX */
+    #article img {
+      max-width: 100%;
+      height: auto;
+      border: 2px solid #fff; /* Simple white border around images */
+      margin: 15px 0;
+    }
+
+    /* Mobile view */
     @media (max-width: 700px) {
       .container {
         flex-direction: column;
       }
-
       .sidebar {
-        width: 100%;
-      }
-
-      .banner {
-        height: 150px;
-      }
-
-      .banner-title {
-        font-size: 22px;
+        width: auto; /* Takes full width on phones */
       }
     }
-  </style></head><body><div class="banner" id="banner">
-  <div class="banner-title">We The Goobers Wiki</div>
-</div><div class="container">  <div class="sidebar" id="sidebar">
-    <h3>Articles</h3>
-  </div>  <div class="content" id="contentBox">
-    <h1 id="title">Main Page</h1>
-    <div id="article">Select a page.</div>
-  </div></div><script>
+  </style>
+</head>
+<body>
+
+<!-- This wrapper darkens the background image so text is readable -->
+<div class="page-wrapper">
+  
+  <div class="header">
+    <h1 id="siteTitle">We The Goobers Wiki</h1>
+  </div>
+
+  <div class="container">
+    
+    <div class="sidebar" id="sidebar">
+      <h3>Pages</h3>
+      <!-- Links will go here -->
+    </div>
+    
+    <div class="content" id="contentBox">
+      <h2 id="pageTitle">Main Page</h2>
+      <div id="article">Welcome to the wiki. Click a page on the left to start reading!</div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  // Your page data
   const pages = {
-
-    wtg_drama: {
-  title: "Drama",
-  file: "wtg_drama.txt",
-  banner: "yourimage.png",
-  color: "#3a1a1a"
-    },
-    
-
-    issac: {
-      title: "Issac get outta there",
-      file: "issac.txt",
-      banner: "image-3.png",
-      color: "#2a0d2a"
-    },
-
-    ragebait_war: {
-  title: "The Ragebait War",
-  file: "ragebait_war.txt",
-  banner: "nonelmfao.png",
-  color: "#260b40"
-    },
-
-    oofer: {
-      title: "Oofer",
-      file: "oofer.txt",
-      banner: "image-2.png",
-      color: "#2a0d0d"
-  },
-
-    pak_attak: {
-      title: "pak_attak",
-      file: "pak_attak.txt",
-      banner: "IMG_8739.png",
-      color: "#a4fffd"
-    },
-
-    Tauntful: {
-      title: "Tauntful",
-      file: "alex.txt",
-      banner: "rk.png",
-      color: "#01c119"
-    },
-
-
-    Mellody: {
-      title: "Mellody",
-      file: "mellody.txt",
-      banner: "none",
-      color: "#8314cc"
-    },
-
-    
-      toby: {
-      title: "Toby",
-      file: "toby.txt",
-      banner: "image.jpg",
-      color: "#0d2a2a"
-      }
-    };
+    wtg_drama: { title: "Drama", file: "wtg_drama.txt", banner: "yourimage.png", color: "rgba(58, 26, 26, 0.9)" },
+    issac: { title: "Issac get outta there", file: "issac.txt", banner: "image-3.png", color: "rgba(42, 13, 42, 0.9)" },
+    ragebait_war: { title: "The Ragebait War", file: "ragebait_war.txt", banner: "nonelmfao.png", color: "rgba(38, 11, 64, 0.9)" },
+    oofer: { title: "Oofer", file: "oofer.txt", banner: "image-2.png", color: "rgba(42, 13, 13, 0.9)" },
+    pak_attak: { title: "pak_attak", file: "pak_attak.txt", banner: "IMG_8739.png", color: "rgba(20, 50, 50, 0.9)" },
+    Tauntful: { title: "Tauntful", file: "alex.txt", banner: "rk.png", color: "rgba(1, 70, 25, 0.9)" },
+    Mellody: { title: "Mellody", file: "mellody.txt", banner: "none", color: "rgba(60, 20, 90, 0.9)" },
+    toby: { title: "Toby", file: "toby.txt", banner: "image.jpg", color: "rgba(13, 42, 42, 0.9)" }
+  };
 
   const sidebar = document.getElementById("sidebar");
   const articleDiv = document.getElementById("article");
-  const title = document.getElementById("title");
-  const banner = document.getElementById("banner");
+  const pageTitle = document.getElementById("pageTitle");
+  const siteTitle = document.getElementById("siteTitle");
   const contentBox = document.getElementById("contentBox");
 
-  // Create sidebar links
+  // Create links in the sidebar
   Object.keys(pages).forEach(key => {
     const link = document.createElement("a");
     link.textContent = pages[key].title;
@@ -179,28 +168,43 @@
     sidebar.appendChild(link);
   });
 
-  // Load page
+  // Function to load the page
   function loadPage(key) {
     const page = pages[key];
 
-    // Change banner
-    banner.style.backgroundImage = `url("${page.banner}")`;
+    // 1. Change the FULL SCREEN background image
+    if (page.banner !== "none") {
+      document.body.style.backgroundImage = `url("${page.banner}")`;
+    } else {
+      document.body.style.backgroundImage = `none`;
+    }
 
-    // Change theme color
-    contentBox.style.background = page.color;
+    // 2. Change the background color of the content box
+    contentBox.style.backgroundColor = page.color;
 
-    // Set title
-    title.textContent = page.title;
+    // 3. Update titles
+    pageTitle.textContent = page.title;
+    siteTitle.textContent = "We The Goobers Wiki - " + page.title;
 
-    // Load content (no cache)
+    // 4. Show loading text
+    articleDiv.innerHTML = "<em>Loading content...</em>";
+
+    // 5. Fetch the text file
     fetch(page.file + "?v=" + Date.now())
-      .then(res => res.text())
+      .then(res => {
+        if (!res.ok) throw new Error("File missing");
+        return res.text();
+      })
       .then(text => {
-        articleDiv.innerHTML = text;
+        // Convert plain text line breaks to HTML paragraphs so it looks nice
+        const formattedText = text.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+        articleDiv.innerHTML = formattedText;
       })
       .catch(() => {
-        articleDiv.innerHTML = "Page not found.";
+        articleDiv.innerHTML = "<strong>Error:</strong> Page not found or couldn't load.";
       });
   }
-</script></body>
+</script>
+
+</body>
 </html>
