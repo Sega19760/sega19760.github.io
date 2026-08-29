@@ -6,6 +6,9 @@
   
   <!-- This tiny script allows us to easily read Google Sheets -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  
+  <!-- NEW: This script adds Discord/Markdown text formatting! -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
     /* Basic, classic web typography */
@@ -170,36 +173,36 @@
   const siteTitle = document.getElementById("siteTitle");
   const contentBox = document.getElementById("contentBox");
 
+  // Tell marked.js to behave like Discord (allow single line breaks)
+  marked.use({
+    breaks: true,
+    gfm: true
+  });
+
   // 2. Fetch the data from Google Sheets using PapaParse
   Papa.parse(sheetCSV, {
     download: true,
-    header: true, // Tells it to use the first row (your question titles) as labels
+    header: true,
     complete: function(results) {
       const data = results.data;
-      sidebarLinksDiv.innerHTML = ""; // Clear the "loading" text
+      sidebarLinksDiv.innerHTML = ""; 
 
-      // Loop through every row in the Google Sheet
       data.forEach(row => {
-        // Skip empty rows
         if (!row["Page ID"]) return; 
         
-        // Save the row data into our pages object
-        // Make sure these match the exact column names in your Google Sheet!
         pages[row["Page ID"]] = {
           title: row["Title"],
           content: row["Content"],
           banner: row["Banner URL"],
-          color: row["Color"] || "rgba(40, 40, 40, 0.9)" // Default color if they leave it blank
+          color: row["Color"] || "rgba(40, 40, 40, 0.9)" 
         };
 
-        // Create the clickable link in the sidebar
         const link = document.createElement("a");
         link.textContent = row["Title"];
         link.onclick = () => loadPage(row["Page ID"]);
         sidebarLinksDiv.appendChild(link);
       });
 
-      // Load a default welcome message once data is ready
       articleDiv.innerHTML = "Database connected! Click a page on the left.";
     },
     error: function(err) {
@@ -225,10 +228,8 @@
     pageTitle.textContent = page.title;
     siteTitle.textContent = "We The Goobers Wiki - " + page.title;
     
-    // Formatting the text content
-    // Converts text from the Google sheet into paragraphs
-    const formattedText = page.content.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
-    articleDiv.innerHTML = formattedText;
+    // NEW: Use Marked.js to format the text!
+    articleDiv.innerHTML = marked.parse(page.content);
 
     // Apply Wikipedia landscape image styling
     const images = articleDiv.querySelectorAll("img");
