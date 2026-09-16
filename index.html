@@ -227,9 +227,9 @@
       position: absolute;
       bottom: 10px;
       left: 10px;
-      background: black;
+      background: red;
       color: white;
-      border: 2px solid #ffaa00;
+      border: 2px solid white;
       padding: 5px 10px;
       font-size: 20px;
       font-weight: bold;
@@ -247,9 +247,9 @@
       position: absolute;
       bottom: 10px;
       right: 10px;
-      background: black;
-      color: red;
-      border: 2px solid darkred;
+      background: red;
+      color: white;
+      border: 2px solid white;
       padding: 8px 12px;
       font-size: 20px;
       font-weight: bold;
@@ -300,7 +300,7 @@
     <span><span id="ransom-gold-count">0</span> / 500</span>
   </div>
   <div id="time-hud-overlay">
-    <span id="ransom-time">90</span>
+    <span id="ransom-time">76</span>
   </div>
 </div>
 <!-- END OVERLAYS -->
@@ -412,12 +412,12 @@
   // --- RANSOM ENCOUNTER LOGIC ---
   let encounterActive = false;
   let stopTimeout;
-  let timeRemaining = 90;
+  let timeRemaining = 76; // Timer synced to 76 seconds
   let currentGold = 0;
   let timerInterval;
   let windowMoveInterval;
   let jumpShakeInterval;
-  let uncollectedGoldPages = []; // Stores the IDs of pages holding the 5 gold pieces
+  let uncollectedGoldPages = []; 
 
   const originalBackground = document.body.style.backgroundImage;
   const soundtrack = new Audio("https://static.wikia.nocookie.net/villains/images/5/5d/DOORS_THE_ARCHIVES_SOUNDTRACK_-_RANSOMWARE.mp3");
@@ -427,11 +427,10 @@
   const dropSound = new Audio("https://files.catbox.moe/54dn7w.wav");
   const jumpscareSound = new Audio("https://files.catbox.moe/5kvwlu.wav");
 
-  // Pure JavaScript Snap-Shake Logic (No Keyframes, No Tweening)
+  // Pure JavaScript Snap-Shake Logic
   let shakeTick = 0;
   setInterval(() => {
     const shakers = document.querySelectorAll('.snap-shake');
-    // Horizontal and vertical movement only, no diagonals
     const positions = [
       {x: 0, y: 0},
       {x: 12, y: -12},
@@ -444,7 +443,7 @@
       el.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
     });
     shakeTick++;
-  }, 250); // Updates every 250ms, completing full cycle in 1 second
+  }, 250); 
 
   document.getElementById('ransom-trigger').addEventListener('click', () => {
     if(encounterActive) return;
@@ -456,16 +455,14 @@
     const stopOverlay = document.getElementById('stop-sign-overlay');
     const stopImg = document.getElementById('stop-sign-img');
     
-    stopImg.src = "https://static.wikia.nocookie.net/rooms-doors/images/d/d8/Nuh_uh.webp"; // Reset in case
+    stopImg.src = "https://static.wikia.nocookie.net/rooms-doors/images/d/d8/Nuh_uh.webp"; 
     stopOverlay.style.display = 'flex';
     
-    // Play initial warning sound
     stopSignSound.currentTime = 0;
     stopSignSound.play().catch(e => console.log(e));
 
     let isStopSign = true;
 
-    // Grace period
     setTimeout(() => {
       let failed = false;
       let lastFlicker = Date.now();
@@ -475,14 +472,11 @@
       const triggerFailMouse = (e) => {
         if (failed) return;
         
-        // Calculate mouse movement speed based on distance between frames
         const speed = Math.sqrt(e.movementX * e.movementX + e.movementY * e.movementY);
 
         if (speed > 25) { 
-          // Fast movement fails immediately
           triggerFail();
         } else if (speed > 1) { 
-          // Slight movement shifts the image (throttled to max 10 times a sec so it doesn't blur)
           if (Date.now() - lastFlicker > 100) {
             isStopSign = !isStopSign;
             stopImg.src = isStopSign 
@@ -527,7 +521,6 @@
     const jsOverlay = document.getElementById('jumpscare-overlay');
     const jsImg = document.getElementById('jumpscare-img');
     
-    // Start with Face
     jsImg.src = "https://static.wikia.nocookie.net/villains/images/b/b3/A90jumpscare.png";
     jsOverlay.style.display = 'flex';
     
@@ -548,12 +541,10 @@
       jumpTick++;
     }, 40);
 
-    // Halfway through, shift to static GIF
     setTimeout(() => {
       jsImg.src = "https://raw.githubusercontent.com/Ixars/ransomdoors/main/Assets/static.gif";
     }, 400);
 
-    // End after 1s
     setTimeout(() => {
       clearInterval(jumpShakeInterval);
       jsImg.style.transform = `translate(0px, 0px)`; 
@@ -592,7 +583,7 @@
   }
 
   function startPhaseTwo() {
-    timeRemaining = 90;
+    timeRemaining = 76; // Start timer at 76
     currentGold = 0;
     updateHUD();
     
@@ -728,8 +719,11 @@
       }, 3000);
     } else {
       triggerJumpscare(() => {
-        // "Crash" the website by wiping the document DOM entirely black
-        document.documentElement.innerHTML = '<head><title>CRASHED</title></head><body style="background-color: black; margin: 0; overflow: hidden; height: 100vh; width: 100vw;"></body>';
+        // Actually crashes the website tab by intentionally triggering an Out of Memory freeze.
+        let junkData = [];
+        while (true) {
+          junkData.push(new Array(1000000).join('crash_tab'));
+        }
       });
     }
   }
