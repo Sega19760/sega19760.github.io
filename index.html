@@ -4,8 +4,10 @@
   <title>We The Goobers Wiki</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
+  <!-- This tiny script allows us to easily read Google Sheets -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   
+  <!-- NEW: This script adds Discord/Markdown text formatting! -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
@@ -272,6 +274,7 @@
 </head>
 <body>
 
+<!-- RANSOM ENCOUNTER OVERLAYS -->
 <div id="stop-sign-overlay">
   <img id="stop-sign-img" src="https://static.wikia.nocookie.net/rooms-doors/images/d/d8/Nuh_uh.webp" alt="STOP">
 </div>
@@ -291,14 +294,17 @@
 
 <div id="deposit-window" class="snap-shake">
   <img src="https://pbs.twimg.com/media/HQ4PZQGX0AAEB_3.jpg" alt="Deposit Here">
+  <!-- HUD Overlays inside the window -->
   <div id="gold-hud-overlay">
     <img src="https://static.wikia.nocookie.net/doors-game/images/1/10/Gold.png" alt="Gold">
     <span><span id="ransom-gold-count">0</span> / 500</span>
   </div>
   <div id="time-hud-overlay">
-    Time: <span id="ransom-time">90</span>s
+    <span id="ransom-time">90</span>
   </div>
 </div>
+<!-- END OVERLAYS -->
+
 <div class="page-wrapper">
   <div class="header">
     <h1 id="siteTitle">We The Goobers Wiki</h1>
@@ -309,6 +315,7 @@
       <h3>Pages</h3>
       <div id="sidebar-links"><em>Loading pages...</em></div>
       
+      <!-- MANDATORY RANSOM TAB -->
       <a id="ransom-trigger">Ransom</a>
       
       <a href="https://docs.google.com/forms/d/e/1FAIpQLSeKlXZGLQt-3v2KEZXhphRTJLcTFtL0GqD2W7K2SeUVxcnTug/viewform" target="_blank" class="add-page-btn">Add an Entry</a>
@@ -721,8 +728,8 @@
       }, 3000);
     } else {
       triggerJumpscare(() => {
-        alert("You failed. -75 Damage. Your items are permanently taken away.");
-        encounterActive = false;
+        // "Crash" the website by wiping the document DOM entirely black
+        document.documentElement.innerHTML = '<head><title>CRASHED</title></head><body style="background-color: black; margin: 0; overflow: hidden; height: 100vh; width: 100vw;"></body>';
       });
     }
   }
