@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Message to ESP32</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; background-color: #222; color: white; margin-top: 50px; }
+        input[type=text] { padding: 12px; width: 80%; max-width: 300px; border-radius: 5px; border: none; font-size: 16px; }
+        button { padding: 12px 24px; background-color: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 15px; font-weight: bold; }
+        #status { margin-top: 20px; font-size: 14px; color: #aaa; }
+    </style>
+</head>
+<body>
+
+    <h2>Send a Message</h2>
+    <input type="text" id="messageBox" placeholder="Type your message..." autocomplete="off">
+    <br>
+    <button onclick="sendMessage()" id="sendBtn">Send to Screen</button>
+    <div id="status">Connecting to broker...</div>
+
+    <script>
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const port = protocol === 'wss' ? 8084 : 8083; 
+        
+        const brokerUrl = `${protocol}://broker.emqx.io:${port}/mqtt`;
+        const client = mqtt.connect(brokerUrl);
+
+        // MUST MATCH THE TOPIC IN YOUR ESP32 CODE EXACTLY
+        const mqttTopic = "my_custom_screen/random_string_8932/messages"; 
+
+        client.on('connect', function () {
+            document.getElementById('status').innerText = "Connected to Cloud. Ready to send.";
+            document.getElementById('status').style.color = "#4CAF50";
+        });
+
+        client.on('error', function (err) {
+            document.getElementById('status').innerText = "Connection error!";
+            document.getElementById('status').style.color = "#F44336";
+        });
+
+        function sendMessage() {
+            const msg = document.getElementById('messageBox').value;
+            if (msg.trim() === "") return;
+
+            client.publish(mqttTopic, msg);
+
+            document.getElementById('messageBox').value = "";
+            document.getElementById('status').innerText = "Message sent successfully!";
+            
+            setTimeout(() => {
+                document.getElementById('status').innerText = "Connected to Cloud. Ready to send.";
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
