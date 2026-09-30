@@ -360,7 +360,7 @@
             const font = document.getElementById('fontSelect').value;
 
             // Package it for ESP32
-            const payload = `\({tc},\){bc},\({font},\){msg}`;
+            const payload = tc + "," + bc + "," + font + "," + msg;
 
             client.publish(mqttTopic, payload);
             addToLog(msg, tc, bc, font);
