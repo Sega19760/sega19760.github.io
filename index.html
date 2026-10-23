@@ -1,17 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>We The Goobers Wiki</title>
+  <title>We The Goobers Wiki - Service Down</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- This tiny script allows us to easily read Google Sheets -->
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  
-  <!-- NEW: This script adds Discord/Markdown text formatting! -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
-    /* Basic, classic web typography */
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
@@ -19,8 +15,8 @@
       background-color: #111;
       background-size: cover;
       background-position: center;
-      background-attachment: fixed; 
-      transition: background-image 0.5s ease-in-out; 
+      background-attachment: fixed;
+      transition: background-image 0.5s ease-in-out;
     }
 
     .page-wrapper {
@@ -28,6 +24,23 @@
       min-height: 100vh;
       padding: 20px;
       box-sizing: border-box;
+    }
+
+    .down-strip {
+      max-width: 1000px;
+      margin: 0 auto 15px auto;
+      background-color: #b30000;
+      border: 2px solid #ff6666;
+      padding: 8px 12px;
+      font-weight: bold;
+      text-align: center;
+      letter-spacing: 1px;
+      font-size: 14px;
+      animation: strip-blink 1.6s steps(1) infinite;
+    }
+    @keyframes strip-blink {
+      0%, 60% { background-color: #b30000; }
+      61%, 100% { background-color: #7a0000; }
     }
 
     .header {
@@ -48,7 +61,7 @@
       display: flex;
       gap: 20px;
       max-width: 1000px;
-      margin: 0 auto; 
+      margin: 0 auto;
     }
 
     .sidebar {
@@ -68,7 +81,7 @@
       display: block;
       color: #66b3ff;
       margin: 10px 0;
-      text-decoration: underline; 
+      text-decoration: underline;
       cursor: pointer;
       font-size: 16px;
     }
@@ -78,7 +91,14 @@
       background-color: rgba(255, 255, 255, 0.1);
     }
 
-    /* The Add Page Button */
+    .sidebar a.offline-locked {
+      color: #cc6666;
+    }
+
+    .sidebar a.offline-ok {
+      color: #72ff72;
+    }
+
     .add-page-btn {
       color: #72ff72 !important;
       font-weight: bold;
@@ -92,9 +112,9 @@
       background-color: rgba(40, 40, 40, 0.9);
       padding: 20px;
       border: 1px solid #666;
-      transition: background-color 0.4s; 
-      position: relative; /* Allows gold to be positioned inside */
-      overflow: hidden; /* Keeps scattered gold from overflowing page borders */
+      transition: background-color 0.4s;
+      position: relative;
+      overflow: hidden;
     }
 
     .content h2 {
@@ -116,144 +136,111 @@
     #article img {
       max-width: 100%;
       height: auto;
-      border: 2px solid #fff; 
+      border: 2px solid #fff;
       margin: 15px 0;
       display: block;
     }
 
     #article img.wiki-landscape {
       float: right;
-      max-width: 45%; 
-      margin: 5px 0 15px 20px; 
+      max-width: 45%;
+      margin: 5px 0 15px 20px;
     }
 
-    /* --- RANSOM EVENT STYLES --- */
-    #stop-sign-overlay, #jumpscare-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      z-index: 10000;
-      background-color: black;
-      justify-content: center;
-      align-items: center;
-    }
-
-    #jumpscare-overlay img {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-    }
-
-    /* DOWNLOAD PHASE STYLES */
-    #download-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      z-index: 9999;
-      background-color: red;
-      overflow: hidden;
-    }
-
-    .bg-stop-sign {
-      position: absolute;
-      width: 350px; 
-      opacity: 0.8;
-      pointer-events: none;
-    }
-
-    #download-ui {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 10001;
+    .down-notice {
+      background-color: rgba(60, 0, 0, 0.95);
+      border: 3px solid #ff3333;
+      padding: 18px 20px;
+      margin-bottom: 20px;
       text-align: center;
-      background: rgba(0,0,0,0.9);
-      padding: 30px;
-      border: 4px solid black;
     }
-
-    #download-ui h1 {
-      color: white;
-      margin-top: 0;
+    .down-notice .down-code {
       font-family: monospace;
-      font-size: 32px;
+      font-size: 56px;
+      font-weight: bold;
+      color: #ff4444;
+      margin: 0;
+      line-height: 1;
+    }
+    .down-notice h3 {
+      margin: 8px 0 6px 0;
+      font-size: 24px;
       letter-spacing: 2px;
-    }
-
-    .progress-bar-bg {
-      width: 400px;
-      height: 40px;
-      background: #222;
-      border: 3px solid white;
-      position: relative;
-    }
-
-    .progress-bar-fill {
-      width: 0%;
-      height: 100%;
-      background: lime;
-      transition: width 1s linear; 
-    }
-
-    .ransom-gold {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-      cursor: grab;
-      z-index: 9998;
-    }
-    .ransom-gold:active {
-      cursor: grabbing;
-    }
-
-    /* THE DEPOSIT WINDOW AND HUD OVERLAYS */
-    #deposit-window {
-      display: none;
-      position: fixed;
-      width: 400px; 
-      height: auto; 
-      z-index: 9997;
-      background-color: transparent;
-      box-shadow: 0 0 15px rgba(0,0,0,0.8);
-    }
-    #deposit-window > img {
-      width: 100%;
-      height: auto;
-      pointer-events: none;
-      display: block; 
-    }
-
-    #gold-hud-overlay {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      background: red;
       color: white;
-      border: 2px solid white;
+    }
+    .down-notice p {
+      margin: 6px 0;
+      color: #ffcccc;
+    }
+    .down-notice table {
+      margin: 14px auto 8px auto;
+      border-collapse: collapse;
+      font-family: monospace;
+      font-size: 14px;
+      text-align: left;
+      max-width: 100%;
+    }
+    .down-notice td {
+      border: 1px solid #aa3333;
       padding: 5px 10px;
-      font-size: 20px;
+    }
+    .down-notice td:first-child {
+      color: #ff9999;
+    }
+    .status-down {
+      color: #ff4444;
       font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      pointer-events: none; 
     }
-    #gold-hud-overlay img {
-      width: 30px;
-      height: 30px;
+    .status-wait {
+      color: #ffd24d;
     }
-
-    #time-hud-overlay {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      background: red;
+    .status-ok {
+      color: #72ff72;
+      font-weight: bold;
+    }
+    .retry-btn {
+      margin-top: 10px;
+      background: #222;
       color: white;
       border: 2px solid white;
-      padding: 8px 12px;
-      font-size: 20px;
-      font-weight: bold;
-      pointer-events: none;
+      padding: 8px 18px;
+      font-size: 15px;
+      font-family: Arial, Helvetica, sans-serif;
+      cursor: pointer;
+    }
+    .retry-btn:hover {
+      background: #444;
+    }
+    .retry-msg {
+      font-family: monospace;
+      font-size: 13px;
+      color: #ffd24d;
+      min-height: 18px;
+      margin-top: 8px;
+    }
+
+    .offline-note {
+      background-color: rgba(60, 40, 0, 0.9);
+      border: 2px solid #ffd24d;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #ffe9a8;
+    }
+
+    .preserved-label {
+      font-family: monospace;
+      font-size: 12px;
+      color: #aaa;
+      border-top: 1px dashed #777;
+      padding-top: 8px;
+      margin-bottom: 12px;
+    }
+
+    .empty-page {
+      color: #999;
+      font-style: italic;
     }
 
     @media (max-width: 700px) {
@@ -264,48 +251,16 @@
         max-width: 100%;
         margin: 15px 0;
       }
-      .progress-bar-bg { width: 250px; }
-      #deposit-window { width: 300px; }
-      
-      #gold-hud-overlay, #time-hud-overlay { font-size: 16px; padding: 5px; }
-      #gold-hud-overlay img { width: 20px; height: 20px; }
+      .down-notice .down-code { font-size: 40px; }
+      .down-notice h3 { font-size: 18px; }
     }
   </style>
 </head>
 <body>
 
-<!-- RANSOM ENCOUNTER OVERLAYS -->
-<div id="stop-sign-overlay">
-  <img id="stop-sign-img" src="https://static.wikia.nocookie.net/rooms-doors/images/d/d8/Nuh_uh.webp" alt="STOP">
-</div>
-
-<div id="jumpscare-overlay">
-  <img id="jumpscare-img" src="https://static.wikia.nocookie.net/villains/images/b/b3/A90jumpscare.png" alt="SCREAM">
-</div>
-
-<div id="download-overlay">
-  <div id="download-ui">
-    <h1>DOWNLOADING...</h1>
-    <div class="progress-bar-bg">
-      <div class="progress-bar-fill" id="download-bar"></div>
-    </div>
-  </div>
-</div>
-
-<div id="deposit-window" class="snap-shake">
-  <img src="https://pbs.twimg.com/media/HQ4PZQGX0AAEB_3.jpg" alt="Deposit Here">
-  <!-- HUD Overlays inside the window -->
-  <div id="gold-hud-overlay">
-    <img src="https://static.wikia.nocookie.net/doors-game/images/1/10/Gold.png" alt="Gold">
-    <span><span id="ransom-gold-count">0</span> / 500</span>
-  </div>
-  <div id="time-hud-overlay">
-    <span id="ransom-time">76</span>
-  </div>
-</div>
-<!-- END OVERLAYS -->
-
 <div class="page-wrapper">
+  <div class="down-strip">&#9888; SERVICE DOWN &mdash; WIKI OFFLINE DUE TO A SECURITY INCIDENT (PHP EXPLOIT) &#9888;</div>
+
   <div class="header">
     <h1 id="siteTitle">We The Goobers Wiki</h1>
   </div>
@@ -314,25 +269,29 @@
     <div class="sidebar" id="sidebar-container">
       <h3>Pages</h3>
       <div id="sidebar-links"><em>Loading pages...</em></div>
-      
-      <!-- MANDATORY RANSOM TAB -->
-      <a id="ransom-trigger">Ransom</a>
-      
+
       <a href="https://docs.google.com/forms/d/e/1FAIpQLSeKlXZGLQt-3v2KEZXhphRTJLcTFtL0GqD2W7K2SeUVxcnTug/viewform" target="_blank" class="add-page-btn">Add an Entry</a>
     </div>
-    
+
     <div class="content" id="contentBox">
       <h2 id="pageTitle">Main Page</h2>
-      <div id="article">Welcome to the wiki. Give it a second to load the database!</div>
+      <div id="article"></div>
     </div>
   </div>
 </div>
 
 <script>
   const sheetCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtwIy6NJ4c_8K6dYpcR_mF0GCC4uvhVXaISv-76QNvNZ7DxcZutJiaDuw2BPQE19xtqG2Cybg87z50/pub?output=csv";
-  
+
+  // The ONLY pages that still work while the site is down (Page IDs)
+  const OFFLINE_PAGES = ["toby", "oofer", "pak_attak"];
+
+  function isAvailableOffline(pageId) {
+    return OFFLINE_PAGES.includes(String(pageId).trim().toLowerCase());
+  }
+
   let pages = {};
-  let currentPageId = null; 
+  let currentPageId = null;
 
   const sidebarLinksDiv = document.getElementById("sidebar-links");
   const articleDiv = document.getElementById("article");
@@ -340,54 +299,39 @@
   const siteTitle = document.getElementById("siteTitle");
   const contentBox = document.getElementById("contentBox");
 
+  const DEFAULT_COLOR = "rgba(40, 40, 40, 0.9)";
+
   marked.use({ breaks: true, gfm: true });
 
-  Papa.parse(sheetCSV, {
-    download: true,
-    header: true,
-    complete: function(results) {
-      const data = results.data;
-      sidebarLinksDiv.innerHTML = ""; 
+  function buildDownNotice(pageName) {
+    return `
+      <div class="down-notice">
+        <p class="down-code">503</p>
+        <h3>WEBSITE DOWN</h3>
+        <p>This wiki has been taken offline after a PHP vulnerability was exploited on the server. (we dont even use PHP)</p>
+        <p>The database is being checked and cleaned. Only a few pages are still reachable.</p>
+        <table>
+          <tr><td>Page</td><td>${pageName}</td></tr>
+          <tr><td>Server status</td><td class="status-down">OFFLINE</td></tr>
+          <tr><td>Cause</td><td>PHP exploit / unauthorized access</td></tr>
+        </table>
+        <button class="retry-btn" onclick="retryConnection(this)">Try again</button>
+        <div class="retry-msg"></div>
+      </div>`;
+  }
 
-      data.forEach(row => {
-        if (!row["Page ID"]) return; 
-        
-        pages[row["Page ID"]] = {
-          title: row["Title"],
-          content: row["Content"],
-          banner: row["Banner URL"],
-          color: row["Color"] || "rgba(40, 40, 40, 0.9)" 
-        };
+  function retryConnection(btn) {
+    const msg = btn.parentElement.querySelector(".retry-msg");
+    btn.disabled = true;
+    msg.textContent = "Connecting to server...";
+    setTimeout(() => {
+      msg.textContent = "Error 503: server is still down. Please try again later.";
+      btn.disabled = false;
+    }, 1500);
+  }
 
-        const link = document.createElement("a");
-        link.textContent = row["Title"];
-        link.onclick = () => loadPage(row["Page ID"]);
-        sidebarLinksDiv.appendChild(link);
-      });
-      articleDiv.innerHTML = "Database connected! Click a page on the left.";
-    },
-    error: function(err) {
-      sidebarLinksDiv.innerHTML = "Failed to load database.";
-    }
-  });
-
-  function loadPage(key) {
-    currentPageId = key;
-    const page = pages[key];
-    
-    if (page.banner && page.banner.toLowerCase() !== "none") {
-      document.body.style.backgroundImage = `url("${page.banner}")`;
-    } else {
-      document.body.style.backgroundImage = `none`;
-    }
-
-    contentBox.style.backgroundColor = page.color;
-    pageTitle.textContent = page.title;
-    siteTitle.textContent = "We The Goobers Wiki - " + page.title;
-    articleDiv.innerHTML = marked.parse(page.content);
-
-    const images = articleDiv.querySelectorAll("img");
-    images.forEach(img => {
+  function fixImages() {
+    articleDiv.querySelectorAll("img").forEach(img => {
       const checkImageShape = () => {
         if (img.naturalWidth > img.naturalHeight) {
           img.classList.add("wiki-landscape");
@@ -399,335 +343,88 @@
         img.onload = checkImageShape;
       }
     });
-
-    // Clear old gold first to prevent stacking
-    document.querySelectorAll('.ransom-gold').forEach(el => el.remove());
-
-    // If Ransom is active, there's a chance gold is on this new page!
-    if (encounterActive) {
-      spawnGoldForPage(key);
-    }
   }
 
-  // --- RANSOM ENCOUNTER LOGIC ---
-  let encounterActive = false;
-  let stopTimeout;
-  let timeRemaining = 76; // Timer synced to 76 seconds
-  let currentGold = 0;
-  let timerInterval;
-  let windowMoveInterval;
-  let jumpShakeInterval;
-  let uncollectedGoldPages = []; 
-
-  const originalBackground = document.body.style.backgroundImage;
-  const soundtrack = new Audio("https://static.wikia.nocookie.net/villains/images/5/5d/DOORS_THE_ARCHIVES_SOUNDTRACK_-_RANSOMWARE.mp3");
-  soundtrack.loop = true;
-  
-  const stopSignSound = new Audio("https://files.catbox.moe/m48pwm.wav");
-  const dropSound = new Audio("https://files.catbox.moe/54dn7w.wav");
-  const jumpscareSound = new Audio("https://files.catbox.moe/5kvwlu.wav");
-
-  // Pure JavaScript Snap-Shake Logic
-  let shakeTick = 0;
-  setInterval(() => {
-    const shakers = document.querySelectorAll('.snap-shake');
-    const positions = [
-      {x: 0, y: 0},
-      {x: 12, y: -12},
-      {x: -12, y: 0},
-      {x: 12, y: 12}
-    ];
-    const pos = positions[shakeTick % positions.length];
-    
-    shakers.forEach(el => {
-      el.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
-    });
-    shakeTick++;
-  }, 250); 
-
-  document.getElementById('ransom-trigger').addEventListener('click', () => {
-    if(encounterActive) return;
-    encounterActive = true;
-    startPhaseOne();
-  });
-
-  function startPhaseOne() {
-    const stopOverlay = document.getElementById('stop-sign-overlay');
-    const stopImg = document.getElementById('stop-sign-img');
-    
-    stopImg.src = "https://static.wikia.nocookie.net/rooms-doors/images/d/d8/Nuh_uh.webp"; 
-    stopOverlay.style.display = 'flex';
-    
-    stopSignSound.currentTime = 0;
-    stopSignSound.play().catch(e => console.log(e));
-
-    let isStopSign = true;
-
-    setTimeout(() => {
-      let failed = false;
-      let lastFlicker = Date.now();
-
-      const triggerFailKey = (e) => triggerFail();
-
-      const triggerFailMouse = (e) => {
-        if (failed) return;
-        
-        const speed = Math.sqrt(e.movementX * e.movementX + e.movementY * e.movementY);
-
-        if (speed > 25) { 
-          triggerFail();
-        } else if (speed > 1) { 
-          if (Date.now() - lastFlicker > 100) {
-            isStopSign = !isStopSign;
-            stopImg.src = isStopSign 
-              ? "https://static.wikia.nocookie.net/rooms-doors/images/d/d8/Nuh_uh.webp" 
-              : "https://static.wikia.nocookie.net/villains/images/d/df/A-90IDLE.png";
-            lastFlicker = Date.now();
-          }
-        }
-      };
-
-      const triggerFail = () => {
-        if (failed) return;
-        failed = true;
-        clearTimeout(stopTimeout);
-        document.removeEventListener('mousemove', triggerFailMouse);
-        document.removeEventListener('keydown', triggerFailKey);
-        stopOverlay.style.display = 'none';
-        
-        triggerJumpscare(() => {
-          triggerDownloadSequence(() => {
-            startPhaseTwo();
-          });
-        });
-      };
-
-      document.addEventListener('mousemove', triggerFailMouse);
-      document.addEventListener('keydown', triggerFailKey);
-
-      stopTimeout = setTimeout(() => {
-        if (!failed) {
-          document.removeEventListener('mousemove', triggerFailMouse);
-          document.removeEventListener('keydown', triggerFailKey);
-          stopOverlay.style.display = 'none';
-          encounterActive = false;
-          alert("Ransom has left... for now.");
-        }
-      }, 3000);
-    }, 500);
+  // Main page: just the down notice
+  function renderMain() {
+    articleDiv.innerHTML =
+      buildDownNotice("Main Page") +
+      '<p>Only the pages marked in green on the left are available right now.</p>';
   }
 
-  function triggerJumpscare(callback) {
-    const jsOverlay = document.getElementById('jumpscare-overlay');
-    const jsImg = document.getElementById('jumpscare-img');
-    
-    jsImg.src = "https://static.wikia.nocookie.net/villains/images/b/b3/A90jumpscare.png";
-    jsOverlay.style.display = 'flex';
-    
-    jumpscareSound.currentTime = 0;
-    jumpscareSound.play().catch(e => console.log("Audio play prevented", e));
-
-    let jumpTick = 0;
-    jumpShakeInterval = setInterval(() => {
-      const positions = [
-        {x: 0, y: 0},
-        {x: -25, y: 25},
-        {x: 25, y: -25},
-        {x: -25, y: -25},
-        {x: 25, y: 25}
-      ];
-      const pos = positions[jumpTick % positions.length];
-      jsImg.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
-      jumpTick++;
-    }, 40);
-
-    setTimeout(() => {
-      jsImg.src = "https://raw.githubusercontent.com/Ixars/ransomdoors/main/Assets/static.gif";
-    }, 400);
-
-    setTimeout(() => {
-      clearInterval(jumpShakeInterval);
-      jsImg.style.transform = `translate(0px, 0px)`; 
-      jsOverlay.style.display = 'none';
-      if(callback) callback();
-    }, 1000);
+  // Blocked page: down notice only, no content
+  function renderBlocked(pageName) {
+    articleDiv.innerHTML =
+      buildDownNotice(pageName) +
+      '<p class="empty-page">This page is unavailable while the site is down.</p>';
   }
 
-  function triggerDownloadSequence(callback) {
-    const downloadOverlay = document.getElementById('download-overlay');
-    const progressBar = document.getElementById('download-bar');
-    
-    downloadOverlay.style.display = 'block';
-    progressBar.style.width = '0%';
-    
-    for (let i = 0; i < 15; i++) {
-      let bgSign = document.createElement('img');
-      bgSign.src = "https://static.wikia.nocookie.net/rooms-doors/images/d/d8/Nuh_uh.webp";
-      bgSign.className = "bg-stop-sign snap-shake";
-      bgSign.style.top = Math.random() * 90 + "%";
-      bgSign.style.left = Math.random() * 90 + "%";
-      downloadOverlay.appendChild(bgSign);
-    }
-    
-    setTimeout(() => {
-      progressBar.style.width = '100%';
-    }, 50);
+  // Allowed page: real content
+  function renderAllowed(pageName, markdownContent) {
+    const hasContent = markdownContent && markdownContent.trim() !== "";
+    const body = hasContent
+      ? marked.parse(markdownContent)
+      : '<p class="empty-page">This page has no content yet.</p>';
 
-    setTimeout(() => {
-      downloadOverlay.style.display = 'none';
-      const bgSigns = document.querySelectorAll('.bg-stop-sign');
-      bgSigns.forEach(el => el.remove());
-      
-      if(callback) callback();
-    }, 1000);
+    articleDiv.innerHTML =
+      '<div class="offline-note">&#9888; The site is down. This page is one of the few still available offline.</div>' +
+      body;
+    fixImages();
   }
 
-  function startPhaseTwo() {
-    timeRemaining = 76; // Start timer at 76
-    currentGold = 0;
-    updateHUD();
-    
-    soundtrack.currentTime = 0;
-    soundtrack.play().catch(e => console.log("Audio play prevented", e));
+  renderMain();
 
-    document.body.style.backgroundImage = 'url("https://static.wikia.nocookie.net/villains/images/b/b3/A90jumpscare.png")';
+  Papa.parse(sheetCSV, {
+    download: true,
+    header: true,
+    complete: function(results) {
+      const data = results.data;
+      sidebarLinksDiv.innerHTML = "";
 
-    uncollectedGoldPages = [];
-    const allPageIds = Object.keys(pages);
-    if(allPageIds.length > 0) {
-      for(let i = 0; i < 5; i++) {
-        uncollectedGoldPages.push(allPageIds[Math.floor(Math.random() * allPageIds.length)]);
-      }
-    }
+      data.forEach(row => {
+        if (!row["Page ID"]) return;
 
-    if (currentPageId) {
-      spawnGoldForPage(currentPageId);
-    }
-    
-    const depositWindow = document.getElementById('deposit-window');
-    depositWindow.style.display = 'block';
-    relocateDepositWindow();
+        const id = row["Page ID"];
+        pages[id] = {
+          title: row["Title"],
+          content: row["Content"],
+          banner: row["Banner URL"],
+          color: row["Color"] || DEFAULT_COLOR
+        };
 
-    timerInterval = setInterval(() => {
-      timeRemaining--;
-      updateHUD();
-      if (timeRemaining <= 0) {
-        endEncounter(false);
-      }
-    }, 1000);
-
-    windowMoveInterval = setInterval(relocateDepositWindow, 15000);
-  }
-
-  function spawnGoldForPage(pageId) {
-    if (!pageId) return;
-
-    const contentArea = document.getElementById('contentBox');
-    const goldCount = uncollectedGoldPages.filter(id => id === pageId).length;
-
-    for(let i = 0; i < goldCount; i++) {
-      let gold = document.createElement('img');
-      gold.src = "https://static.wikia.nocookie.net/doors-game/images/1/10/Gold.png";
-      
-      gold.className = 'ransom-gold'; 
-      gold.draggable = true;
-      gold.setAttribute('data-page-id', pageId);
-      
-      gold.style.top = Math.floor(Math.random() * 70 + 15) + '%';
-      gold.style.left = Math.floor(Math.random() * 70 + 15) + '%';
-      
-      gold.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', 'gold');
-        gold.classList.add('dragging');
+        const link = document.createElement("a");
+        link.textContent = row["Title"];
+        link.className = isAvailableOffline(id) ? "offline-ok" : "offline-locked";
+        link.onclick = () => loadPage(id);
+        sidebarLinksDiv.appendChild(link);
       });
-      
-      gold.addEventListener('dragend', () => {
-        gold.classList.remove('dragging');
-      });
-
-      contentArea.appendChild(gold);
-    }
-  }
-
-  function relocateDepositWindow() {
-    const depWindow = document.getElementById('deposit-window');
-    const maxX = window.innerWidth - 400; 
-    const maxY = window.innerHeight - 300; 
-    
-    const randomX = Math.floor(Math.random() * maxX);
-    const randomY = Math.floor(Math.random() * maxY);
-    
-    depWindow.style.left = Math.max(0, randomX) + 'px';
-    depWindow.style.top = Math.max(0, randomY) + 'px';
-  }
-
-  const depositWindow = document.getElementById('deposit-window');
-  depositWindow.addEventListener('dragover', (e) => {
-    e.preventDefault(); 
-  });
-
-  depositWindow.addEventListener('drop', (e) => {
-    e.preventDefault();
-    const draggingGold = document.querySelector('.dragging');
-    if (draggingGold) {
-      const pId = draggingGold.getAttribute('data-page-id');
-      if (pId) {
-        const idx = uncollectedGoldPages.indexOf(pId);
-        if (idx > -1) uncollectedGoldPages.splice(idx, 1);
-      }
-
-      draggingGold.remove();
-      currentGold += 100;
-      updateHUD();
-      
-      dropSound.currentTime = 0;
-      dropSound.play().catch(e => console.log(e));
-      
-      if (currentGold >= 500) {
-        endEncounter(true);
-      }
+    },
+    error: function(err) {
+      sidebarLinksDiv.innerHTML = "Failed to load database.";
     }
   });
 
-  function updateHUD() {
-    document.getElementById('ransom-time').innerText = timeRemaining;
-    document.getElementById('ransom-gold-count').innerText = currentGold;
-  }
+  function loadPage(key) {
+    currentPageId = key;
+    const page = pages[key];
 
-  function endEncounter(won) {
-    clearInterval(timerInterval);
-    clearInterval(windowMoveInterval);
-    uncollectedGoldPages = []; 
-    
-    soundtrack.pause();
-    soundtrack.currentTime = 0;
-    
-    document.getElementById('deposit-window').style.display = 'none';
-    document.body.style.backgroundImage = originalBackground;
-    
-    document.querySelectorAll('.ransom-gold').forEach(el => el.remove());
+    pageTitle.textContent = page.title;
+    siteTitle.textContent = "We The Goobers Wiki - " + page.title;
 
-    if (won) {
-      const thankYou = document.createElement('img');
-      thankYou.src = "https://files.catbox.moe/hxwy2m.png";
-      thankYou.style = "position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:10000; max-width:90vw; max-height:90vh;";
-      document.body.appendChild(thankYou);
-      
-      setTimeout(() => {
-        thankYou.remove();
-        encounterActive = false;
-      }, 3000);
+    if (isAvailableOffline(key)) {
+      if (page.banner && page.banner.toLowerCase() !== "none") {
+        document.body.style.backgroundImage = `url("${page.banner}")`;
+      } else {
+        document.body.style.backgroundImage = `none`;
+      }
+      contentBox.style.backgroundColor = page.color;
+      renderAllowed(page.title, page.content);
     } else {
-      triggerJumpscare(() => {
-        // Actually crashes the website tab by intentionally triggering an Out of Memory freeze.
-        let junkData = [];
-        while (true) {
-          junkData.push(new Array(1000000).join('crash_tab'));
-        }
-      });
+      document.body.style.backgroundImage = `none`;
+      contentBox.style.backgroundColor = DEFAULT_COLOR;
+      renderBlocked(page.title);
     }
   }
-
 </script>
 
 </body>
