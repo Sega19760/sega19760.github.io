@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Asylum - Loading Screen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #153f61;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Faithful Item Asylum / Roblox RobotoMono splash text styling */
+        .ia-splash-text {
+            font-family: 'Roboto Mono', 'Courier New', monospace;
+            font-weight: 400;
+            font-size: 16.5px;
+            color: #ffffff;
+            letter-spacing: 0.04em;
+            line-height: 1.35;
+            margin: 0;
+            text-shadow:
+                0px 1px 2px rgba(0, 0, 0, 0.65),
+                -1px -1px 0 rgba(9, 26, 42, 0.75),
+                 1px -1px 0 rgba(9, 26, 42, 0.75),
+                -1px  1px 0 rgba(9, 26, 42, 0.75),
+                 1px  1px 0 rgba(9, 26, 42, 0.75);
+        }
+
+        /* Continuous slow clockwise spin (~40 deg/s = 9s per full turn) */
+        @keyframes spinSlow {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinning-guy {
+            width: 31px;
+            height: 31px;
+            animation: spinSlow 9s linear infinite;
+            will-change: transform;
+        }
+    </style>
+</head>
+<body class="relative w-screen h-screen overflow-hidden cursor-pointer" title="Click or press Spacebar for a new tip">
+
+    <!-- 1. Background Repeating IA Tile Canvas (Moves at 30 px/s) -->
+    <canvas id="patternCanvas" class="block w-full h-full"></canvas>
+
+    <!-- 2. Faithful Original Loading Screen Centerpiece Layout -->
+    <main class="pointer-events-none fixed inset-0 z-10 flex flex-col items-center justify-center" style="padding-bottom: 1.5vh;">
+        
+        <!-- Direct Transparent PNG "IA" Emblem -->
+        <img 
+            src="image_629798.png" 
+            alt="IA" 
+            class="block w-[138px] h-auto select-none"
+            draggable="false"
+        />
+
+        <!-- Flavour Text (24px below emblem, 42px above spinning :> guy) -->
+        <div class="w-[92vw] max-w-[1200px] text-center px-4" style="margin-top: 24px; margin-bottom: 42px;">
+            <p id="flavorTextDisplay" class="ia-splash-text">
+                Item Asylum was originally going to be called 'Jean's Randomizer'!
+            </p>
+        </div>
+
+        <!-- Slowly Spinning ":>" Square Guy -->
+        <div class="spinning-guy">
+            <svg viewBox="0 0 32 32" class="w-full h-full block overflow-visible" shape-rendering="geometricPrecision">
+                <!-- Sharp dark navy border and medium-dark slate blue fill -->
+                <rect x="0.8" y="0.8" width="30.4" height="30.4" fill="#1e4d74" stroke="#0b2033" stroke-width="1.6" />
+                <!-- Top dot of ':' -->
+                <rect x="8.2" y="10.2" width="2.4" height="2.4" rx="0.4" fill="#8ad2ff" />
+                <!-- Bottom dot of ':' -->
+                <rect x="8.2" y="18.8" width="2.4" height="2.4" rx="0.4" fill="#8ad2ff" />
+                <!-- Crisp '>' chevron -->
+                <polyline 
+                    points="14.5,10.2 22.8,15.7 14.5,21.2" 
+                    fill="none" 
+                    stroke="#8ad2ff" 
+                    stroke-width="2.1" 
+                    stroke-linecap="square" 
+                    stroke-linejoin="miter" 
+                />
+            </svg>
+        </div>
+
+    </main>
+
+    <script>
+        (function() {
+            // =========================================================================
+            // 1. ALL 148 FLAVOUR TEXTS (Useful Tips, Fun Facts, Useless Tips)
+            // =========================================================================
+            const FLAVOR_TEXTS = [
+                // Useful Tips
+                "Beware of edges!",
+                "Keep track of your lives in boss stages, running out of lives will eliminate you!",
+                "Hitting someone while in midair with the hook kick deals a critical hit!",
+                "Some maps allow players to get environmental kills.",
+                "Some items have secret upgrades after getting a certain amount of kills with it!",
+                "Combat Dummies are great for testing weapon combos!",
+                "The Franklin Badge is capable of reflecting electric based weapons such as the Death Note!",
+                "The Nut has a small chance to become an explodo-nut when thrown!",
+                "Beware of the team autobalance...",
+                "Don't backfire the certain spell...",
+                "The Amulet of the White King grants you 8 additional lives, as long as you don't touch anything that guarentees your death.",
+                "The wish vest can give you up to 100 additional max health points!",
+                "The Masamune can save you from death, but only once!",
+                "Consume 10 bodies with Smile grants you the ability to merge!",
+                "The fortnite card can reward you with anything from a Miscellaneous item to an Unobtainable item!",
+                "If you increase your fortitude enough with a big rock, you can gain up to 150 additional max health points!",
+                "Teammates are crucial for surviving zombie apocalypses, save them whenever you can!",
+                "The fire axe can deal more damage if you hit their head!",
+                "In TC, the Attacker's capture rate increases depending on the amount of Attackers on it!",
+                "In TC, Attacker's can create teleporters, shortening their time to get to the statue! However, Defenders can disable them!",
+                "Everyone under the effects of a Pact will be rewarded kills!",
+                "In TDM, Pacting a teamate can reward your team two kills instead of one!",
+                "The Red Mist Vertical Split doesn't need EGO to use!",
+                "Hale's Critical recharges faster if you land the swing!",
+                "Super Jump Punch has a sweet spot that deals massive damage and knockback!",
+                "You can escape Snatchers by hitting their tongue with a melee!",
+                "In Team-based gamemodes, stick with your team when possible! The higher the Numbers, the better you can overcome your target!",
+                "The Runner's Glove allows you to Climb Walls, Vault over small Obstacles, and Longjump off edges!",
+                "Using Dunk from a higher place deals more damage!",
+                "The Hero Blade has 5 unique variants, each with its own different Critical Attack!",
+                "The Red Mist's Onrush can go again if you land a killing blow with it!",
+                "Armstrong Style's specials requires a series of Inputs to use! Try RER, EER, and EERR!",
+                "The Your Eternal Reward deals major damage if you land a backstab on the as well as disguises you into them!",
+                "The Yamato is capable of doing a perfect judgement cut if you press R when the sheath flashes!",
+                "You can leech off of others' kills with Pact! But be careful, as if one perishes, everyone else does to..",
+                "Consuming too much Joy may result in unexpected result.",
+                "Weapons such as Vampire Knives, Femme Fatale, and Darkheart can lifesteal, increasing self sustainability!",
+                "Easy Lover can be used while in hitstun!",
+                "Virtuoso's Melody Orbs and Dream Harmony abilities can be used to heal teamates!",
+                "Using Bossraid while having Legion Kata will apply a random enchant",
+                "The Brutalizer can deal bonus damage and ragdolls your foes if you hit them in the head!",
+                "Sun on a Stick deals critical damage to those on fire!",
+                "Amateur Dentist's damages scales the more teeth you collect!",
+                "Krellis has a sweet spot at the spike, which deals bonus damage and applies ragdoll!",
+                "Blueprint lets you duplicate your previously held item!",
+                "In MU, Clues are highlighted in Green! Getting five clues rewards you with a gun as an Innocent!",
+                "Cleanse and Repent has a chance to collect souls upon a kill, granting you extra lives! This chance increases with Ultra Instinct equipped!",
+                "Player5's jumpscare ability deals more damage the further you charged! It also deals more damage on backstabs!",
+                "With Tanto, after landing Shadowrush, cling again will cause you to rush downwards!",
+                "With Tanto, Grapple can be used on opponents to pull them into the air, clicking while in mid air will cause you to perform an Owl Slash!",
+                "Mixamo Style's Stomp ability deals more damage to ragdolled opponents!",
+
+                // Fun Facts
+                "Item Asylum was originally going to be called 'Jean's Randomizer'!",
+                "Item Asylum was created on September 8, 2020.",
+                "boss_sage was the first boss to be added to Item Asylum!",
+                "The fish originally used to ragdoll players upon impact!",
+                "It's possible to obtain a stand through a gift card!",
+                "The Skateboard went through 3 animation changes!",
+                "The gamemode depends on the first half of the map's name EX: ffa_towny",
+                "The Chinalake will never get nerfed.",
+                "The snap plays a cool sound!",
+                "The oldest weapon in the game is the Micheal P! It's been causing ear problems for over a year!",
+                "There's a certain place where we don't mention his name...",
+                "All of the maps made by JeanRBLX have an underlining story!",
+                "Item Asylum was developed by a single team of 3 people!",
+                "The group that owns Item Asylum used to be the holder for a JoJo game!",
+                "The Splash Text that you're reading took 3 days to add as the owners kept forgetting!",
+                "The yo mama item used to send players flying like the wright!",
+                "The first actual map in the game was ffa_crossroads!",
+                "The first lobby in the game was lobby_Clonehigh!",
+                "The Energy Sword went through 5 animation edits before Jean was happy!",
+                "If you explored Item Asylum's ServerStorage enough, you could probably find gold!",
+                "There is a duck & toilet in the development area of Item Asylum that has been there since the first update!",
+                "Bosses can only appear in map voting after 5 rotations of different maps!",
+                "lobby_classic is a reference to our first lobby, before we had map voting or random lobbies!",
+                "WinDOS is a cult who believe technology will rule the world, and wants to force that agenda into reality!",
+                "The Rebellion is a 1000 year old faction who wants complete control over everything under Curro's power.",
+                "The Mercs are a mercenary faction who complete orders from others in exchange for a hefty payment!",
+                "The Sewers Dwellers are a faction who want to achieve peace in IA, by using voilence[sic] to achieve such.",
+                "ffa_ÿʌô¦Ñt is pronounced 'Yoint'!",
+                "Item Asylum's first known name was 'a fighting game'!",
+                "The RNG gamepass doesn't increase your chance of getting a good weapon!",
+                "The Uncertified are a rogue of faction composed of combat dummies, who plan to take over IA, and punish anyone who used combat dummies!",
+                "lobby_insert was suppose to have an outside, but Port forgot!",
+                "There is atleast one baseplate-themed map added every update!",
+                "crossroads was originally called 'crossroads_but_worse'!",
+                "In private servers, defeating a boss with \"The Perfect Run\" enabled may grant you a badge and unlocks an exclusive item!",
+
+                // Useless Tips
+                "The One-Winged Angel doesn't fall easily.",
+                "GARY LOVES YOU",
+                "You must Gangnam..... Like I have.",
+                "Phew good thing I'm purple!",
+                "Futures, made of, Virtual Insanity...!",
+                "56709",
+                "rule 439: no chinalake",
+                "You guys still remember the Jar ofNevermind...",
+                "I decided to put this message here because JeanRBLX is a noob lol - PortABoi",
+                "🎵",
+                "Beware la proxima creature.",
+                "Watch your back, before it fades to black.",
+                "Every game of Item Asylum is personalized...",
+                "Are you feeling the joy yet?",
+                "Obey Weegee, Destroy Mario!",
+                "[Content Deleted]",
+                "Protip: Don't Die!",
+                "ObrenTune was here...",
+                "Beware the man who speaks in hands...",
+                "Chi-chi-Chirumiru!",
+                "Also try Allusions and Allusions 2!",
+                "Also try Infinite Welfare!",
+                "Also try Bloody Battle!",
+                "Also try Randomizer and Randomizer Redux!",
+                "Also try Random Rumble!",
+                "The item asylum! The item asylum is real!",
+                "Anything for 4 IA coins...",
+                "🌳",
+                "1.",
+                "End",
+                "Dancing, Walking, Re-arranging furniture...!",
+                ":slughop:",
+                "Problem?",
+                "Siterior made like a ton of models in the game, and hes also like a noob or something lol",
+                "Bob my beloved ❤",
+                "Billy my beloved ❤",
+                "Shaun my beloved ❤",
+                "LEBWEE is super cool and swag lol -Jean",
+                "I decided to write this message here because PortABoi is an even bigger noob lol -Jean",
+                "🗿",
+                "Nothing happened on April 1st, 2023.",
+                "? you should start thinking about that",
+                "You've apparently been running Item Asylum nonstop for 553758221 seconds, or 153822 hours. That looks dubious to me. What do you think?",
+                "Are shotguns humane weapons of war? ❌❌❌ Is silly gas allowed? ✔️✔️✔️",
+                "YOU ARE NOT IMMUNE TO PROPAGANDA ⑨⑨⑨⑨⑨⑨⑨⑨⑨",
+                "🔥🔥🔥 💀 🔥🔥🔥",
+                "1337 ÷ 0",
+                "The next Item Asylum update is on [REDACTED]!",
+                "Do you like hurting other people?",
+                "It's a growing organism.",
+                "All it takes is one punch.",
+                "TO TAKE THE DEAD TO TAKE THE DEAD TO TAKE THE DEAD TO TAKE THE DEAD TO TAKE THE DEAD TO TAKE THE DEAD TO TAKE THE DEAD TO TAKE THE DEAD TO TAKE THE DEAD TO TAKE THE DEAD TO TAKE THE DEAD",
+                "THE END IS NEVER THE END IS NEVER THE END IS NEVER THE END IS NEVER THE END IS NEVER THE END IS NEVER THE END IS NEVER THE END IS NEVER THE END IS NEVER THE END IS NEVER THE END IS NEVER",
+                "Posers are not to be underestimated!",
+                "August 12 2036, The Heat Death of the universe.",
+                "Let's Play, Some SIlly Melee Test!",
+                "The Rotund Horse cannot be stopped.",
+                "mihawk on a rocketarena pillar at a slight height difference",
+                "ExpressTrainToHell? More like ExpressFartYoMama",
+                "Also try The Fine Game of Nil!",
+                "The Man Weaponry deal bonus damage towards each other!",
+                "You can thank Pluto for adding tons of awesome maps... and having five clones?"
+            ];
+
+            // =========================================================================
+            // 2. FAITHFUL ITEM ASYLUM BACKGROUND TILE ENGINE (30 PX/S)
+            // =========================================================================
+            const canvas = document.getElementById('patternCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Exact colors & scale sampled from image_630052.png
+            const TILE_SIZE = 228;
+            const MOVE_SPEED = 30; // Exactly 30 pixels per second
+            const BG_COLOR = '#153f61';
+            const BORDER_COLOR = '#204b6e';
+            const SHAPE_COLOR = '#1d486a';
+
+            let offsetX = 0;
+
+            const tileCanvas = document.createElement('canvas');
+            const tileCtx = tileCanvas.getContext('2d');
+
+            function buildSingleTile() {
+                const dpr = window.devicePixelRatio || 1;
+                tileCanvas.width = TILE_SIZE * dpr;
+                tileCanvas.height = TILE_SIZE * dpr;
+
+                tileCtx.save();
+                tileCtx.scale(dpr, dpr);
+
+                const s = TILE_SIZE / 200;
+                tileCtx.scale(s, s);
+
+                // 1. Base tile background fill (#153f61)
+                tileCtx.fillStyle = BG_COLOR;
+                tileCtx.fillRect(0, 0, 200, 200);
+
+                // 2. Outer grid line & inner square frame (#204b6e) with #153f61 gap between them
+                tileCtx.strokeStyle = BORDER_COLOR;
+                tileCtx.lineWidth = 2.2;
+                tileCtx.strokeRect(0, 0, 200, 200);
+
+                tileCtx.lineWidth = 3.0;
+                tileCtx.strokeRect(8.5, 8.5, 183, 183);
+
+                // 3. Geometric "IA" silhouette inside tile (#1d486a)
+                tileCtx.fillStyle = SHAPE_COLOR;
+
+                // Left tilted trapezoid 'I'
+                tileCtx.beginPath();
+                tileCtx.moveTo(23, 33);
+                tileCtx.lineTo(54, 30);
+                tileCtx.lineTo(79, 173);
+                tileCtx.lineTo(26, 177);
+                tileCtx.closePath();
+                tileCtx.fill();
+
+                // Right blocky 'A'
+                tileCtx.beginPath();
+                tileCtx.moveTo(117, 79);
+                tileCtx.lineTo(154, 79);
+                tileCtx.lineTo(183, 173);
+                tileCtx.lineTo(143, 178);
+                tileCtx.lineTo(140, 165);
+                tileCtx.lineTo(127, 165);
+                tileCtx.lineTo(124, 178);
+                tileCtx.lineTo(83, 172);
+                tileCtx.closePath();
+
+                // Inner triangular cutout of 'A'
+                tileCtx.moveTo(135, 108);
+                tileCtx.lineTo(124, 134);
+                tileCtx.lineTo(145, 134);
+                tileCtx.closePath();
+
+                tileCtx.fill('evenodd');
+                tileCtx.restore();
+            }
+
+            function resizeCanvas() {
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = window.innerWidth * dpr;
+                canvas.height = window.innerHeight * dpr;
+                buildSingleTile();
+            }
+
+            let lastTime = performance.now();
+            function animate(now) {
+                const dt = (now - lastTime) / 1000;
+                lastTime = now;
+
+                // Scroll smoothly at 30 px per second
+                offsetX -= MOVE_SPEED * dt;
+
+                const wrappedX = ((offsetX % TILE_SIZE) + TILE_SIZE) % TILE_SIZE;
+                // Align vertical tile grid with the screenshot
+                const fixedY = -58;
+                const wrappedY = ((fixedY % TILE_SIZE) + TILE_SIZE) % TILE_SIZE;
+
+                const dpr = window.devicePixelRatio || 1;
+                ctx.save();
+                ctx.scale(dpr, dpr);
+
+                const viewW = window.innerWidth;
+                const viewH = window.innerHeight;
+
+                for (let x = wrappedX - TILE_SIZE; x < viewW + TILE_SIZE; x += TILE_SIZE) {
+                    for (let y = wrappedY - TILE_SIZE; y < viewH + TILE_SIZE; y += TILE_SIZE) {
+                        ctx.drawImage(
+                            tileCanvas,
+                            0, 0, tileCanvas.width, tileCanvas.height,
+                            x, y, TILE_SIZE + 0.5, TILE_SIZE + 0.5
+                        );
+                    }
+                }
+
+                ctx.restore();
+                requestAnimationFrame(animate);
+            }
+
+            // =========================================================================
+            // 3. FLAVOUR TEXT CYCLING (Click, Keys, & Auto-Cycle Every 8s)
+            // =========================================================================
+            const flavorTextDisplay = document.getElementById('flavorTextDisplay');
+            let currentIndex = FLAVOR_TEXTS.indexOf("Item Asylum was originally going to be called 'Jean's Randomizer'!");
+            if (currentIndex === -1) currentIndex = 0;
+
+            let autoCycleTimer = null;
+
+            function resetAutoCycle() {
+                if (autoCycleTimer) clearInterval(autoCycleTimer);
+                autoCycleTimer = setInterval(showRandomTip, 8000);
+            }
+
+            function showRandomTip() {
+                let nextIndex;
+                do {
+                    nextIndex = Math.floor(Math.random() * FLAVOR_TEXTS.length);
+                } while (nextIndex === currentIndex && FLAVOR_TEXTS.length > 1);
+                currentIndex = nextIndex;
+                flavorTextDisplay.textContent = FLAVOR_TEXTS[currentIndex];
+            }
+
+            function showAdjacentTip(step) {
+                currentIndex = (currentIndex + step + FLAVOR_TEXTS.length) % FLAVOR_TEXTS.length;
+                flavorTextDisplay.textContent = FLAVOR_TEXTS[currentIndex];
+            }
+
+            // Click anywhere or press Spacebar / Arrow keys to change flavour text
+            window.addEventListener('click', () => {
+                showRandomTip();
+                resetAutoCycle();
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    showRandomTip();
+                    resetAutoCycle();
+                } else if (e.code === 'ArrowRight' || e.code === 'ArrowDown') {
+                    showAdjacentTip(1);
+                    resetAutoCycle();
+                } else if (e.code === 'ArrowLeft' || e.code === 'ArrowUp') {
+                    showAdjacentTip(-1);
+                    resetAutoCycle();
+                }
+            });
+
+            window.addEventListener('resize', resizeCanvas);
+            window.onload = function() {
+                resizeCanvas();
+                resetAutoCycle();
+                requestAnimationFrame(animate);
+            };
+        })();
+    </script>
+</body>
+</html>
